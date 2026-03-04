@@ -41,12 +41,24 @@
       animation: blink 1s step-end infinite;
     }
 
+    .status {
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      font-weight: 400;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #555;
+    }
+
     @keyframes blink {
       50% { opacity: 0; }
     }
   </style>
 </head>
 <body>
-  <div class="name">Brad Dwyer</div>
+  <div class="center">
+    <div class="name">Brad Dwyer</div>
+    <div class="status">Coming soon</div>
+  </div>
 </body>
 </html>
