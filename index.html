@@ -76,7 +76,34 @@
       "Almost ready",
       "Building something new",
       "Check back shortly",
+      "Work in progress",
+      "Launching soon",
+      "Not quite yet",
+      "Patience",
+      "Good things take time",
+      "Crafting pixels",
+      "Wiring things up",
+      "One moment",
+      "Putting it together",
+      "Hang tight",
+      "On the way",
+      "Still cooking",
+      "Just around the corner",
+      "In the works",
+      "Loading",
+      "Assembling",
+      "Getting there",
+      "Bear with me",
+      "Coming right up",
+      "Tuning things up",
+      "Making it happen",
+      "New site who dis",
     ];
+
+    for (let i = messages.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [messages[i], messages[j]] = [messages[j], messages[i]];
+    }
 
     const el = document.getElementById("status");
     let msgIndex = 0;
