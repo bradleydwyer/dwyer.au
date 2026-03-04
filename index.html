@@ -191,6 +191,9 @@
       "Certainly! Great question!",
       "Your job is safe (for now)",
       "Generating sycophantic praise",
+      "Burninating the countryside",
+      "Checking sbemail",
+      "Consummate V's!",
     ];
 
     for (let i = messages.length - 1; i > 0; i--) {
@@ -397,6 +400,16 @@
       'That\'s an excellent\n  question! You\'re so\n  smart for asking!',
       'Confidence: 100%\n  Accuracy: ¯\\_(ツ)_/¯',
       'AI REPLACING:\n  [████░░░░░] 42%\n  YOUR JOB',
+      // Homestar Runner / Strong Bad
+      'DELETED!!',
+      'Dear Strong Bad,\nHow do you type\n  with boxing\n  gloves on?',
+      'TROGDOR!!\nBurninating the\n  countryside!\nBurninating the\n  peasants!',
+      'The Cheat is\n  GROUNDED!',
+      'I said consummate\n  V\'s! CONSUMMATE!',
+      'strongbad_email.exe\n  run by Strong Bad\n  Compy 386',
+      'BURNINATING ALL\n  THE PEOPLE IN\n  THEIR THATCHED\n  ROOF COTTAGES!',
+      'Come on, fhqwhgads',
+      'The system\n  is down.\n  The system\n  is down.',
     ];
 
     // --- Mini game scene renderers (canvas-based, animated) ---
@@ -411,7 +424,7 @@
       canvas.style.imageRendering = "pixelated";
       const ctx = canvas.getContext("2d");
 
-      const sceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene, createMissileCommandScene, createOregonTrailScene, createPrinceScene, createLemmingsScene, createWin95Scene, createAmigaBoingScene, createWolfensteinScene, createMinesweeperScene, createPipeDreamScene, createGameOfLifeScene, createDOSBootScene, createCarmenScene, createAIChatScene, createKingsQuestScene, createQuestForGloryScene, createPoliceQuestScene];
+      const sceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene, createMissileCommandScene, createOregonTrailScene, createPrinceScene, createLemmingsScene, createWin95Scene, createAmigaBoingScene, createWolfensteinScene, createMinesweeperScene, createPipeDreamScene, createGameOfLifeScene, createDOSBootScene, createCarmenScene, createStrongBadScene, createTrogdorScene, createAIChatScene, createKingsQuestScene, createQuestForGloryScene, createPoliceQuestScene];
 
       // pick a scene that isn't already on screen
       const available = sceneFactories.filter(f => !activeSceneTypes.has(f.name));
@@ -3682,6 +3695,319 @@
             cityIdx = (cityIdx + 1) % cities.length;
             phase = 1; charIdx = 0; tickCounter = 0;
           }
+        }
+      };
+    }
+
+    // --- Strong Bad / Homestar Runner ---
+
+    function createStrongBadScene(ctx, w, h) {
+      let tick = 0;
+      let charIdx = 0, lineIdx = 0, phase = 0;
+      const emails = [
+        { from: "crappyuser42", subj: "your website", lines: ["Dear Strong Bad,", "How do you type with", "boxing gloves on?", "Crapfully yours,", "crappyuser42"] },
+        { from: "ali_and_ali", subj: "cool tricks", lines: ["Dear Strong Bad,", "Can you teach me", "how to be cool?", "Your #1 fan,", "Ali"] },
+        { from: "the_cheat_fan", subj: "the cheat", lines: ["Strong Bad,", "Is The Cheat really", "that awesome?", "Sincerely,", "The Cheat Fan"] },
+      ];
+      let emailIdx = Math.floor(Math.random() * emails.length);
+      let responseLine = "";
+      const responses = [
+        ["DELETED!!", "That's a good question.", "No, wait. That's a", "TERRIBLE question."],
+        ["Holy crap!", "Another one of these?", "I get like 400 of", "these a day, people."],
+        ["Oh man...", "This is the worst", "email I've ever gotten.", "And I've gotten some", "PRETTY bad ones."],
+      ];
+      let respIdx = 0, respCharIdx = 0;
+
+      return function draw(frame) {
+        tick++;
+        const email = emails[emailIdx];
+
+        // Compy 386 monitor
+        ctx.fillStyle = "#1a3a1a"; ctx.fillRect(0, 0, w, h);
+
+        // monitor bezel
+        ctx.fillStyle = "#888"; ctx.fillRect(0, 0, w, 3);
+        ctx.fillRect(0, h - 3, w, 3);
+        ctx.fillRect(0, 0, 3, h);
+        ctx.fillRect(w - 3, 0, 3, h);
+        ctx.fillStyle = "#666";
+        ctx.fillRect(3, 3, w - 6, 2);
+
+        // title bar
+        ctx.fillStyle = "#2a5a2a"; ctx.fillRect(5, 6, w - 10, 10);
+        ctx.fillStyle = "#00ff00"; ctx.font = "bold 6px monospace";
+        ctx.fillText("strongbad_email.exe", 8, 14);
+
+        // email content area
+        ctx.fillStyle = "#0a2a0a"; ctx.fillRect(5, 18, w - 10, h - 24);
+
+        if (phase === 0) {
+          // typing out the email
+          ctx.fillStyle = "#00ff00"; ctx.font = "5px monospace";
+          ctx.fillText("FROM: " + email.from, 8, 28);
+          ctx.fillText("SUBJ: " + email.subj, 8, 36);
+          ctx.fillStyle = "#006600"; ctx.fillRect(8, 39, w - 18, 1);
+
+          // type email lines
+          if (tick % 4 === 0) charIdx++;
+          let totalChars = 0;
+          for (let i = 0; i < email.lines.length; i++) {
+            const line = email.lines[i];
+            const startChar = totalChars;
+            totalChars += line.length;
+            if (charIdx > startChar) {
+              const show = Math.min(charIdx - startChar, line.length);
+              ctx.fillStyle = "#00ff00"; ctx.font = "5px monospace";
+              ctx.fillText(line.slice(0, show), 8, 48 + i * 9);
+            }
+          }
+
+          // cursor
+          if (charIdx < totalChars) {
+            let cx = 8, cy = 48;
+            let rem = charIdx;
+            for (const line of email.lines) {
+              if (rem <= line.length) { cx += rem * 3.3; break; }
+              rem -= line.length; cy += 9;
+            }
+            if (tick % 10 < 5) {
+              ctx.fillStyle = "#00ff00"; ctx.fillRect(cx, cy - 4, 4, 6);
+            }
+          }
+
+          if (charIdx >= totalChars + 15) { phase = 1; respIdx = 0; respCharIdx = 0; }
+        } else if (phase === 1) {
+          // Strong Bad's response
+          ctx.fillStyle = "#00ff00"; ctx.font = "5px monospace";
+          ctx.fillText("FROM: " + email.from, 8, 28);
+
+          const resp = responses[emailIdx % responses.length];
+          if (tick % 5 === 0) respCharIdx++;
+          let totalResp = 0;
+          for (let i = 0; i < resp.length; i++) {
+            totalResp += resp[i].length;
+            const startC = totalResp - resp[i].length;
+            if (respCharIdx > startC) {
+              const show = Math.min(respCharIdx - startC, resp[i].length);
+              ctx.fillStyle = "#ffff00"; ctx.font = "bold 5px monospace";
+              ctx.fillText(resp[i].slice(0, show), 8, 42 + i * 10);
+            }
+          }
+
+          if (respCharIdx >= totalResp + 20) {
+            phase = 0; charIdx = 0; tick = 0;
+            emailIdx = (emailIdx + 1) % emails.length;
+          }
+        }
+
+        // Strong Bad face in corner
+        const sbx = w - 28, sby = h - 30;
+        // head (white/red wrestling mask)
+        ctx.fillStyle = "#ff0000"; ctx.fillRect(sbx, sby, 20, 16);
+        // eye holes
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(sbx + 3, sby + 4, 6, 5);
+        ctx.fillRect(sbx + 11, sby + 4, 6, 5);
+        // eyes
+        ctx.fillStyle = "#000";
+        ctx.fillRect(sbx + 5, sby + 5, 3, 3);
+        ctx.fillRect(sbx + 13, sby + 5, 3, 3);
+        // angry brow
+        ctx.fillStyle = "#ff0000";
+        ctx.fillRect(sbx + 3, sby + 3, 3, 2);
+        ctx.fillRect(sbx + 14, sby + 3, 3, 2);
+        // mouth
+        ctx.fillStyle = "#000";
+        ctx.fillRect(sbx + 6, sby + 11, 8, 2);
+        // boxing gloves
+        ctx.fillStyle = "#cc0000";
+        ctx.fillRect(sbx - 4, sby + 14, 8, 7);
+        ctx.fillRect(sbx + 18, sby + 14, 8, 7);
+
+        // scan lines
+        ctx.fillStyle = "rgba(0,0,0,0.15)";
+        for (let sy = 0; sy < h; sy += 3) {
+          ctx.fillRect(0, sy, w, 1);
+        }
+      };
+    }
+
+    function createTrogdorScene(ctx, w, h) {
+      let tick = 0;
+      let trogX = 20, trogY = h / 2 - 10, trogDir = 1;
+      const ground = h - 16;
+      let burninating = false, burnTimer = 0;
+      const cottages = [];
+      const flames = [];
+      const peasants = [];
+      let score = 0;
+
+      // spawn cottages
+      for (let i = 0; i < 4; i++) {
+        cottages.push({ x: 30 + i * 32, y: ground - 10, alive: true, burnFrame: 0 });
+      }
+      // spawn peasants
+      for (let i = 0; i < 5; i++) {
+        peasants.push({ x: 20 + Math.random() * (w - 40), y: ground - 4 + Math.random() * 4, vx: (Math.random() - 0.5) * 1.5, alive: true });
+      }
+
+      function drawTrogdor(x, y, dir) {
+        // S-shaped body
+        ctx.fillStyle = "#00aa00";
+        // body segments
+        ctx.fillRect(x, y + 4, 16, 8);
+        ctx.fillRect(x - 4 * dir, y + 2, 8, 6);
+        // head
+        ctx.fillStyle = "#00cc00";
+        ctx.fillRect(x + 14 * dir, y, 8, 10);
+        // eye
+        ctx.fillStyle = "#ff0000";
+        ctx.fillRect(x + (dir > 0 ? 18 : 16) * dir, y + 2, 2, 2);
+        // angry brow
+        ctx.fillStyle = "#000";
+        ctx.fillRect(x + (dir > 0 ? 17 : 15) * dir, y + 1, 3, 1);
+        // mouth
+        ctx.fillStyle = "#ff4400";
+        ctx.fillRect(x + (dir > 0 ? 20 : 14) * dir, y + 6, 4 * dir, 2);
+        // beefy arm (THE BEEFY ARM!)
+        ctx.fillStyle = "#00aa00";
+        ctx.fillRect(x + 4, y + 12, 3, 6);
+        ctx.fillStyle = "#00cc00";
+        ctx.fillRect(x + 2, y + 17, 7, 3);
+        // wings (consummate V's!)
+        ctx.fillStyle = "#00aa00";
+        ctx.fillRect(x + 2, y - 4, 2, 5);
+        ctx.fillRect(x + 6, y - 6, 2, 5);
+        ctx.fillRect(x + 10, y - 4, 2, 5);
+        // legs
+        ctx.fillRect(x + 2, y + 12, 2, 4);
+        ctx.fillRect(x + 12, y + 12, 2, 4);
+        // tail
+        ctx.fillRect(x - 8 * dir, y + 6, 6, 3);
+        ctx.fillRect(x - 12 * dir, y + 4, 4, 3);
+        // spikes on back
+        ctx.fillStyle = "#ffcc00";
+        for (let s = 0; s < 3; s++) {
+          ctx.fillRect(x + 2 + s * 5, y - 1, 2, 3);
+        }
+      }
+
+      return function draw(frame) {
+        tick++;
+
+        // sky
+        ctx.fillStyle = "#220000"; ctx.fillRect(0, 0, w, h);
+        // mountains
+        ctx.fillStyle = "#331100";
+        for (let mx = 0; mx < w; mx += 30) {
+          const mh = 15 + Math.sin(mx * 0.2) * 10;
+          ctx.fillRect(mx, ground - mh, 30, mh);
+        }
+        // ground
+        ctx.fillStyle = "#443300"; ctx.fillRect(0, ground, w, h - ground);
+
+        // cottages
+        for (const c of cottages) {
+          if (c.alive) {
+            // thatched roof cottage
+            ctx.fillStyle = "#aa8855"; ctx.fillRect(c.x, c.y, 12, 10);
+            ctx.fillStyle = "#885533";
+            // roof triangle
+            ctx.fillRect(c.x - 2, c.y - 2, 16, 3);
+            ctx.fillRect(c.x + 1, c.y - 4, 10, 3);
+            // door
+            ctx.fillStyle = "#553311"; ctx.fillRect(c.x + 4, c.y + 4, 4, 6);
+            // window
+            ctx.fillStyle = "#ffff88"; ctx.fillRect(c.x + 1, c.y + 2, 3, 3);
+          } else {
+            // burning rubble
+            ctx.fillStyle = "#333"; ctx.fillRect(c.x, c.y + 5, 12, 5);
+            c.burnFrame++;
+            if (c.burnFrame < 60) {
+              for (let fi = 0; fi < 3; fi++) {
+                const fx = c.x + 2 + Math.random() * 8;
+                const fy = c.y - Math.random() * 8;
+                ctx.fillStyle = tick % 4 < 2 ? "#ff4400" : "#ffaa00";
+                ctx.fillRect(fx, fy, 2 + Math.random() * 3, 3 + Math.random() * 4);
+              }
+            }
+          }
+        }
+
+        // peasants
+        for (const p of peasants) {
+          if (!p.alive) continue;
+          p.x += p.vx;
+          if (p.x < 5 || p.x > w - 5) p.vx *= -1;
+          // panic near trogdor
+          if (Math.abs(p.x - trogX) < 25) {
+            p.vx = p.x < trogX ? -2 : 2;
+          }
+          // stick figure peasant
+          ctx.fillStyle = "#aa8866";
+          ctx.fillRect(p.x, p.y - 6, 3, 6); // body
+          ctx.fillStyle = "#ffcc99";
+          ctx.fillRect(p.x, p.y - 8, 3, 3); // head
+          // legs
+          ctx.fillRect(p.x, p.y, 1, 3);
+          ctx.fillRect(p.x + 2, p.y, 1, 3);
+        }
+
+        // Trogdor movement
+        if (tick % 3 === 0) {
+          trogX += trogDir * 2;
+          // burninate cottages
+          for (const c of cottages) {
+            if (c.alive && Math.abs(trogX - c.x) < 15 && Math.abs(trogY - c.y) < 15) {
+              c.alive = false; score += 100;
+              burninating = true; burnTimer = tick;
+            }
+          }
+          // burninate peasants
+          for (const p of peasants) {
+            if (p.alive && Math.abs(trogX + 10 - p.x) < 10 && Math.abs(trogY + 5 - p.y) < 10) {
+              p.alive = false; score += 50;
+            }
+          }
+        }
+        if (trogX > w - 30) { trogDir = -1; trogY = ground - 20 - Math.random() * 30; }
+        if (trogX < 5) { trogDir = 1; trogY = ground - 20 - Math.random() * 30; }
+
+        drawTrogdor(trogX, trogY, trogDir);
+
+        // fire breath
+        if (tick % 8 < 5) {
+          const bx = trogDir > 0 ? trogX + 24 : trogX - 12;
+          ctx.fillStyle = "#ff4400";
+          ctx.fillRect(bx, trogY + 3, 8 * trogDir, 4);
+          ctx.fillStyle = "#ffaa00";
+          ctx.fillRect(bx + 6 * trogDir, trogY + 2, 6 * trogDir, 3);
+          ctx.fillStyle = "#ffff00";
+          ctx.fillRect(bx + 10 * trogDir, trogY + 3, 4 * trogDir, 2);
+        }
+
+        // title
+        ctx.fillStyle = "#ff4400"; ctx.font = "bold 7px monospace";
+        ctx.fillText("TROGDOR!!", 4, 9);
+        ctx.fillStyle = "#ffaa00"; ctx.font = "5px monospace";
+        ctx.fillText("the Burninator", 4, 17);
+
+        // score
+        ctx.fillStyle = "#ffff00"; ctx.font = "5px monospace";
+        ctx.fillText("SCORE:" + score, w - 42, 9);
+
+        // burninating status
+        if (burninating && tick - burnTimer < 40) {
+          ctx.fillStyle = "#ff0000"; ctx.font = "bold 6px monospace";
+          const msgs = ["BURNINATING THE", "COUNTRYSIDE!", "BURNINATING THE", "PEASANTS!", "BURNINATING ALL THE", "PEOPLE IN THEIR", "THATCHED-ROOF", "COTTAGES!"];
+          const mi = Math.floor((tick - burnTimer) / 5) % msgs.length;
+          ctx.fillText(msgs[mi], w / 2 - 35, h / 2 - 5);
+        }
+
+        // respawn check
+        if (cottages.every(c => !c.alive) && peasants.every(p => !p.alive)) {
+          for (const c of cottages) { c.alive = true; c.burnFrame = 0; }
+          for (const p of peasants) { p.alive = true; p.x = 20 + Math.random() * (w - 40); }
         }
       };
     }
