@@ -4549,16 +4549,31 @@
       const isGame = type >= 0.3 && type < 0.6;
       const duration = isGame ? rand2(15000, 30000) : rand2(80, 400);
       setTimeout(() => {
-        el.style.transition = "opacity 0.3s";
-        el.style.opacity = "0";
-        setTimeout(() => {
-          // clean up scene type tracking
-          if (isGame) {
-            const canvas = el.querySelector("canvas");
-            if (canvas && canvas._sceneType) activeSceneTypes.delete(canvas._sceneType);
+        // glitch out of existence
+        let deathFrame = 0;
+        const deathFrames = 8 + Math.floor(Math.random() * 6);
+        const deathInterval = setInterval(() => {
+          deathFrame++;
+          const chaos = deathFrame / deathFrames;
+          const jx = (Math.random() - 0.5) * 30 * chaos;
+          const jy = (Math.random() - 0.5) * 20 * chaos;
+          const skew = (Math.random() - 0.5) * 40 * chaos;
+          const scale = 1 - chaos * 0.5 + Math.random() * 0.3;
+          el.style.transform = `translate(${jx}px, ${jy}px) skewX(${skew}deg) scale(${scale})`;
+          el.style.filter = `hue-rotate(${Math.random() * 360}deg) saturate(${2 + chaos * 5}) brightness(${1 + chaos * 2})`;
+          if (Math.random() < chaos * 0.6) el.style.clipPath = `inset(${Math.random()*40}% 0 ${Math.random()*40}% 0)`;
+          else el.style.clipPath = "";
+          if (Math.random() < chaos * 0.4) el.style.opacity = "0";
+          else el.style.opacity = (1 - chaos * 0.5).toFixed(2);
+          if (deathFrame >= deathFrames) {
+            clearInterval(deathInterval);
+            if (isGame) {
+              const canvas = el.querySelector("canvas");
+              if (canvas && canvas._sceneType) activeSceneTypes.delete(canvas._sceneType);
+            }
+            if (el.parentNode) el.parentNode.removeChild(el);
           }
-          if (el.parentNode) el.parentNode.removeChild(el);
-        }, 300);
+        }, 40);
       }, duration);
 
       return el;
