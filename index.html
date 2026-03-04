@@ -125,7 +125,7 @@
   </style>
 </head>
 <body>
-  <canvas id="hbo-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:#000;"></canvas>
+  <canvas id="hbo-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;"></canvas>
   <canvas id="matrix-canvas"></canvas>
   <div class="center">
     <div class="name" id="name"></div>
@@ -5077,113 +5077,61 @@
         // fire off intense glitch + matrix
         forceGlitch(1.0);
         matrix.start();
-        setTimeout(() => forceGlitch(0.8), 200);
-        setTimeout(() => forceGlitch(0.9), 500);
+        setTimeout(() => forceGlitch(0.9), 150);
+        setTimeout(() => forceGlitch(1.0), 400);
+        setTimeout(() => forceGlitch(0.8), 700);
 
-        // phase 1: violent chaos (frames 0-25) — everything scrambles wildly
-        // phase 2: cascade lock-in (frames 25-65) — chars lock left-to-right
-        // phase 3: aftershock (frames 65-80) — locked chars jitter then settle
-        const chaosEnd = 25;
-        const cascadeDelay = 2.5;
-        const lockStart = chaosEnd;
-
-        const slots = [];
-        for (let i = 0; i < maxLen; i++) {
-          slots.push({
-            from: currentText[i] || "",
-            to: targetText[i] || "",
-            locked: false,
-            lockFrame: lockStart + Math.floor(i * cascadeDelay),
-            current: currentText[i] || " ",
-          });
-        }
-        const aftershockStart = slots[slots.length - 1].lockFrame + 2;
-        const totalFrames = aftershockStart + 15;
+        // two phases: full chaos scramble, then hard snap to final text
+        const chaosFrames = 35 + Math.floor(Math.random() * 10);
 
         let frame = 0;
         const interval = setInterval(() => {
           frame++;
           nameEl.textContent = "";
 
-          // whole-name transform chaos
-          if (frame < aftershockStart) {
-            const chaos = frame < chaosEnd ? 1.0 : Math.max(0, 1 - (frame - chaosEnd) / 30);
-            nameEl.style.transform = `skewX(${(Math.random() - 0.5) * 20 * chaos}deg) translate(${(Math.random() - 0.5) * 12 * chaos}px, ${(Math.random() - 0.5) * 6 * chaos}px)`;
-            // RGB split text-shadow on the whole element
-            const splitX = (Math.random() - 0.5) * 8 * chaos;
+          if (frame <= chaosFrames) {
+            // FULL CHAOS the entire time — no gradual reduction
+            nameEl.style.transform = `skewX(${(Math.random() - 0.5) * 25}deg) translate(${(Math.random() - 0.5) * 15}px, ${(Math.random() - 0.5) * 8}px)`;
+            const splitX = (Math.random() - 0.5) * 10;
             nameEl.style.textShadow = `${splitX}px 0 #f00, ${-splitX}px 0 #0ff`;
-          } else {
-            // settling phase — dampened jitter
-            const settle = 1 - (frame - aftershockStart) / 15;
-            if (settle > 0.1 && Math.random() < 0.5) {
-              nameEl.style.transform = `translate(${(Math.random() - 0.5) * 4 * settle}px, ${(Math.random() - 0.5) * 2 * settle}px)`;
+
+            // clip-path glitch slices throughout
+            if (Math.random() < 0.5) {
+              const y1 = Math.random() * 100;
+              const y2 = y1 + 10 + Math.random() * 30;
+              nameEl.style.clipPath = `polygon(${(Math.random()-0.5)*10}% ${y1}%, 100% ${y1}%, ${100+(Math.random()-0.5)*10}% ${y2}%, 0% ${y2}%)`;
             } else {
-              nameEl.style.transform = "";
+              nameEl.style.clipPath = "";
             }
-            nameEl.style.textShadow = "";
-          }
 
-          // clip-path glitch slices during chaos
-          if (frame < chaosEnd && Math.random() < 0.6) {
-            const y1 = Math.random() * 100;
-            const y2 = y1 + 10 + Math.random() * 30;
-            nameEl.style.clipPath = `polygon(${(Math.random()-0.5)*10}% ${y1}%, 100% ${y1}%, ${100+(Math.random()-0.5)*10}% ${y2}%, 0% ${y2}%)`;
-          } else if (frame >= chaosEnd) {
-            nameEl.style.clipPath = "";
-          }
+            // all chars are wild scramble — show random length between current and target
+            const showLen = Math.floor(maxLen * (0.7 + Math.random() * 0.6));
+            for (let i = 0; i < showLen; i++) {
+              const span = document.createElement("span");
+              span.className = "char";
 
-          // update slots
-          for (const s of slots) {
-            if (frame >= s.lockFrame) {
-              s.locked = true;
-              s.current = s.to;
-            } else {
-              s.current = glitchChars[Math.floor(Math.random() * glitchChars.length)];
-            }
-          }
-
-          // render each character
-          for (let i = 0; i < slots.length; i++) {
-            const s = slots[i];
-            const span = document.createElement("span");
-            span.className = "char";
-            const ch = s.current;
-            span.textContent = ch === " " ? "\u00A0" : ch;
-
-            if (s.locked) {
-              // just locked — bright flash
-              const sinceLock = frame - s.lockFrame;
-              if (sinceLock < 4) {
+              // occasionally flash the real target char through the noise
+              if (i < targetText.length && Math.random() < 0.15) {
+                span.textContent = targetText[i] === " " ? "\u00A0" : targetText[i];
                 span.style.color = "#fff";
-                span.style.textShadow = `0 0 12px #0ff, 0 0 24px #0ff, 0 0 4px #fff`;
-                span.style.transform = `scale(${1 + (4 - sinceLock) * 0.15})`;
-              }
-              // aftershock micro-jitter on locked chars
-              if (frame >= aftershockStart && Math.random() < 0.15) {
-                span.style.transform = `translate(${(Math.random()-0.5)*3}px, ${(Math.random()-0.5)*2}px)`;
+                span.style.textShadow = "0 0 8px #0ff";
+              } else {
+                span.textContent = glitchChars[Math.floor(Math.random() * glitchChars.length)];
                 span.style.color = colors[Math.floor(Math.random() * colors.length)];
+                const jitterX = (Math.random() - 0.5) * 12;
+                const jitterY = (Math.random() - 0.5) * 8;
+                const skew = (Math.random() - 0.5) * 35;
+                const scale = 0.5 + Math.random() * 1.0;
+                span.style.transform = `translate(${jitterX}px, ${jitterY}px) skewX(${skew}deg) scale(${scale})`;
+                span.style.textShadow = `${(Math.random()-0.5)*6}px ${(Math.random()-0.5)*3}px ${colors[Math.floor(Math.random() * colors.length)]}`;
+                if (Math.random() < 0.25) span.style.opacity = "0";
               }
-            } else {
-              // scrambling — violent per-character chaos
-              span.style.color = colors[Math.floor(Math.random() * colors.length)];
-              const jitterX = (Math.random() - 0.5) * 10;
-              const jitterY = (Math.random() - 0.5) * 6;
-              const skew = (Math.random() - 0.5) * 30;
-              const scale = 0.6 + Math.random() * 0.8;
-              span.style.transform = `translate(${jitterX}px, ${jitterY}px) skewX(${skew}deg) scale(${scale})`;
-              span.style.textShadow = `${(Math.random()-0.5)*6}px ${(Math.random()-0.5)*3}px ${colors[Math.floor(Math.random() * colors.length)]}`;
-              // random flicker
-              if (Math.random() < 0.2) span.style.opacity = "0";
+              nameEl.appendChild(span);
             }
-            nameEl.appendChild(span);
-          }
-
-          nameEl.setAttribute("data-text", slots.map(s => s.current).join(""));
-
-          if (frame >= totalFrames) {
+            nameEl.setAttribute("data-text", glitchChars.slice(0, showLen));
+          } else {
+            // HARD SNAP — instantly show the final text, no settling
             clearInterval(interval);
-            // clean final state
-            nameEl.textContent = "";
             nameEl.style.transform = "";
             nameEl.style.textShadow = "";
             nameEl.style.clipPath = "";
@@ -5194,10 +5142,10 @@
               nameEl.appendChild(span);
             }
             nameEl.setAttribute("data-text", targetText);
-            setTimeout(() => matrix.stop(), 400);
+            setTimeout(() => matrix.stop(), 300);
             transitioning = false;
           }
-        }, 40);
+        }, 35);
       }
 
       function scheduleNext() {
@@ -5222,97 +5170,40 @@
       const W = canvas.width = window.innerWidth;
       const H = canvas.height = window.innerHeight;
 
+      // Show "Brad Dwyer" on the actual page element behind the canvas
+      const nameEl = document.getElementById("name");
+      nameEl.textContent = "Brad Dwyer";
+      nameEl.setAttribute("data-text", "Brad Dwyer");
+
       let frame = 0;
       const FPS = 30;
       // Timing (in frames at 30fps):
       // 0-30:   color bars (1s)
       // 30-38:  static burst transition (0.27s)
-      // 38-90:  full static with subtle fade (1.7s)
-      // 90-130: static parts/dissolves to reveal logo (1.3s)
-      // 130-200: logo hold with starfield + lens flare (2.3s)
-      // 200-230: fade out (1s)
+      // 38-85:  static with text bleeding through (1.6s)
+      // 85-130: static fades out uniformly (1.5s)
       const BARS_END = 30;
       const STATIC_TRANS = 38;
-      const STATIC_END = 90;
+      const STATIC_END = 85;
       const REVEAL_END = 130;
-      const HOLD_END = 200;
-      const FADE_END = 230;
 
-      // SMPTE color bars
       const barColors = ["#fff", "#ffff00", "#00ffff", "#00ff00", "#ff00ff", "#ff0000", "#0000ff"];
 
-      // starfield
-      const stars = [];
-      for (let i = 0; i < 120; i++) {
-        stars.push({ x: Math.random() * W, y: Math.random() * H, s: 0.5 + Math.random() * 2, b: Math.random() });
-      }
-
-      // pre-render the logo text to measure it
-      function drawLogo(alpha) {
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        const text = "dwyer.au";
-        const fontSize = Math.min(W * 0.15, 140);
-        ctx.font = `bold ${fontSize}px "JetBrains Mono", monospace`;
-
-        const cx = W / 2, cy = H / 2;
-
-        // chrome/metallic gradient
-        const grad = ctx.createLinearGradient(cx - fontSize * 2, cy - fontSize * 0.5, cx + fontSize * 2, cy + fontSize * 0.5);
-        grad.addColorStop(0, "#888");
-        grad.addColorStop(0.15, "#fff");
-        grad.addColorStop(0.3, "#aaa");
-        grad.addColorStop(0.5, "#fff");
-        grad.addColorStop(0.65, "#999");
-        grad.addColorStop(0.8, "#eee");
-        grad.addColorStop(1, "#777");
-
-        // outer glow
-        ctx.shadowColor = "#4488ff";
-        ctx.shadowBlur = 40;
-        ctx.fillStyle = grad;
-        ctx.fillText(text, cx, cy);
-
-        // sharper inner layer
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = "#88ccff";
-        ctx.fillText(text, cx, cy);
-
-        // bright edge highlight
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = "rgba(255,255,255,0.4)";
-        ctx.lineWidth = 1;
-        ctx.strokeText(text, cx, cy);
-
-        // subtitle
-        const subSize = Math.max(fontSize * 0.18, 12);
-        ctx.font = `${subSize}px "JetBrains Mono", monospace`;
-        ctx.fillStyle = `rgba(100,180,255,${alpha * 0.8})`;
-        ctx.shadowColor = "#4488ff";
-        ctx.shadowBlur = 10;
-        ctx.fillText("F E A T U R E   P R E S E N T A T I O N", cx, cy + fontSize * 0.55);
-
-        ctx.restore();
-      }
-
-      // static noise generator
-      function drawStatic(density) {
+      // static noise with configurable alpha per pixel
+      function drawStaticWithAlpha(density, baseAlpha) {
         const imgData = ctx.createImageData(W, H);
         const d = imgData.data;
-        // use larger blocks for authentic TV static look
         const blockSize = 2;
         for (let y = 0; y < H; y += blockSize) {
           for (let x = 0; x < W; x += blockSize) {
             if (Math.random() > density) continue;
             const v = Math.random() * 255;
+            const a = Math.floor(baseAlpha * (0.7 + Math.random() * 0.3));
             for (let by = 0; by < blockSize && y + by < H; by++) {
               for (let bx = 0; bx < blockSize && x + bx < W; bx++) {
                 const idx = ((y + by) * W + (x + bx)) * 4;
                 d[idx] = d[idx + 1] = d[idx + 2] = v;
-                d[idx + 3] = 255;
+                d[idx + 3] = a;
               }
             }
           }
@@ -5320,43 +5211,10 @@
         ctx.putImageData(imgData, 0, 0);
       }
 
-      function drawStarfield(alpha) {
-        for (const s of stars) {
-          const twinkle = 0.5 + Math.sin(frame * 0.1 + s.b * 10) * 0.5;
-          ctx.fillStyle = `rgba(200,220,255,${alpha * twinkle * 0.7})`;
-          ctx.fillRect(s.x, s.y, s.s, s.s);
-        }
-      }
-
-      function drawLensFlare(progress) {
-        // horizontal sweep across the logo
-        const cx = W * (0.2 + progress * 0.6);
-        const cy = H / 2;
-
-        // main flare
-        const flareGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 80);
-        flareGrad.addColorStop(0, "rgba(255,255,255,0.6)");
-        flareGrad.addColorStop(0.2, "rgba(200,230,255,0.3)");
-        flareGrad.addColorStop(0.5, "rgba(100,180,255,0.1)");
-        flareGrad.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = flareGrad;
-        ctx.fillRect(cx - 80, cy - 80, 160, 160);
-
-        // horizontal streak
-        ctx.fillStyle = `rgba(200,230,255,${0.15 * (1 - Math.abs(progress - 0.5) * 2)})`;
-        ctx.fillRect(0, cy - 1, W, 2);
-
-        // secondary flare spots
-        const spots = [0.3, -0.2, 0.5];
-        for (const offset of spots) {
-          const sx = cx + offset * 100;
-          const sy = cy + offset * 30;
-          const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, 20);
-          sg.addColorStop(0, "rgba(100,200,255,0.2)");
-          sg.addColorStop(1, "rgba(0,0,0,0)");
-          ctx.fillStyle = sg;
-          ctx.fillRect(sx - 20, sy - 20, 40, 40);
-        }
+      // full opaque static (for early phases where we don't want page to show)
+      function drawFullStatic(density) {
+        ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
+        drawStaticWithAlpha(density, 255);
       }
 
       function render() {
@@ -5371,21 +5229,18 @@
             ctx.fillStyle = barColors[i];
             ctx.fillRect(i * barW, 0, barW + 1, H * 0.75);
           }
-          // bottom section: darker bars
           const bottomBars = ["#0000ff", "#000", "#ff00ff", "#000", "#00ffff", "#000", "#fff"];
           const bbW = W / bottomBars.length;
           for (let i = 0; i < bottomBars.length; i++) {
             ctx.fillStyle = bottomBars[i];
             ctx.fillRect(i * bbW, H * 0.75, bbW + 1, H * 0.25);
           }
-          // slight CRT warmth
           ctx.fillStyle = "rgba(20,10,0,0.1)"; ctx.fillRect(0, 0, W, H);
 
         } else if (frame <= STATIC_TRANS) {
-          // === STATIC BURST TRANSITION ===
+          // === BARS → STATIC TRANSITION ===
           const t = (frame - BARS_END) / (STATIC_TRANS - BARS_END);
-          // mix bars and static
-          // draw bars faintly
+          ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
           const barW = W / barColors.length;
           for (let i = 0; i < barColors.length; i++) {
             ctx.fillStyle = barColors[i];
@@ -5393,94 +5248,38 @@
             ctx.fillRect(i * barW, 0, barW + 1, H);
           }
           ctx.globalAlpha = 1;
-          // overlay static
-          ctx.globalAlpha = t;
-          drawStatic(0.8);
-          ctx.globalAlpha = 1;
+          drawStaticWithAlpha(0.5 + t * 0.4, 255);
 
         } else if (frame <= STATIC_END) {
-          // === FULL STATIC ===
-          drawStatic(0.9);
-          // occasional horizontal tear lines
+          // === STATIC — text starts showing through ===
+          const staticProgress = (frame - STATIC_TRANS) / (STATIC_END - STATIC_TRANS);
+          // start fully opaque, gradually let page bleed through
+          const opacity = Math.max(0.5, 1 - staticProgress * 0.5);
+          ctx.fillStyle = `rgba(0,0,0,${opacity})`; ctx.fillRect(0, 0, W, H);
+          drawStaticWithAlpha(0.85, Math.floor(255 * opacity));
+          // horizontal tear lines
           if (Math.random() < 0.3) {
             const tearY = Math.random() * H;
             const tearH = 2 + Math.random() * 4;
-            ctx.fillStyle = Math.random() < 0.5 ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.8)";
+            ctx.fillStyle = Math.random() < 0.5 ? `rgba(255,255,255,${0.6 * opacity})` : `rgba(0,0,0,${0.6 * opacity})`;
             ctx.fillRect(0, tearY, W, tearH);
           }
 
         } else if (frame <= REVEAL_END) {
-          // === STATIC PARTS TO REVEAL LOGO ===
+          // === STATIC FADES OUT — page shows through ===
           const revealProgress = (frame - STATIC_END) / (REVEAL_END - STATIC_END);
-
-          // draw dark background + starfield first
-          ctx.fillStyle = "#050510"; ctx.fillRect(0, 0, W, H);
-          drawStarfield(revealProgress);
-          drawLogo(revealProgress);
-
-          // overlay static that dissolves outward from center
-          const imgData = ctx.getImageData(0, 0, W, H);
-          const staticData = ctx.createImageData(W, H);
-          const sd = staticData.data;
-          const centerX = W / 2, centerY = H / 2;
-          const maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
-
-          for (let y = 0; y < H; y += 2) {
-            for (let x = 0; x < W; x += 2) {
-              const dx = x - centerX, dy = y - centerY;
-              const dist = Math.sqrt(dx * dx + dy * dy) / maxDist;
-              // static clears from center outward
-              const threshold = revealProgress * 1.3;
-              if (dist > threshold || (dist > threshold - 0.15 && Math.random() < 0.5)) {
-                const v = Math.random() * 255;
-                for (let by = 0; by < 2 && y + by < H; by++) {
-                  for (let bx = 0; bx < 2 && x + bx < W; bx++) {
-                    const idx = ((y + by) * W + (x + bx)) * 4;
-                    sd[idx] = sd[idx + 1] = sd[idx + 2] = v;
-                    sd[idx + 3] = 255;
-                  }
-                }
-              }
+          // density and alpha both decrease — static just dissolves everywhere uniformly
+          const density = 0.8 * (1 - revealProgress);
+          const alpha = Math.floor(220 * (1 - revealProgress));
+          if (density > 0.01 && alpha > 5) {
+            drawStaticWithAlpha(density, alpha);
+            // occasional tear lines getting fainter
+            if (Math.random() < 0.15 * (1 - revealProgress)) {
+              const tearY = Math.random() * H;
+              ctx.fillStyle = `rgba(255,255,255,${0.2 * (1 - revealProgress)})`;
+              ctx.fillRect(0, tearY, W, 1);
             }
           }
-          // composite: put static pixels only where we generated them
-          const existing = imgData.data;
-          for (let i = 0; i < sd.length; i += 4) {
-            if (sd[i + 3] > 0) {
-              existing[i] = sd[i];
-              existing[i + 1] = sd[i + 1];
-              existing[i + 2] = sd[i + 2];
-              existing[i + 3] = 255;
-            }
-          }
-          ctx.putImageData(imgData, 0, 0);
-
-        } else if (frame <= HOLD_END) {
-          // === LOGO HOLD WITH STARFIELD + LENS FLARE ===
-          ctx.fillStyle = "#050510"; ctx.fillRect(0, 0, W, H);
-          drawStarfield(1);
-          drawLogo(1);
-
-          // lens flare sweeps across
-          const flareProgress = (frame - REVEAL_END) / (HOLD_END - REVEAL_END);
-          if (flareProgress < 0.7) {
-            drawLensFlare(flareProgress / 0.7);
-          }
-
-          // subtle static grain overlay
-          ctx.globalAlpha = 0.03;
-          drawStatic(0.5);
-          ctx.globalAlpha = 1;
-
-        } else if (frame <= FADE_END) {
-          // === FADE OUT ===
-          const fadeProgress = (frame - HOLD_END) / (FADE_END - HOLD_END);
-          ctx.fillStyle = "#050510"; ctx.fillRect(0, 0, W, H);
-          drawStarfield(1 - fadeProgress);
-          drawLogo(1 - fadeProgress);
-
-          // fade to dark
-          ctx.fillStyle = `rgba(10,10,10,${fadeProgress})`; ctx.fillRect(0, 0, W, H);
 
         } else {
           // === DONE ===
@@ -5495,29 +5294,25 @@
       render();
     }
 
-    // --- Boot sequence: HBO intro → typeName → everything else ---
+    // --- Boot sequence: HBO intro → glitch burst → then start everything ---
     runHBOIntro(() => {
-      typeName(() => {
-        const nameEl = document.getElementById("name");
-        wrapChars(nameEl);
-        typeMessage();
+      const nameEl = document.getElementById("name");
+      wrapChars(nameEl);
 
-        // start glitch effects after 10 seconds, or on any click/mouse move
-        const autoTimer = setTimeout(startEverything, 10000);
+      // fire a glitch burst as the static clears — connects the two states
+      startGlitch();
+      initInteractionGlitch();
+      initCursorProximity();
+      glitchStarted = true;
+      forceGlitch(0.8);
+      matrix.start();
+      setTimeout(() => matrix.stop(), 600);
 
-        function earlyStart() {
-          clearTimeout(autoTimer);
-          startEverything();
-          document.removeEventListener("click", earlyStart);
-          document.removeEventListener("mousemove", earlyStart);
-        }
+      // start status messages after the burst settles
+      setTimeout(typeMessage, 800);
 
-        document.addEventListener("click", earlyStart);
-        document.addEventListener("mousemove", earlyStart);
-
-        // start name rotation after glitch is active
-        initNameRotation();
-      });
+      // start name rotation
+      initNameRotation();
     });
   </script>
 </body>
