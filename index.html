@@ -42,14 +42,9 @@
       animation: blink 1s step-end infinite;
     }
 
-    .name.glitch::before,
-    .name.glitch::after {
-      content: attr(data-text);
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      overflow: hidden;
+    .name .char {
+      display: inline-block;
+      position: relative;
     }
 
     .status {
@@ -170,7 +165,7 @@
           nameEl.textContent = name.slice(0, i + 1);
           nameEl.setAttribute("data-text", name.slice(0, i + 1));
           i++;
-          const delay = 40 + Math.random() * 80;
+          const delay = 300 + Math.random() * 1200;
           setTimeout(typeChar, delay);
         } else {
           setTimeout(callback, 800);
@@ -180,87 +175,167 @@
       typeChar();
     }
 
+    function wrapChars(nameEl) {
+      const text = nameEl.textContent;
+      nameEl.textContent = "";
+      for (const ch of text) {
+        const span = document.createElement("span");
+        span.className = "char";
+        span.textContent = ch === " " ? "\u00A0" : ch;
+        nameEl.appendChild(span);
+      }
+    }
+
     function startGlitch() {
       const nameEl = document.getElementById("name");
+      const body = document.body;
+      const chars = nameEl.querySelectorAll(".char");
 
-      const glitchColors = [
-        ["#0ff", "#f0f"],
-        ["#f00", "#0ff"],
-        ["#0f0", "#f0f"],
-        ["#ff0", "#f00"],
-        ["#f0f", "#0f0"],
-      ];
+      const glitchColors = ["#0ff", "#f0f", "#f00", "#0f0", "#ff0", "#f80"];
 
       function rand(min, max) {
         return min + Math.random() * (max - min);
       }
 
-      function glitchFrame(before, after, duration) {
-        const [c1, c2] = glitchColors[Math.floor(Math.random() * glitchColors.length)];
-        const clipTop = rand(0, 80);
-        const clipBot = rand(clipTop + 10, 100);
+      function pickColor() {
+        return glitchColors[Math.floor(Math.random() * glitchColors.length)];
+      }
 
-        nameEl.style.transform = `skewX(${rand(-4, 4).toFixed(1)}deg) translateX(${rand(-2, 2).toFixed(1)}px)`;
-        before.style.color = c1;
-        before.style.transform = `translateX(${rand(-5, 5).toFixed(1)}px)`;
-        before.style.clipPath = `inset(0 0 ${100 - clipTop}% 0)`;
-        after.style.color = c2;
-        after.style.transform = `translateX(${rand(-5, 5).toFixed(1)}px)`;
-        after.style.clipPath = `inset(${clipBot}% 0 0 0)`;
-
-        if (Math.random() < 0.3) {
-          nameEl.style.opacity = Math.random() < 0.5 ? "0" : "1";
+      function randomClip() {
+        const style = Math.floor(rand(0, 5));
+        const a = rand(0, 50), b = rand(50, 100);
+        switch (style) {
+          case 0: return `inset(${a}% 0 ${100-b}% 0)`;           // horizontal slice
+          case 1: return `inset(0 ${100-b}% 0 ${a}%)`;           // vertical slice
+          case 2: return `polygon(0 ${a}%, 100% 0, 100% ${b}%, 0 100%)`; // diagonal
+          case 3: return `polygon(${a}% 0, 100% ${a}%, ${b}% 100%, 0 ${b}%)`; // skewed quad
+          default: return `inset(${a}% ${rand(0,20)}% ${100-b}% ${rand(0,20)}%)`; // inset box
         }
       }
 
-      function clearGlitch(before, after) {
+      function glitchChars(intensity) {
+        const count = Math.max(1, Math.floor(chars.length * (0.2 + intensity * 0.8)));
+        const indices = [];
+        while (indices.length < count) {
+          const idx = Math.floor(rand(0, chars.length));
+          if (!indices.includes(idx)) indices.push(idx);
+        }
+
+        for (const idx of indices) {
+          const ch = chars[idx];
+          const mult = 1 + intensity * 5;
+
+          ch.style.transform = `translate(${rand(-3,3)*mult}px, ${rand(-3,3)*mult}px) skewX(${rand(-10,10)*intensity}deg)`;
+
+          if (Math.random() < 0.4 + intensity * 0.4) {
+            ch.style.color = pickColor();
+          }
+          if (Math.random() < 0.3 + intensity * 0.3) {
+            ch.style.textShadow = `${rand(-4,4)*mult}px ${rand(-2,2)*mult}px ${pickColor()}, ${rand(-4,4)*mult}px ${rand(-2,2)*mult}px ${pickColor()}`;
+          }
+          if (Math.random() < 0.2 * intensity) {
+            ch.style.clipPath = randomClip();
+            ch.style.webkitClipPath = ch.style.clipPath;
+          }
+          if (Math.random() < 0.15 * intensity) {
+            ch.style.opacity = rand(0, 0.5).toFixed(2);
+          }
+        }
+      }
+
+      function clearChars() {
+        for (const ch of chars) {
+          ch.style.transform = "";
+          ch.style.color = "";
+          ch.style.textShadow = "";
+          ch.style.clipPath = "";
+          ch.style.webkitClipPath = "";
+          ch.style.opacity = "";
+        }
+      }
+
+      function glitchPage(intensity) {
+        // even subtle glitches nudge the background
+        if (intensity > 0.1) {
+          const s = Math.floor(intensity * 20);
+          const r = 10 + Math.floor(rand(-1,1) * s);
+          const g = 10 + Math.floor(rand(-1,1) * s);
+          const b = 10 + Math.floor(rand(-1,1) * s);
+          body.style.backgroundColor = `rgb(${Math.max(0,r)}, ${Math.max(0,g)}, ${Math.max(0,b)})`;
+        }
+        if (intensity > 0.15 && Math.random() < 0.3) {
+          body.style.opacity = rand(0.92, 1).toFixed(2);
+        }
+        if (intensity > 0.4) {
+          const angle = rand(0, 180).toFixed(0);
+          body.style.backgroundImage = `repeating-linear-gradient(
+            ${angle}deg,
+            transparent,
+            transparent ${rand(2,4).toFixed(0)}px,
+            rgba(${Math.random()<0.5?"0,255,255":"255,0,255"}, ${(intensity*0.1).toFixed(2)}) ${rand(2,4).toFixed(0)}px,
+            transparent ${rand(4,8).toFixed(0)}px
+          )`;
+        }
+        if (intensity > 0.7) {
+          document.querySelector(".center").style.transform =
+            `translate(${rand(-10,10).toFixed(1)}px, ${rand(-5,5).toFixed(1)}px) skewX(${rand(-3,3).toFixed(1)}deg)`;
+          const statusEl = document.getElementById("status");
+          statusEl.style.transform = `translate(${rand(-8,8).toFixed(1)}px, ${rand(-3,3).toFixed(1)}px)`;
+          statusEl.style.opacity = Math.random() < 0.3 ? "0.3" : "1";
+        }
+        if (intensity > 0.85) {
+          body.style.filter = `hue-rotate(${rand(-30,30).toFixed(0)}deg) saturate(${rand(1,3).toFixed(1)})`;
+          nameEl.style.textShadow = `${rand(-10,10).toFixed(0)}px ${rand(-5,5).toFixed(0)}px ${pickColor()}, ${rand(-10,10).toFixed(0)}px ${rand(-5,5).toFixed(0)}px ${pickColor()}`;
+        }
+      }
+
+      function clearPage() {
+        body.style.backgroundColor = "";
+        body.style.backgroundImage = "";
+        body.style.filter = "";
+        body.style.opacity = "";
         nameEl.style.transform = "";
+        nameEl.style.textShadow = "";
         nameEl.style.opacity = "";
-        before.style.transform = "";
-        before.style.color = "";
-        before.style.clipPath = "";
-        after.style.transform = "";
-        after.style.color = "";
-        after.style.clipPath = "";
-        nameEl.classList.remove("glitch");
+        document.querySelector(".center").style.transform = "";
+        const statusEl = document.getElementById("status");
+        statusEl.style.transform = "";
+        statusEl.style.opacity = "";
       }
 
       function triggerGlitch() {
-        nameEl.classList.add("glitch");
-        const before = nameEl.querySelector(":scope")?.parentNode
-          ? window.getComputedStyle(nameEl, "::before")
-          : null;
+        const roll = Math.random();
+        let intensity;
+        if (roll < 0.5) intensity = rand(0, 0.2);
+        else if (roll < 0.75) intensity = rand(0.2, 0.5);
+        else if (roll < 0.9) intensity = rand(0.5, 0.8);
+        else intensity = rand(0.8, 1.0);
 
-        const style = document.createElement("style");
-        const id = "g" + Math.random().toString(36).slice(2, 8);
-        document.head.appendChild(style);
-
-        const beforeEl = Object.assign(document.createElement("span"), {
-          textContent: nameEl.getAttribute("data-text"),
-          style: "position:absolute;top:0;left:0;width:100%;overflow:hidden;pointer-events:none",
-        });
-        const afterEl = Object.assign(document.createElement("span"), {
-          textContent: nameEl.getAttribute("data-text"),
-          style: "position:absolute;top:0;left:0;width:100%;overflow:hidden;pointer-events:none",
-        });
-        nameEl.appendChild(beforeEl);
-        nameEl.appendChild(afterEl);
-
-        const burstCount = Math.random() < 0.4 ? Math.floor(rand(2, 5)) : 1;
+        const burstCount = intensity > 0.6
+          ? Math.floor(rand(4, 10))
+          : (Math.random() < 0.4 ? Math.floor(rand(2, 5)) : 1);
         const frameDuration = rand(30, 80);
-        const totalDuration = burstCount * frameDuration + rand(50, 150);
         let frame = 0;
 
         const interval = setInterval(() => {
           if (frame >= burstCount) {
             clearInterval(interval);
-            clearGlitch(beforeEl, afterEl);
-            nameEl.removeChild(beforeEl);
-            nameEl.removeChild(afterEl);
-            style.remove();
+            clearChars();
+            clearPage();
             return;
           }
-          glitchFrame(beforeEl, afterEl, frameDuration);
+          clearChars();
+          glitchChars(intensity);
+          glitchPage(intensity);
+
+          // whole-name distortion
+          if (intensity > 0.3) {
+            nameEl.style.transform = `skewX(${rand(-4,4)*(1+intensity*2)}deg) translate(${rand(-3,3)*(1+intensity*3)}px, ${rand(-2,2)*intensity*3}px)`;
+          }
+          if (Math.random() < 0.2 + intensity * 0.3) {
+            nameEl.style.opacity = Math.random() < 0.5 ? "0" : "1";
+          }
+
           frame++;
         }, frameDuration);
 
@@ -268,11 +343,12 @@
         setTimeout(triggerGlitch, next);
       }
 
-      const initial = rand(1000, 2000);
-      setTimeout(triggerGlitch, initial);
+      setTimeout(triggerGlitch, rand(1000, 2000));
     }
 
     typeName(() => {
+      const nameEl = document.getElementById("name");
+      wrapChars(nameEl);
       startGlitch();
       typeMessage();
     });
