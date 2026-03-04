@@ -4480,7 +4480,10 @@
       return min + Math.random() * (max - min);
     }
 
+    let artifactsEnabled = false;
+
     function spawnArtifact() {
+      if (!artifactsEnabled) return document.createElement('div');
       const el = document.createElement('div');
       el.className = 'artifact';
 
@@ -5308,6 +5311,9 @@
       forceGlitch(0.8);
       matrix.start();
       setTimeout(() => matrix.stop(), 600);
+
+      // delay artifacts/games for 15 seconds after intro
+      setTimeout(() => { artifactsEnabled = true; }, 15000);
 
       // start status messages after the burst settles
       setTimeout(typeMessage, 800);
