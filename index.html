@@ -345,6 +345,22 @@
       'HiMEM is testing\n  extended memory...',
       'QBASIC.EXE\n  Loading...',
       'EMM386.EXE loaded',
+      // Oregon Trail
+      'You have died\n  of dysentery.',
+      'You have reached\n  Oregon City!',
+      'Your oxen are\n  getting tired.',
+      // Lemmings
+      'Let\'s go!\n  Oh no!',
+      'LEMMINGS\n  OUT: 50\n  SAVED: 0%',
+      // Prince of Persia
+      'PRESS BUTTON\n  TO START\n  PRINCE OF PERSIA',
+      // Minesweeper / Windows
+      'C:\\WINDOWS>\n  WIN.COM',
+      '640K ought to be\n  enough for anyone',
+      // Game of Life
+      'CONWAY\'S\n  GAME OF LIFE\n  GEN: 0',
+      // Amiga
+      'GURU MEDITATION\n  #00000004.0000AAC0',
     ];
 
     // --- Mini game scene renderers (canvas-based, animated) ---
@@ -359,7 +375,7 @@
       canvas.style.imageRendering = "pixelated";
       const ctx = canvas.getContext("2d");
 
-      const sceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene];
+      const sceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene, createMissileCommandScene, createOregonTrailScene, createPrinceScene, createLemmingsScene, createWin95Scene, createAmigaBoingScene, createWolfensteinScene, createMinesweeperScene, createPipeDreamScene, createGameOfLifeScene, createDOSBootScene];
 
       // pick a scene that isn't already on screen
       const available = sceneFactories.filter(f => !activeSceneTypes.has(f.name));
@@ -2278,6 +2294,1053 @@
           const cy = 4 + Math.sin(t * 2 + i * 0.5) * 3;
           ctx.fillStyle = `hsla(${(frame * 3 + i * 30) % 360}, 100%, 60%, 0.6)`;
           ctx.fillRect(0, cy + i * 2, w, 2);
+        }
+      };
+    }
+
+    function createMissileCommandScene(ctx, w, h) {
+      const cities = [];
+      const ground = h - 12;
+      for (let i = 0; i < 6; i++) cities.push({ x: 12 + i * 24, alive: true });
+      const missiles = [], counterMissiles = [], explosions = [];
+      let score = 0, tickCounter = 0, wave = 1;
+
+      function spawnMissile() {
+        const tx = cities.filter(c => c.alive);
+        if (tx.length === 0) return;
+        const target = tx[Math.floor(Math.random() * tx.length)];
+        missiles.push({ x: Math.random() * w, y: 0, tx: target.x, ty: ground - 4, speed: 0.3 + wave * 0.1, trail: [] });
+      }
+
+      return function draw(frame) {
+        ctx.fillStyle = "#000"; ctx.fillRect(0, 0, w, h);
+        tickCounter++;
+
+        // spawn enemy missiles
+        if (tickCounter % (40 - wave * 3) === 0) spawnMissile();
+
+        // AI fires counter-missiles at incoming threats
+        if (tickCounter % 15 === 0 && missiles.length > 0) {
+          const m = missiles[Math.floor(Math.random() * missiles.length)];
+          const progress = Math.sqrt((m.x - m.tx) ** 2 + (m.y - m.ty) ** 2) / Math.sqrt((m.x - m.tx) ** 2 + (0 - m.ty) ** 2);
+          const ix = m.tx + (m.x - m.tx) * progress * 0.5;
+          const iy = m.ty + (0 - m.ty) * progress * 0.5;
+          counterMissiles.push({ x: w / 2, y: ground, tx: ix, ty: Math.max(10, iy), speed: 2, trail: [] });
+        }
+
+        // update enemy missiles
+        for (let i = missiles.length - 1; i >= 0; i--) {
+          const m = missiles[i];
+          const dx = m.tx - m.x, dy = m.ty - m.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 2) {
+            // hit city
+            for (const c of cities) if (Math.abs(c.x - m.tx) < 8 && c.alive) c.alive = false;
+            explosions.push({ x: m.tx, y: m.ty, r: 0, maxR: 12, phase: 0 });
+            missiles.splice(i, 1); continue;
+          }
+          m.trail.push({ x: m.x, y: m.y });
+          if (m.trail.length > 30) m.trail.shift();
+          m.x += (dx / dist) * m.speed;
+          m.y += (dy / dist) * m.speed;
+
+          // check if caught in explosion
+          for (const e of explosions) {
+            if (e.phase === 0 && Math.hypot(m.x - e.x, m.y - e.y) < e.r) {
+              missiles.splice(i, 1); score += 25; break;
+            }
+          }
+        }
+
+        // update counter-missiles
+        for (let i = counterMissiles.length - 1; i >= 0; i--) {
+          const m = counterMissiles[i];
+          const dx = m.tx - m.x, dy = m.ty - m.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          m.trail.push({ x: m.x, y: m.y });
+          if (dist < 3) {
+            explosions.push({ x: m.tx, y: m.ty, r: 0, maxR: 18, phase: 0 });
+            counterMissiles.splice(i, 1); continue;
+          }
+          m.x += (dx / dist) * m.speed;
+          m.y += (dy / dist) * m.speed;
+        }
+
+        // update explosions
+        for (let i = explosions.length - 1; i >= 0; i--) {
+          const e = explosions[i];
+          if (e.phase === 0) { e.r += 0.6; if (e.r >= e.maxR) e.phase = 1; }
+          else { e.r -= 0.4; if (e.r <= 0) { explosions.splice(i, 1); } }
+        }
+
+        // next wave
+        if (cities.every(c => !c.alive)) {
+          for (const c of cities) c.alive = true;
+          wave++; score += 100;
+        }
+
+        // draw trails
+        ctx.strokeStyle = "#f00"; ctx.lineWidth = 0.5;
+        for (const m of missiles) { ctx.beginPath(); for (let j = 0; j < m.trail.length; j++) { j === 0 ? ctx.moveTo(m.trail[j].x, m.trail[j].y) : ctx.lineTo(m.trail[j].x, m.trail[j].y); } ctx.lineTo(m.x, m.y); ctx.stroke(); }
+        ctx.strokeStyle = "#00f";
+        for (const m of counterMissiles) { ctx.beginPath(); for (let j = 0; j < m.trail.length; j++) { j === 0 ? ctx.moveTo(m.trail[j].x, m.trail[j].y) : ctx.lineTo(m.trail[j].x, m.trail[j].y); } ctx.lineTo(m.x, m.y); ctx.stroke(); }
+
+        // draw missiles heads
+        ctx.fillStyle = "#f00"; for (const m of missiles) ctx.fillRect(m.x - 1, m.y - 1, 2, 2);
+        ctx.fillStyle = "#0af"; for (const m of counterMissiles) ctx.fillRect(m.x - 1, m.y - 1, 2, 2);
+
+        // draw explosions
+        for (const e of explosions) {
+          ctx.fillStyle = `rgba(255,${150 + Math.floor(e.r * 5)},0,${0.8})`;
+          ctx.beginPath(); ctx.arc(e.x, e.y, e.r, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = `rgba(255,255,255,${0.4})`;
+          ctx.beginPath(); ctx.arc(e.x, e.y, e.r * 0.5, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // ground
+        ctx.fillStyle = "#440"; ctx.fillRect(0, ground, w, h - ground);
+        // cities
+        for (const c of cities) {
+          if (c.alive) {
+            ctx.fillStyle = "#0af";
+            ctx.fillRect(c.x - 4, ground - 6, 3, 6);
+            ctx.fillRect(c.x, ground - 8, 3, 8);
+            ctx.fillRect(c.x + 4, ground - 5, 3, 5);
+          }
+        }
+        // battery
+        ctx.fillStyle = "#880"; ctx.fillRect(w / 2 - 4, ground - 5, 8, 5);
+        // HUD
+        ctx.fillStyle = "#fff"; ctx.font = "7px monospace";
+        ctx.fillText(`SCORE ${score}`, 4, 8);
+        ctx.fillText(`WAVE ${wave}`, w - 40, 8);
+      };
+    }
+
+    function createOregonTrailScene(ctx, w, h) {
+      const events = [
+        { msg: "You have died of dysentery.", color: "#f44" },
+        { msg: "You have reached\nIndependence Rock.", color: "#4f4" },
+        { msg: "A thief comes during\nthe night and steals\n2 oxen.", color: "#ff4" },
+        { msg: "One of your oxen\nhas died.", color: "#f84" },
+        { msg: "You found wild fruit.", color: "#4f4" },
+        { msg: "A severe blizzard\nhits. You lose your\nway.", color: "#8af" },
+        { msg: "Mary has a broken\nleg.", color: "#f84" },
+        { msg: "You successfully\nforded the river.", color: "#4f4" },
+        { msg: "Bandits attack!\nYou fight them off.", color: "#f44" },
+        { msg: "You shot 847 lbs\nof meat but can only\ncarry 200 lbs.", color: "#ff4" },
+      ];
+      let eventIdx = Math.floor(Math.random() * events.length);
+      let charIdx = 0, lineY = 0;
+      let tickCounter = 0;
+      let miles = Math.floor(Math.random() * 1800);
+      let food = 200 + Math.floor(Math.random() * 300);
+      let health = ["Good","Fair","Poor"][Math.floor(Math.random() * 3)];
+      let oxenX = 0;
+      const displayedLines = [];
+
+      return function draw(frame) {
+        ctx.fillStyle = "#000"; ctx.fillRect(0, 0, w, h);
+        tickCounter++;
+
+        // top bar
+        ctx.fillStyle = "#0a0"; ctx.fillRect(0, 0, w, 12);
+        ctx.fillStyle = "#000"; ctx.font = "7px monospace";
+        ctx.fillText("THE OREGON TRAIL", 4, 8);
+
+        // oxen wagon animation
+        oxenX = (oxenX + 0.5) % (w + 30);
+        const oy = 18;
+        ctx.fillStyle = "#840";
+        ctx.fillRect(oxenX, oy, 12, 6); // wagon
+        ctx.fillRect(oxenX + 12, oy + 1, 3, 4); // hitch
+        ctx.fillStyle = "#860";
+        ctx.fillRect(oxenX - 2, oy - 4, 14, 4); // cover
+        ctx.fillStyle = "#640";
+        ctx.fillRect(oxenX + 15, oy + 1, 6, 4); // ox body
+        ctx.fillRect(oxenX + 18, oy - 1, 3, 2); // ox head
+        // wheels
+        ctx.fillStyle = "#555";
+        ctx.fillRect(oxenX + 1, oy + 5, 3, 3);
+        ctx.fillRect(oxenX + 8, oy + 5, 3, 3);
+
+        // event text typing
+        const evt = events[eventIdx];
+        if (tickCounter % 3 === 0 && charIdx < evt.msg.length) charIdx++;
+        const visText = evt.msg.slice(0, charIdx);
+        ctx.fillStyle = evt.color; ctx.font = "7px monospace";
+        const lines = visText.split("\n");
+        for (let i = 0; i < lines.length; i++) ctx.fillText(lines[i], 8, 38 + i * 10);
+
+        // cycle events
+        if (charIdx >= evt.msg.length && tickCounter % 120 === 0) {
+          eventIdx = (eventIdx + 1) % events.length;
+          charIdx = 0; miles += 50 + Math.floor(Math.random() * 100);
+          food = Math.max(0, food - 30 - Math.floor(Math.random() * 40));
+        }
+
+        // status bar
+        ctx.fillStyle = "#0a0"; ctx.fillRect(0, h - 18, w, 18);
+        ctx.fillStyle = "#000"; ctx.font = "6px monospace";
+        ctx.fillText(`Miles: ${miles}`, 4, h - 10);
+        ctx.fillText(`Food: ${food}lb`, 4, h - 3);
+        ctx.fillText(`Health: ${health}`, w / 2, h - 10);
+        ctx.fillText("Press SPACE", w / 2, h - 3);
+      };
+    }
+
+    function createPrinceScene(ctx, w, h) {
+      // Prince of Persia platformer
+      const ground = h - 16;
+      let princeX = 10, princeY = ground, princeVY = 0;
+      let runDir = 1, animFrame = 0;
+      let swordOut = false, swordTimer = 0;
+      const platforms = [
+        { x: 30, y: ground - 20, w: 30 },
+        { x: 70, y: ground - 35, w: 25 },
+        { x: 110, y: ground - 25, w: 30 },
+      ];
+      const spikes = [{ x: 55, y: ground - 4 }, { x: 95, y: ground - 4 }];
+      let guardX = 120, guardY = ground, guardHP = 3;
+      let tickCounter = 0;
+
+      return function draw(frame) {
+        // dungeon background
+        ctx.fillStyle = "#111"; ctx.fillRect(0, 0, w, h);
+        // stone walls
+        for (let y = 0; y < h; y += 16) {
+          for (let x = 0; x < w; x += 20) {
+            ctx.fillStyle = (x + y) % 40 === 0 ? "#2a2a2a" : "#222";
+            ctx.fillRect(x, y, 19, 15);
+            ctx.strokeStyle = "#1a1a1a"; ctx.strokeRect(x, y, 19, 15);
+          }
+        }
+        // ground
+        ctx.fillStyle = "#444"; ctx.fillRect(0, ground, w, h - ground);
+        ctx.fillStyle = "#555"; ctx.fillRect(0, ground, w, 2);
+
+        tickCounter++;
+        animFrame = Math.floor(frame / 4) % 6;
+
+        // platforms
+        ctx.fillStyle = "#555";
+        for (const p of platforms) {
+          ctx.fillRect(p.x, p.y, p.w, 4);
+          ctx.fillStyle = "#444"; ctx.fillRect(p.x, p.y + 4, p.w, 2);
+          ctx.fillStyle = "#555";
+        }
+
+        // spikes
+        for (const s of spikes) {
+          ctx.fillStyle = "#888";
+          for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.moveTo(s.x + i * 4, s.y + 4);
+            ctx.lineTo(s.x + i * 4 + 2, s.y - 2);
+            ctx.lineTo(s.x + i * 4 + 4, s.y + 4);
+            ctx.fill();
+          }
+        }
+
+        // prince movement AI
+        princeX += runDir * 0.8;
+        if (princeX > w - 20) runDir = -1;
+        if (princeX < 10) runDir = 1;
+
+        // jumping
+        if (Math.random() < 0.02 && princeY >= ground) princeVY = -3;
+        princeVY += 0.15;
+        princeY += princeVY;
+        if (princeY > ground) { princeY = ground; princeVY = 0; }
+        // platform collision
+        for (const p of platforms) {
+          if (princeX > p.x && princeX < p.x + p.w && princeY >= p.y - 2 && princeY <= p.y + 2 && princeVY > 0) {
+            princeY = p.y; princeVY = 0;
+          }
+        }
+
+        // sword combat near guard
+        if (Math.abs(princeX - guardX) < 20 && !swordOut && Math.random() < 0.05) {
+          swordOut = true; swordTimer = 8;
+        }
+        if (swordOut) {
+          swordTimer--;
+          if (swordTimer <= 0) { swordOut = false; if (Math.abs(princeX - guardX) < 15) guardHP--; }
+        }
+        if (guardHP <= 0) { guardX = -999; }
+
+        // prince sprite
+        ctx.fillStyle = "#fff"; // white outfit
+        ctx.fillRect(princeX, princeY - 14, 5, 8); // body
+        ctx.fillStyle = "#fca"; ctx.fillRect(princeX + 1, princeY - 18, 3, 4); // head
+        ctx.fillStyle = "#c80"; ctx.fillRect(princeX + 1, princeY - 19, 3, 1); // hair
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(princeX, princeY - 6, 2, 6); // legs
+        ctx.fillRect(princeX + 3, princeY - 6, 2, 6);
+        if (swordOut) {
+          ctx.fillStyle = "#ccc";
+          ctx.fillRect(princeX + (runDir > 0 ? 5 : -8), princeY - 13, 8, 1);
+        }
+
+        // guard
+        if (guardHP > 0) {
+          ctx.fillStyle = "#a00";
+          ctx.fillRect(guardX, guardY - 14, 5, 8);
+          ctx.fillStyle = "#fca"; ctx.fillRect(guardX + 1, guardY - 18, 3, 4);
+          ctx.fillStyle = "#800"; ctx.fillRect(guardX + 1, guardY - 19, 3, 2);
+          ctx.fillRect(guardX, guardY - 6, 2, 6);
+          ctx.fillRect(guardX + 3, guardY - 6, 2, 6);
+          // guard sword
+          ctx.fillStyle = "#ccc";
+          ctx.fillRect(guardX - 6, guardY - 12 + (frame % 8 < 3 ? -2 : 0), 6, 1);
+        }
+
+        // torch flames
+        for (let tx = 20; tx < w; tx += 50) {
+          ctx.fillStyle = "#f80"; ctx.fillRect(tx, 20 + Math.sin(frame * 0.3 + tx) * 2, 3, 5);
+          ctx.fillStyle = "#ff0"; ctx.fillRect(tx + 1, 18 + Math.sin(frame * 0.3 + tx) * 2, 1, 3);
+        }
+
+        // HUD
+        ctx.fillStyle = "#f00";
+        for (let i = 0; i < 5; i++) ctx.fillRect(4 + i * 8, 4, 6, 4);
+        ctx.fillStyle = "#000"; // lost health
+        for (let i = 4; i >= 4; i--) ctx.fillRect(4 + i * 8, 4, 6, 4);
+        ctx.fillStyle = "#f00";
+        for (let i = 0; i < 4; i++) ctx.fillRect(4 + i * 8, 4, 6, 4);
+      };
+    }
+
+    function createLemmingsScene(ctx, w, h) {
+      const ground = h - 10;
+      const lemmings = [];
+      let tickCounter = 0, saved = 0, dead = 0;
+      const doorX = 15, doorY = 15;
+      const exitX = w - 15, exitY = ground - 8;
+      const platforms = [
+        { x: 10, y: 40, w: 50 },
+        { x: 50, y: 60, w: 40 },
+        { x: 80, y: 45, w: 40 },
+        { x: 30, y: 75, w: 60 },
+      ];
+
+      // spawn lemmings from door
+      function spawnLemming() {
+        lemmings.push({ x: doorX, y: doorY, vx: 0.5, vy: 0, state: 'walk', digTimer: 0, umbrella: false, dead: false });
+      }
+
+      return function draw(frame) {
+        ctx.fillStyle = "#004"; ctx.fillRect(0, 0, w, h);
+        tickCounter++;
+
+        // spawn
+        if (tickCounter % 20 === 0 && lemmings.length < 15) spawnLemming();
+
+        // entrance door
+        ctx.fillStyle = "#888"; ctx.fillRect(doorX - 4, doorY - 6, 8, 8);
+        ctx.fillStyle = "#444"; ctx.fillRect(doorX - 2, doorY - 4, 4, 6);
+        // exit
+        ctx.fillStyle = "#0a0"; ctx.fillRect(exitX - 4, exitY, 8, 8);
+        ctx.fillStyle = "#0f0"; ctx.fillRect(exitX - 2, exitY + 2, 4, 4);
+
+        // platforms
+        ctx.fillStyle = "#080";
+        for (const p of platforms) ctx.fillRect(p.x, p.y, p.w, 3);
+
+        // ground
+        ctx.fillStyle = "#040"; ctx.fillRect(0, ground, w, h - ground);
+
+        // update lemmings
+        for (const l of lemmings) {
+          if (l.dead) continue;
+
+          // gravity
+          let onGround = false;
+          l.vy += 0.1;
+          l.y += l.vy;
+
+          // ground collision
+          if (l.y >= ground) { l.y = ground; l.vy = 0; onGround = true; }
+          // platform collision
+          for (const p of platforms) {
+            if (l.x > p.x && l.x < p.x + p.w && l.y >= p.y && l.y <= p.y + 4 && l.vy >= 0) {
+              l.y = p.y; l.vy = 0; onGround = true;
+            }
+          }
+
+          // umbrella falling
+          if (!onGround && l.umbrella) l.vy = Math.min(l.vy, 0.5);
+          // fall damage
+          if (onGround && l.vy > 3 && !l.umbrella) { l.dead = true; dead++; continue; }
+
+          // walking
+          if (onGround && l.state === 'walk') {
+            l.x += l.vx;
+            if (l.x > w - 5 || l.x < 5) l.vx *= -1;
+          }
+
+          // random behaviors
+          if (Math.random() < 0.003) l.umbrella = true;
+          if (Math.random() < 0.005 && l.state === 'walk') { l.state = 'dig'; l.digTimer = 20; }
+          if (l.state === 'dig') {
+            l.digTimer--;
+            if (l.digTimer <= 0) l.state = 'walk';
+          }
+
+          // reached exit
+          if (Math.abs(l.x - exitX) < 6 && Math.abs(l.y - exitY) < 10) {
+            l.dead = true; saved++;
+          }
+
+          // draw lemming
+          ctx.fillStyle = l.state === 'dig' ? "#f80" : "#0a0";
+          ctx.fillRect(l.x - 1, l.y - 6, 3, 4); // body
+          ctx.fillStyle = "#0cf";
+          ctx.fillRect(l.x - 1, l.y - 8, 3, 2); // head/hair
+          // legs walking
+          if (l.state === 'walk') {
+            const step = frame % 4 < 2 ? 0 : 1;
+            ctx.fillStyle = "#0a0";
+            ctx.fillRect(l.x - 1 + step, l.y - 2, 1, 2);
+            ctx.fillRect(l.x + 1 - step, l.y - 2, 1, 2);
+          }
+          // umbrella
+          if (l.umbrella && !onGround) {
+            ctx.strokeStyle = "#fff"; ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.moveTo(l.x, l.y - 8); ctx.lineTo(l.x, l.y - 14); ctx.stroke();
+            ctx.fillStyle = "#f0f";
+            ctx.beginPath(); ctx.arc(l.x, l.y - 14, 4, Math.PI, 0); ctx.fill();
+          }
+          // digging animation
+          if (l.state === 'dig') {
+            ctx.fillStyle = "#840";
+            ctx.fillRect(l.x - 2, l.y - 1, 5, 2);
+          }
+        }
+
+        // HUD
+        ctx.fillStyle = "#fff"; ctx.font = "7px monospace";
+        ctx.fillText("LEMMINGS", w / 2 - 22, 8);
+        ctx.fillText(`OUT:${lemmings.filter(l=>!l.dead).length}`, 4, h - 3);
+        ctx.fillText(`SAVED:${saved}`, w / 2 - 14, h - 3);
+        ctx.fillText(`RIP:${dead}`, w - 30, h - 3);
+      };
+    }
+
+    function createWin95Scene(ctx, w, h) {
+      // Windows 95 boot sequence
+      let tickCounter = 0;
+      const bootLines = [
+        "Microsoft(R) Windows 95",
+        "   (C)Copyright Microsoft Corp 1981-1996.",
+        "",
+        "HIMEM is testing extended memory...done.",
+        "HIMEM has detected 640K of conventional memory.",
+        "",
+        "C:\\>WIN",
+        "",
+        "Loading Windows 95...",
+      ];
+      let phase = 0; // 0=DOS boot, 1=logo, 2=desktop
+      let lineIdx = 0, charIdx = 0;
+
+      return function draw(frame) {
+        tickCounter++;
+
+        if (phase === 0) {
+          // DOS boot text
+          ctx.fillStyle = "#000"; ctx.fillRect(0, 0, w, h);
+          ctx.fillStyle = "#aaa"; ctx.font = "6px monospace";
+          for (let i = 0; i < lineIdx && i < bootLines.length; i++) {
+            ctx.fillText(bootLines[i], 4, 10 + i * 8);
+          }
+          // type current line
+          if (lineIdx < bootLines.length) {
+            if (tickCounter % 2 === 0) {
+              charIdx++;
+              if (charIdx >= bootLines[lineIdx].length) { lineIdx++; charIdx = 0; }
+            }
+            if (lineIdx < bootLines.length) {
+              ctx.fillText(bootLines[lineIdx].slice(0, charIdx), 4, 10 + lineIdx * 8);
+            }
+          }
+          if (lineIdx >= bootLines.length && tickCounter > 80) phase = 1;
+          // blinking cursor
+          if (frame % 6 < 3) {
+            ctx.fillStyle = "#aaa";
+            ctx.fillRect(4 + (lineIdx < bootLines.length ? charIdx * 3.6 : 0), 10 + lineIdx * 8 - 6, 4, 7);
+          }
+        } else if (phase === 1) {
+          // Windows logo — clouds
+          const grad = ctx.createLinearGradient(0, 0, 0, h);
+          grad.addColorStop(0, "#008"); grad.addColorStop(1, "#00a");
+          ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
+          // clouds
+          ctx.fillStyle = "rgba(255,255,255,0.15)";
+          for (let i = 0; i < 5; i++) {
+            const cx = ((i * 40 + frame * 0.3) % (w + 30)) - 15;
+            ctx.beginPath(); ctx.arc(cx, 20 + i * 15, 12, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx + 10, 22 + i * 15, 8, 0, Math.PI * 2); ctx.fill();
+          }
+          // Windows flag
+          const fx = w / 2 - 15, fy = h / 2 - 15;
+          ctx.fillStyle = "#f00"; ctx.fillRect(fx, fy, 12, 12);
+          ctx.fillStyle = "#0f0"; ctx.fillRect(fx + 14, fy, 12, 12);
+          ctx.fillStyle = "#00f"; ctx.fillRect(fx, fy + 14, 12, 12);
+          ctx.fillStyle = "#ff0"; ctx.fillRect(fx + 14, fy + 14, 12, 12);
+          // text
+          ctx.fillStyle = "#fff"; ctx.font = "bold 8px sans-serif";
+          ctx.fillText("Windows 95", w / 2 - 25, fy + 38);
+          // progress bar
+          const barW = 60;
+          ctx.fillStyle = "#333"; ctx.fillRect(w / 2 - barW / 2, fy + 44, barW, 5);
+          ctx.fillStyle = "#00a";
+          const progress = Math.min(barW, ((tickCounter - 80) % 100) * 0.8);
+          ctx.fillRect(w / 2 - barW / 2, fy + 44, progress, 5);
+
+          if (tickCounter > 180) phase = 2;
+        } else {
+          // desktop
+          ctx.fillStyle = "#008080"; ctx.fillRect(0, 0, w, h);
+          // taskbar
+          ctx.fillStyle = "#c0c0c0"; ctx.fillRect(0, h - 14, w, 14);
+          ctx.fillStyle = "#fff"; ctx.fillRect(0, h - 14, w, 1);
+          // start button
+          ctx.fillStyle = "#c0c0c0"; ctx.fillRect(2, h - 12, 28, 10);
+          ctx.strokeStyle = "#fff"; ctx.strokeRect(2, h - 12, 28, 10);
+          ctx.fillStyle = "#000"; ctx.font = "bold 6px sans-serif";
+          ctx.fillText("Start", 6, h - 4);
+          // icons
+          ctx.fillStyle = "#fff"; ctx.font = "6px monospace";
+          const icons = ["My Computer", "Recycle Bin", "Network", "My Documents"];
+          for (let i = 0; i < icons.length; i++) {
+            const ix = 8, iy = 8 + i * 22;
+            ctx.fillStyle = "#ff0"; ctx.fillRect(ix, iy, 12, 10);
+            ctx.fillStyle = "#fff"; ctx.font = "5px sans-serif";
+            ctx.fillText(icons[i], ix - 2, iy + 18);
+          }
+          // clock
+          ctx.fillStyle = "#000"; ctx.font = "6px monospace";
+          const hr = Math.floor(frame / 60) % 12 || 12;
+          ctx.fillText(`${hr}:${String(Math.floor(frame/2) % 60).padStart(2,'0')} PM`, w - 34, h - 4);
+        }
+      };
+    }
+
+    function createAmigaBoingScene(ctx, w, h) {
+      // Amiga Boing Ball demo
+      let ballX = w / 2, ballY = h / 3;
+      let ballVX = 1.2, ballVY = 0;
+      const radius = 14;
+      const ground = h - 15;
+
+      return function draw(frame) {
+        // purple-grey background with grid
+        ctx.fillStyle = "#888"; ctx.fillRect(0, 0, w, h);
+        // grid
+        ctx.strokeStyle = "#999"; ctx.lineWidth = 0.5;
+        for (let x = 0; x < w; x += 12) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+        for (let y = 0; y < h; y += 12) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+        // floor shadow
+        ctx.fillStyle = "#555"; ctx.fillRect(0, ground, w, h - ground);
+
+        // ball physics
+        ballVY += 0.12;
+        ballX += ballVX;
+        ballY += ballVY;
+        if (ballY + radius > ground) { ballY = ground - radius; ballVY = -ballVY * 0.9; }
+        if (ballX + radius > w || ballX - radius < 0) ballVX *= -1;
+
+        // draw the Boing ball — red and white checkerboard sphere
+        const rotation = frame * 0.08;
+        for (let lat = -6; lat < 6; lat++) {
+          for (let lon = -6; lon < 6; lon++) {
+            const theta = (lat / 6) * Math.PI / 2;
+            const phi = (lon / 6) * Math.PI + rotation;
+            const sx = Math.cos(theta) * Math.sin(phi);
+            const sy = Math.sin(theta);
+            const sz = Math.cos(theta) * Math.cos(phi);
+            if (sz < 0) continue;
+            const px = ballX + sx * radius;
+            const py = ballY + sy * radius;
+            const isRed = (lat + lon + 20) % 2 === 0;
+            ctx.fillStyle = isRed ? "#f00" : "#fff";
+            ctx.fillRect(px - 1.5, py - 1.5, 3, 3);
+          }
+        }
+
+        // shadow on floor
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.beginPath();
+        ctx.ellipse(ballX, ground + 2, radius * 0.7, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Amiga text
+        ctx.fillStyle = "#fff"; ctx.font = "bold 7px monospace";
+        ctx.fillText("AMIGA", 4, 10);
+        ctx.fillStyle = "#f00"; ctx.font = "6px monospace";
+        ctx.fillText("BOING!", w - 30, 10);
+      };
+    }
+
+    function createWolfensteinScene(ctx, w, h) {
+      // Wolfenstein 3D corridor
+      let playerAngle = 0, playerBob = 0;
+      let tickCounter = 0;
+      const enemies = [];
+      let hp = 100, ammo = 8, score = 0, floor = 1;
+
+      for (let i = 0; i < 2; i++) {
+        enemies.push({ x: (Math.random() - 0.5) * 40, dist: 30 + Math.random() * 40, hp: 2, hitTimer: 0, dead: false });
+      }
+
+      return function draw(frame) {
+        playerBob = Math.sin(frame * 0.1) * 1.5;
+        playerAngle = Math.sin(frame * 0.025) * 5;
+        tickCounter++;
+
+        // ceiling (grey)
+        ctx.fillStyle = "#555"; ctx.fillRect(0, 0, w, h * 0.4);
+        // floor (grey darker)
+        ctx.fillStyle = "#666"; ctx.fillRect(0, h * 0.6, w, h * 0.4);
+
+        // blue stone walls
+        for (let col = 0; col < w; col += 3) {
+          const viewCol = col - w / 2 + playerAngle;
+          const distFromCenter = Math.abs(viewCol) / (w / 2);
+          const wallH = h * 0.55 * (1 - distFromCenter * 0.5);
+          const wallTop = h / 2 - wallH / 2 + playerBob;
+          const shade = 0.4 + (1 - distFromCenter) * 0.6;
+          // alternating blue/grey stone
+          const isBlue = Math.floor((col + frame * 0.1) / 16) % 2 === 0;
+          const r = isBlue ? Math.floor(40 * shade) : Math.floor(100 * shade);
+          const g = isBlue ? Math.floor(40 * shade) : Math.floor(100 * shade);
+          const b = isBlue ? Math.floor(160 * shade) : Math.floor(100 * shade);
+          ctx.fillStyle = `rgb(${r},${g},${b})`;
+          ctx.fillRect(col, wallTop, 3, wallH);
+          // brick lines
+          if (col % 15 === 0) {
+            ctx.fillStyle = `rgb(${Math.max(0, r - 20)},${Math.max(0, g - 20)},${Math.max(0, b - 20)})`;
+            ctx.fillRect(col, wallTop, 1, wallH);
+          }
+          // horizontal mortar
+          if (col % 6 === 0) {
+            ctx.fillStyle = `rgb(${Math.max(0, r - 10)},${Math.max(0, g - 10)},${Math.max(0, b - 10)})`;
+            ctx.fillRect(col, wallTop + wallH * 0.33, 3, 1);
+            ctx.fillRect(col, wallTop + wallH * 0.66, 3, 1);
+          }
+        }
+
+        // Nazi banners on walls
+        if (Math.floor(frame * 0.01) % 3 === 0) {
+          ctx.fillStyle = "#c00";
+          ctx.fillRect(w / 2 - 8 + playerAngle, h * 0.3 + playerBob, 16, 20);
+          ctx.fillStyle = "#fff";
+          ctx.beginPath(); ctx.arc(w / 2 + playerAngle, h * 0.3 + 10 + playerBob, 5, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // enemies (guards)
+        for (const e of enemies) {
+          if (e.dead) continue;
+          const screenX = w / 2 + e.x - playerAngle;
+          const scale = Math.max(0.3, 1 - e.dist / 80);
+          const eW = 10 * scale, eH = 16 * scale;
+          const eY = h / 2 - eH / 2 + playerBob;
+          ctx.fillStyle = e.hitTimer > 0 ? "#fff" : "#584";
+          ctx.fillRect(screenX - eW / 2, eY, eW, eH);
+          if (scale > 0.4) {
+            ctx.fillStyle = "#fca"; ctx.fillRect(screenX - eW * 0.2, eY + eH * 0.05, eW * 0.4, eW * 0.3);
+          }
+          e.dist -= 0.05; e.x += Math.sin(frame * 0.08 + e.x) * 0.2;
+          if (e.hitTimer > 0) e.hitTimer--;
+          if (e.dist < 8) { hp -= 3; e.dist = 15; }
+        }
+
+        // shooting
+        if (tickCounter % 18 === 0 && enemies.some(e => !e.dead) && ammo > 0) {
+          ammo--;
+          const target = enemies.filter(e => !e.dead).sort((a, b) => a.dist - b.dist)[0];
+          if (target) { target.hp--; target.hitTimer = 3; if (target.hp <= 0) { target.dead = true; score += 100; } }
+        }
+        if (enemies.every(e => e.dead)) {
+          for (const e of enemies) { e.dead = false; e.hp = 2; e.dist = 40 + Math.random() * 30; }
+          floor++;
+        }
+
+        // weapon — knife/pistol
+        const wx = w / 2 - 6 + playerBob * 0.3;
+        ctx.fillStyle = "#888"; ctx.fillRect(wx, h - 28, 12, 20);
+        ctx.fillStyle = "#666"; ctx.fillRect(wx + 4, h - 34, 4, 8);
+        if (tickCounter % 18 < 3) {
+          ctx.fillStyle = "#ff0"; ctx.fillRect(wx + 3, h - 38, 6, 4);
+        }
+
+        // HUD
+        ctx.fillStyle = "#555"; ctx.fillRect(0, h - 12, w, 12);
+        ctx.fillStyle = "#fff"; ctx.font = "6px monospace";
+        ctx.fillText(`FLOOR:${floor}`, 3, h - 4);
+        ctx.fillText(`SCORE:${score}`, 36, h - 4);
+        ctx.fillStyle = hp > 25 ? "#fff" : "#f00";
+        ctx.fillText(`HP:${hp}%`, 80, h - 4);
+        ctx.fillText(`AMMO:${ammo}`, w - 38, h - 4);
+        // face
+        ctx.fillStyle = "#fca"; ctx.fillRect(w / 2 - 4, h - 11, 8, 9);
+        ctx.fillStyle = "#00f"; ctx.fillRect(w / 2 - 2, h - 8, 1, 1); ctx.fillRect(w / 2 + 1, h - 8, 1, 1);
+      };
+    }
+
+    function createMinesweeperScene(ctx, w, h) {
+      const cols = 12, rows = 9, cellSize = Math.min(Math.floor(w / cols), Math.floor((h - 16) / rows));
+      const boardW = cols * cellSize, boardH = rows * cellSize;
+      const ox = (w - boardW) / 2, oy = 14;
+      const mines = new Set();
+      const revealed = new Set();
+      const flagged = new Set();
+      let tickCounter = 0, gameOver = false, won = false;
+
+      // place mines
+      while (mines.size < 15) mines.add(Math.floor(Math.random() * cols * rows));
+
+      function countAdj(idx) {
+        const r = Math.floor(idx / cols), c = idx % cols;
+        let count = 0;
+        for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+          const nr = r + dr, nc = c + dc;
+          if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && mines.has(nr * cols + nc)) count++;
+        }
+        return count;
+      }
+
+      function reveal(idx) {
+        if (revealed.has(idx) || flagged.has(idx)) return;
+        revealed.add(idx);
+        if (mines.has(idx)) { gameOver = true; return; }
+        if (countAdj(idx) === 0) {
+          const r = Math.floor(idx / cols), c = idx % cols;
+          for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+            const nr = r + dr, nc = c + dc;
+            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) reveal(nr * cols + nc);
+          }
+        }
+      }
+
+      return function draw(frame) {
+        ctx.fillStyle = "#c0c0c0"; ctx.fillRect(0, 0, w, h);
+        tickCounter++;
+
+        // AI plays — reveal a safe cell every few frames
+        if (!gameOver && !won && tickCounter % 8 === 0) {
+          const unrevealed = [];
+          for (let i = 0; i < cols * rows; i++) {
+            if (!revealed.has(i) && !mines.has(i) && !flagged.has(i)) unrevealed.push(i);
+          }
+          if (unrevealed.length > 0) reveal(unrevealed[Math.floor(Math.random() * unrevealed.length)]);
+          // occasionally flag a mine
+          if (Math.random() < 0.15) {
+            for (const m of mines) { if (!flagged.has(m) && !revealed.has(m)) { flagged.add(m); break; } }
+          }
+          // check win
+          if (unrevealed.length <= 1) won = true;
+        }
+
+        // reset on game over
+        if (gameOver && tickCounter % 60 === 0) {
+          gameOver = false; won = false; revealed.clear(); flagged.clear();
+          mines.clear();
+          while (mines.size < 15) mines.add(Math.floor(Math.random() * cols * rows));
+        }
+
+        // title bar
+        ctx.fillStyle = "#000080"; ctx.fillRect(0, 0, w, 12);
+        ctx.fillStyle = "#fff"; ctx.font = "7px sans-serif";
+        ctx.fillText("Minesweeper", 4, 9);
+
+        // draw grid
+        const numColors = ["", "#00f", "#080", "#f00", "#008", "#800", "#088", "#000", "#888"];
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const idx = r * cols + c;
+            const cx = ox + c * cellSize, cy = oy + r * cellSize;
+            if (revealed.has(idx)) {
+              ctx.fillStyle = "#d0d0d0"; ctx.fillRect(cx, cy, cellSize - 1, cellSize - 1);
+              if (mines.has(idx)) {
+                ctx.fillStyle = "#f00"; ctx.fillRect(cx, cy, cellSize - 1, cellSize - 1);
+                ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(cx + cellSize / 2, cy + cellSize / 2, 2, 0, Math.PI * 2); ctx.fill();
+              } else {
+                const n = countAdj(idx);
+                if (n > 0) {
+                  ctx.fillStyle = numColors[n]; ctx.font = "bold 7px monospace";
+                  ctx.fillText(String(n), cx + 2, cy + cellSize - 2);
+                }
+              }
+            } else {
+              // raised button look
+              ctx.fillStyle = "#c0c0c0"; ctx.fillRect(cx, cy, cellSize - 1, cellSize - 1);
+              ctx.fillStyle = "#fff"; ctx.fillRect(cx, cy, cellSize - 1, 1); ctx.fillRect(cx, cy, 1, cellSize - 1);
+              ctx.fillStyle = "#808080"; ctx.fillRect(cx + cellSize - 2, cy, 1, cellSize - 1); ctx.fillRect(cx, cy + cellSize - 2, cellSize - 1, 1);
+              if (flagged.has(idx)) {
+                ctx.fillStyle = "#f00"; ctx.fillRect(cx + 3, cy + 2, 2, 4);
+                ctx.fillStyle = "#000"; ctx.fillRect(cx + 2, cy + 5, 4, 1);
+              }
+            }
+          }
+        }
+
+        // game over overlay
+        if (gameOver) {
+          // reveal all mines
+          for (const m of mines) revealed.add(m);
+          ctx.fillStyle = "rgba(0,0,0,0.4)"; ctx.fillRect(0, h / 2 - 8, w, 16);
+          ctx.fillStyle = "#f00"; ctx.font = "bold 8px monospace";
+          ctx.fillText("GAME OVER", w / 2 - 25, h / 2 + 3);
+        }
+        if (won) {
+          ctx.fillStyle = "rgba(0,0,0,0.4)"; ctx.fillRect(0, h / 2 - 8, w, 16);
+          ctx.fillStyle = "#0f0"; ctx.font = "bold 8px monospace";
+          ctx.fillText("YOU WIN!", w / 2 - 20, h / 2 + 3);
+        }
+      };
+    }
+
+    function createPipeDreamScene(ctx, w, h) {
+      const cols = 10, rows = 7, cellSize = Math.min(Math.floor(w / cols), Math.floor((h - 12) / rows));
+      const ox = (w - cols * cellSize) / 2, oy = 12;
+      const grid = Array.from({ length: rows }, () => new Array(cols).fill(null));
+      const pipeTypes = ['H', 'V', 'TL', 'TR', 'BL', 'BR', '+'];
+      let flowCol = 0, flowRow = Math.floor(rows / 2);
+      let flowDir = 'R';
+      let tickCounter = 0, fillProgress = 0, filling = false;
+      let placed = 0;
+
+      // place pipes in a path
+      let cx = flowCol, cy = flowRow, dir = 'R';
+      for (let i = 0; i < 30; i++) {
+        if (cx < 0 || cx >= cols || cy < 0 || cy >= rows) break;
+        const turns = ['S', 'S', 'S', 'L', 'R'];
+        const turn = turns[Math.floor(Math.random() * turns.length)];
+        let pipe, newDir = dir;
+        if (turn === 'S') {
+          pipe = dir === 'R' || dir === 'L' ? 'H' : 'V';
+        } else {
+          if (dir === 'R' && turn === 'L') { pipe = 'TR'; newDir = 'U'; }
+          else if (dir === 'R' && turn === 'R') { pipe = 'BR'; newDir = 'D'; }
+          else if (dir === 'L' && turn === 'L') { pipe = 'BL'; newDir = 'D'; }
+          else if (dir === 'L' && turn === 'R') { pipe = 'TL'; newDir = 'U'; }
+          else if (dir === 'U' && turn === 'L') { pipe = 'TL'; newDir = 'L'; }
+          else if (dir === 'U' && turn === 'R') { pipe = 'TR'; newDir = 'R'; }
+          else if (dir === 'D' && turn === 'L') { pipe = 'BR'; newDir = 'R'; }
+          else if (dir === 'D' && turn === 'R') { pipe = 'BL'; newDir = 'L'; }
+          else { pipe = 'H'; }
+        }
+        grid[cy][cx] = { type: pipe, filled: false };
+        placed++;
+        dir = newDir;
+        if (dir === 'R') cx++; else if (dir === 'L') cx--; else if (dir === 'U') cy--; else cy++;
+      }
+
+      // fill empty cells with random pipes
+      for (let r = 0; r < rows; r++)
+        for (let c = 0; c < cols; c++)
+          if (!grid[r][c]) grid[r][c] = { type: pipeTypes[Math.floor(Math.random() * pipeTypes.length)], filled: false };
+
+      let fillIdx = 0;
+      const fillPath = [];
+      // trace the actual path for filling
+      cx = flowCol; cy = flowRow; dir = 'R';
+      for (let i = 0; i < placed; i++) {
+        if (cx < 0 || cx >= cols || cy < 0 || cy >= rows) break;
+        fillPath.push({ x: cx, y: cy });
+        const cell = grid[cy][cx];
+        if (!cell) break;
+        if (cell.type === 'H') { if (dir === 'R') cx++; else cx--; }
+        else if (cell.type === 'V') { if (dir === 'D') cy++; else cy--; }
+        else if (cell.type === 'TR') { dir = dir === 'R' ? 'U' : 'R'; if (dir === 'U') cy--; else cx++; }
+        else if (cell.type === 'TL') { dir = dir === 'L' ? 'U' : 'L'; if (dir === 'U') cy--; else cx--; }
+        else if (cell.type === 'BR') { dir = dir === 'R' ? 'D' : 'R'; if (dir === 'D') cy++; else cx++; }
+        else if (cell.type === 'BL') { dir = dir === 'L' ? 'D' : 'L'; if (dir === 'D') cy++; else cx--; }
+        else { if (dir === 'R') cx++; else if (dir === 'L') cx--; else if (dir === 'U') cy--; else cy++; }
+      }
+
+      return function draw(frame) {
+        ctx.fillStyle = "#222"; ctx.fillRect(0, 0, w, h);
+        tickCounter++;
+
+        // fill progress
+        if (tickCounter > 30 && tickCounter % 6 === 0 && fillIdx < fillPath.length) {
+          const fp = fillPath[fillIdx];
+          if (grid[fp.y][fp.x]) grid[fp.y][fp.x].filled = true;
+          fillIdx++;
+        }
+
+        // title
+        ctx.fillStyle = "#fff"; ctx.font = "7px monospace"; ctx.fillText("PIPE DREAM", w / 2 - 28, 9);
+
+        // draw grid
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const cell = grid[r][c];
+            const px = ox + c * cellSize, py = oy + r * cellSize;
+            ctx.strokeStyle = "#333"; ctx.strokeRect(px, py, cellSize, cellSize);
+            if (!cell) continue;
+
+            const mid = cellSize / 2;
+            const pipeW = cellSize * 0.35;
+            ctx.fillStyle = cell.filled ? "#0f0" : "#888";
+
+            if (cell.type === 'H') { ctx.fillRect(px, py + mid - pipeW / 2, cellSize, pipeW); }
+            else if (cell.type === 'V') { ctx.fillRect(px + mid - pipeW / 2, py, pipeW, cellSize); }
+            else if (cell.type === 'TL') { ctx.fillRect(px, py + mid - pipeW / 2, mid + pipeW / 2, pipeW); ctx.fillRect(px + mid - pipeW / 2, py, pipeW, mid + pipeW / 2); }
+            else if (cell.type === 'TR') { ctx.fillRect(px + mid - pipeW / 2, py + mid - pipeW / 2, mid + pipeW / 2, pipeW); ctx.fillRect(px + mid - pipeW / 2, py, pipeW, mid + pipeW / 2); }
+            else if (cell.type === 'BL') { ctx.fillRect(px, py + mid - pipeW / 2, mid + pipeW / 2, pipeW); ctx.fillRect(px + mid - pipeW / 2, py + mid - pipeW / 2, pipeW, mid + pipeW / 2); }
+            else if (cell.type === 'BR') { ctx.fillRect(px + mid - pipeW / 2, py + mid - pipeW / 2, mid + pipeW / 2, pipeW); ctx.fillRect(px + mid - pipeW / 2, py + mid - pipeW / 2, pipeW, mid + pipeW / 2); }
+            else if (cell.type === '+') { ctx.fillRect(px, py + mid - pipeW / 2, cellSize, pipeW); ctx.fillRect(px + mid - pipeW / 2, py, pipeW, cellSize); }
+
+            // green ooze flow head
+            if (cell.filled) {
+              ctx.fillStyle = "#0a0";
+              ctx.fillRect(px + mid - 1, py + mid - 1, 2, 2);
+            }
+          }
+        }
+
+        // start indicator
+        ctx.fillStyle = "#ff0"; ctx.font = "6px monospace";
+        ctx.fillText("►", ox - 6, oy + Math.floor(rows / 2) * cellSize + cellSize / 2 + 2);
+      };
+    }
+
+    function createGameOfLifeScene(ctx, w, h) {
+      const cellSize = 3;
+      const cols = Math.floor(w / cellSize), rows = Math.floor(h / cellSize);
+      let grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => Math.random() < 0.3 ? 1 : 0));
+      let gen = 0, tickCounter = 0;
+      let population = 0;
+
+      function step() {
+        const next = Array.from({ length: rows }, () => new Array(cols).fill(0));
+        population = 0;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            let neighbors = 0;
+            for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+              if (dr === 0 && dc === 0) continue;
+              const nr = (r + dr + rows) % rows, nc = (c + dc + cols) % cols;
+              neighbors += grid[nr][nc];
+            }
+            if (grid[r][c]) {
+              next[r][c] = (neighbors === 2 || neighbors === 3) ? 1 : 0;
+            } else {
+              next[r][c] = neighbors === 3 ? 1 : 0;
+            }
+            population += next[r][c];
+          }
+        }
+        grid = next; gen++;
+
+        // re-seed if population dies out
+        if (population < 10) {
+          grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => Math.random() < 0.3 ? 1 : 0));
+        }
+      }
+
+      return function draw(frame) {
+        ctx.fillStyle = "#000"; ctx.fillRect(0, 0, w, h);
+        tickCounter++;
+
+        if (tickCounter % 3 === 0) step();
+
+        // draw cells with color based on density
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (grid[r][c]) {
+              // count neighbors for color
+              let n = 0;
+              for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+                if (dr === 0 && dc === 0) continue;
+                const nr = (r + dr + rows) % rows, nc = (c + dc + cols) % cols;
+                n += grid[nr][nc];
+              }
+              const hue = 120 + n * 30;
+              ctx.fillStyle = `hsl(${hue}, 80%, ${40 + n * 8}%)`;
+              ctx.fillRect(c * cellSize, r * cellSize, cellSize - 0.5, cellSize - 0.5);
+            }
+          }
+        }
+
+        // HUD
+        ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(0, 0, w, 10);
+        ctx.fillStyle = "#0f0"; ctx.font = "6px monospace";
+        ctx.fillText(`CONWAY'S LIFE  GEN:${gen}  POP:${population}`, 3, 7);
+      };
+    }
+
+    function createDOSBootScene(ctx, w, h) {
+      // MS-DOS boot sequence
+      let tickCounter = 0;
+      const lines = [
+        "Starting MS-DOS...",
+        "",
+        "HIMEM is testing extended memory...done.",
+        "64,512KB OK",
+        "",
+        "MSCDEX Version 2.25",
+        "Copyright (C) Microsoft Corp 1986-1995",
+        "  Drive D: = Driver MSCD001 unit 0",
+        "",
+        "C:\\>MOUSE.COM",
+        "Microsoft Mouse Driver Version 8.20",
+        "Mouse driver installed.",
+        "",
+        "C:\\>SET BLASTER=A220 I5 D1 T4",
+        "C:\\>SET MIDI=SYNTH:1 MAP:E",
+        "",
+        "C:\\>CD GAMES",
+        "C:\\GAMES>DIR",
+        " Volume in drive C has no label",
+        " Directory of C:\\GAMES",
+        "",
+        " DOOM     <DIR>     12-10-93",
+        " WOLF3D   <DIR>     05-05-92",
+        " KEEN4    <DIR>     12-15-91",
+        " MONKEY   <DIR>     10-15-90",
+        " PRINCE   <DIR>     10-03-89",
+        " QBASIC   <DIR>     06-01-91",
+        "     6 file(s)     0 bytes",
+        "     42,567,680 bytes free",
+        "",
+        "C:\\GAMES>_",
+      ];
+      let lineIdx = 0, charIdx = 0;
+
+      return function draw(frame) {
+        ctx.fillStyle = "#000"; ctx.fillRect(0, 0, w, h);
+        tickCounter++;
+
+        ctx.fillStyle = "#aaa"; ctx.font = "6px monospace";
+        // draw completed lines
+        const startLine = Math.max(0, lineIdx - 12);
+        for (let i = startLine; i < lineIdx && i < lines.length; i++) {
+          ctx.fillText(lines[i], 3, 8 + (i - startLine) * 8);
+        }
+        // type current line
+        if (lineIdx < lines.length) {
+          if (tickCounter % 2 === 0) {
+            charIdx++;
+            if (charIdx >= lines[lineIdx].length) { lineIdx++; charIdx = 0; }
+          }
+          if (lineIdx < lines.length) {
+            const typedLine = lines[lineIdx].slice(0, charIdx);
+            ctx.fillText(typedLine, 3, 8 + (lineIdx - startLine) * 8);
+          }
+        }
+
+        // blinking cursor
+        if (frame % 6 < 3) {
+          const curLine = Math.min(lineIdx, lines.length - 1);
+          const cl = lineIdx < lines.length ? charIdx : lines[curLine].length;
+          ctx.fillStyle = "#aaa";
+          ctx.fillRect(3 + cl * 3.6, 8 + (curLine - startLine) * 8 - 6, 4, 7);
         }
       };
     }
