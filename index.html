@@ -4748,7 +4748,7 @@
           }
 
           // matrix rain on wild glitches
-          if (frame === 0 && intensity > 0.8) {
+          if (frame === 0 && intensity > 0.8 && artifactsEnabled) {
             matrix.start();
             setTimeout(() => matrix.stop(), 500 + intensity * 1000);
           }
@@ -4968,8 +4968,10 @@
 
       nameEl.addEventListener("click", () => {
         forceGlitch(0.9 + Math.random() * 0.1);
-        matrix.start();
-        setTimeout(() => matrix.stop(), 800 + Math.random() * 1200);
+        if (artifactsEnabled) {
+          matrix.start();
+          setTimeout(() => matrix.stop(), 800 + Math.random() * 1200);
+        }
       });
     }
 
@@ -5318,19 +5320,16 @@
       const nameEl = document.getElementById("name");
       wrapChars(nameEl);
 
-      // fire a glitch burst as the static clears — connects the two states
+      // start text effects but NO matrix or artifacts yet
       startGlitch();
       initInteractionGlitch();
       initCursorProximity();
       glitchStarted = true;
-      forceGlitch(0.8);
-      matrix.start();
-      setTimeout(() => matrix.stop(), 600);
 
-      // delay artifacts/games for 15 seconds after intro
+      // delay artifacts/games and matrix for 15 seconds after intro
       setTimeout(() => { artifactsEnabled = true; }, 15000);
 
-      // start status messages after the burst settles
+      // start status messages
       setTimeout(typeMessage, 800);
 
       // start name rotation
