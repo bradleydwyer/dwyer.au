@@ -163,6 +163,23 @@
       "Making it happen",
       "New site who dis",
       "4.3 PRs",
+      "3 axes",
+      "4 sentences",
+      "Reticulating splines",
+      "Adjusting bell curves",
+      "Calculating llama expectoration trajectory",
+      "Coalescing cloud formations",
+      "Compressing fish files",
+      "Deciding what message to display next",
+      "Destabilizing economic indicators",
+      "Gesticulating mimes",
+      "Initializing rhinoceros breeding timetable",
+      "Perturbing matrices",
+      "Sequencing particles",
+      "Synthesizing gravity",
+      "Pixelating nude patch",
+      "Splatting transforms",
+      "Iterating cellular automata",
     ];
 
     for (let i = messages.length - 1; i > 0; i--) {
@@ -316,6 +333,18 @@
       'thread \'main\'\n  panicked at\n  \'index out of\n  bounds\'',
       // Node
       'RangeError: Maximum\n  call stack size\n  exceeded',
+      // QBasic / DOS
+      'CLS\nPRINT "HELLO WORLD"\nEND',
+      '10 FOR I=1 TO 10\n20 PRINT I\n30 NEXT I',
+      'DIM A$(100)\nINPUT "NAME"; N$',
+      'SCREEN 13\nPSET (160,100),4',
+      'C:\\>EDIT AUTOEXEC.BAT',
+      'C:\\>FORMAT A: /S',
+      'C:\\>DELTREE C:\\WINDOWS',
+      'Non-system disk or\n  disk error\nReplace and strike\n  any key when ready',
+      'HiMEM is testing\n  extended memory...',
+      'QBASIC.EXE\n  Loading...',
+      'EMM386.EXE loaded',
     ];
 
     // --- Mini game scene renderers (canvas-based, animated) ---
@@ -330,7 +359,7 @@
       canvas.style.imageRendering = "pixelated";
       const ctx = canvas.getContext("2d");
 
-      const sceneFactories = [drawPacmanScene, drawInvadersScene, drawPongScene, drawSnakeScene, createTetrisScene, drawBreakoutScene, drawWargamesScene, drawFighterScene, drawAdventureScene, drawKeenScene, drawDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene];
+      const sceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene];
 
       // pick a scene that isn't already on screen
       const available = sceneFactories.filter(f => !activeSceneTypes.has(f.name));
@@ -418,83 +447,6 @@
       ctx.fillText(`SCORE ${frame * 10}`, 4, 10);
     }
 
-    function drawInvadersScene(ctx, w, h, px, frame) {
-      // invader grid
-      const invaderW = 10, invaderH = 8, cols = 8, rows = 3;
-      const offsetX = (frame % 40 < 20 ? frame % 20 : 20 - frame % 20) * 2;
-      const offsetY = Math.floor(frame / 40) * 4;
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          // some invaders "destroyed"
-          if ((r * cols + c + frame) % 17 < 2 && frame > 10) continue;
-          const ix = 10 + c * (invaderW + 6) + offsetX;
-          const iy = 12 + r * (invaderH + 6) + offsetY;
-          ctx.fillStyle = ["#0f0", "#0ff", "#ff0"][r];
-          // simple invader shape
-          ctx.fillRect(ix + 2, iy, 6, 2);
-          ctx.fillRect(ix, iy + 2, 10, 2);
-          ctx.fillRect(ix + 1, iy + 4, 8, 2);
-          ctx.fillRect(ix + 3, iy + 6, 1, 2);
-          ctx.fillRect(ix + 6, iy + 6, 1, 2);
-          // animate legs
-          if (frame % 4 < 2) {
-            ctx.fillRect(ix, iy + 6, 2, 2);
-            ctx.fillRect(ix + 8, iy + 6, 2, 2);
-          } else {
-            ctx.fillRect(ix + 1, iy + 6, 2, 2);
-            ctx.fillRect(ix + 7, iy + 6, 2, 2);
-          }
-        }
-      }
-      // player ship
-      const shipX = w / 2 + Math.sin(frame * 0.2) * 30;
-      ctx.fillStyle = "#0f0";
-      ctx.fillRect(shipX - 5, h - 14, 10, 4);
-      ctx.fillRect(shipX - 1, h - 18, 2, 4);
-      // bullets
-      if (frame % 5 === 0) {
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(shipX, h - 20 - (frame % 15) * 6, 1, 4);
-      }
-      // enemy bullets
-      for (let b = 0; b < 3; b++) {
-        const bx = 20 + ((frame * 7 + b * 47) % (w - 40));
-        const by = 30 + ((frame * 3 + b * 23) % (h - 50));
-        ctx.fillStyle = "#f00";
-        ctx.fillRect(bx, by, 1, 4);
-      }
-      // score
-      ctx.fillStyle = "#fff";
-      ctx.font = "8px monospace";
-      ctx.fillText(`SCORE ${frame * 50}`, 4, 10);
-      ctx.fillText("LIVES ♥♥♥", w - 65, 10);
-    }
-
-    function drawPongScene(ctx, w, h, px, frame) {
-      // center line
-      ctx.strokeStyle = "#333";
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(w/2, 0);
-      ctx.lineTo(w/2, h);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      // paddles
-      const p1Y = h/2 + Math.sin(frame * 0.15) * 30;
-      const p2Y = h/2 + Math.sin(frame * 0.15 + 1) * 30;
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(6, p1Y - 12, 4, 24);
-      ctx.fillRect(w - 10, p2Y - 12, 4, 24);
-      // ball
-      const ballX = w/2 + Math.sin(frame * 0.12) * (w/2 - 20);
-      const ballY = h/2 + Math.cos(frame * 0.18) * (h/2 - 10);
-      ctx.fillRect(ballX - 2, ballY - 2, 4, 4);
-      // score
-      ctx.font = "16px monospace";
-      ctx.fillText(`${3 + Math.floor(frame/10)}`, w/2 - 30, 20);
-      ctx.fillText(`${2 + Math.floor(frame/12)}`, w/2 + 22, 20);
-    }
-
     function drawSnakeScene(ctx, w, h, px, frame) {
       // grid
       const gridSize = 6;
@@ -524,75 +476,6 @@
       ctx.fillStyle = "#fff";
       ctx.font = "8px monospace";
       ctx.fillText(`SCORE ${frame * 10}`, 4, 10);
-    }
-
-    function drawTetrisScene(ctx, w, h, px, frame) {
-      const colors = ["#0ff", "#ff0", "#f0f", "#0f0", "#f00", "#00f", "#f80"];
-      const gridW = 10, cellSize = 6;
-      const boardX = (w - gridW * cellSize) / 2;
-      // board outline
-      ctx.strokeStyle = "#333";
-      ctx.strokeRect(boardX - 1, 10, gridW * cellSize + 2, h - 20);
-      // fallen blocks (random pile at bottom)
-      for (let row = 0; row < 6; row++) {
-        for (let col = 0; col < gridW; col++) {
-          if (Math.random() < 0.6 + row * 0.05) {
-            ctx.fillStyle = colors[(row * 3 + col * 7) % colors.length];
-            ctx.fillRect(boardX + col * cellSize, h - 20 - row * cellSize, cellSize - 1, cellSize - 1);
-          }
-        }
-      }
-      // falling piece (T-piece)
-      const pieceY = 14 + (frame * 2) % (h - 70);
-      const pieceX = boardX + (3 + Math.floor(frame / 15) % 4) * cellSize;
-      ctx.fillStyle = "#f0f";
-      ctx.fillRect(pieceX, pieceY, cellSize - 1, cellSize - 1);
-      ctx.fillRect(pieceX - cellSize, pieceY + cellSize, cellSize - 1, cellSize - 1);
-      ctx.fillRect(pieceX, pieceY + cellSize, cellSize - 1, cellSize - 1);
-      ctx.fillRect(pieceX + cellSize, pieceY + cellSize, cellSize - 1, cellSize - 1);
-      // next piece preview
-      ctx.fillStyle = "#fff";
-      ctx.font = "7px monospace";
-      ctx.fillText("NEXT", boardX + gridW * cellSize + 6, 18);
-      ctx.fillStyle = "#0ff";
-      const nx = boardX + gridW * cellSize + 8;
-      for (let i = 0; i < 4; i++) ctx.fillRect(nx + i * 5, 22, 4, 4); // I-piece
-      // level
-      ctx.fillStyle = "#fff";
-      ctx.fillText("LVL " + (1 + Math.floor(frame / 20)), boardX + gridW * cellSize + 6, 42);
-      ctx.fillText(`${frame * 100}`, boardX + gridW * cellSize + 6, 52);
-    }
-
-    function drawBreakoutScene(ctx, w, h, px, frame) {
-      const colors = ["#f00", "#f80", "#ff0", "#0f0", "#0ff", "#00f"];
-      // bricks
-      const brickW = 16, brickH = 6, cols = 9, rows = 4;
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          if ((r * cols + c + frame * 3) % 13 < 3 && frame > 5) continue;
-          ctx.fillStyle = colors[r % colors.length];
-          ctx.fillRect(4 + c * (brickW + 2), 10 + r * (brickH + 2), brickW, brickH);
-        }
-      }
-      // paddle
-      const paddleX = w/2 + Math.sin(frame * 0.15) * 40;
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(paddleX - 14, h - 12, 28, 4);
-      // ball
-      const ballX = w/2 + Math.sin(frame * 0.2) * 50;
-      const ballY = h/2 + Math.cos(frame * 0.25) * 30;
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(ballX - 2, ballY - 2, 4, 4);
-      // ball trail
-      for (let t = 1; t < 4; t++) {
-        ctx.fillStyle = `rgba(255,255,255,${0.1 * (4-t)})`;
-        const tx = w/2 + Math.sin((frame - t * 2) * 0.2) * 50;
-        const ty = h/2 + Math.cos((frame - t * 2) * 0.25) * 30;
-        ctx.fillRect(tx - 1, ty - 1, 2, 2);
-      }
-      ctx.fillStyle = "#fff";
-      ctx.font = "8px monospace";
-      ctx.fillText(`SCORE ${frame * 25}`, 4, h - 2);
     }
 
     function drawWargamesScene(ctx, w, h, px, frame) {
@@ -643,81 +526,257 @@
       }
     }
 
-    function drawFighterScene(ctx, w, h, px, frame) {
-      // health bars
-      ctx.fillStyle = "#333";
-      ctx.fillRect(6, 6, 60, 8);
-      ctx.fillRect(w - 66, 6, 60, 8);
-      const p1Health = Math.max(0, 60 - frame * 0.8);
-      const p2Health = Math.max(0, 60 - frame * 0.5);
-      ctx.fillStyle = p1Health > 20 ? "#0f0" : "#f00";
-      ctx.fillRect(6, 6, p1Health, 8);
-      ctx.fillStyle = p2Health > 20 ? "#0f0" : "#f00";
-      ctx.fillRect(w - 6 - p2Health, 6, p2Health, 8);
+    function createWoprMapScene(ctx, w, h) {
+      const detonations = [];
+      const missiles = [];
+      let tickCounter = 0;
+      let totalStrikes = 0;
 
-      ctx.fillStyle = "#fff";
-      ctx.font = "7px monospace";
-      ctx.fillText("P1", 6, 22);
-      ctx.fillText("P2", w - 16, 22);
+      // Crude continent outlines (normalized coordinates)
+      const continents = [
+        [[0.08,0.18],[0.12,0.15],[0.18,0.15],[0.22,0.20],[0.24,0.28],[0.22,0.32],[0.20,0.38],[0.18,0.42],[0.14,0.44],[0.10,0.38],[0.06,0.28],[0.08,0.18]],
+        [[0.14,0.42],[0.18,0.40],[0.20,0.44],[0.16,0.46],[0.14,0.42]],
+        [[0.22,0.52],[0.26,0.48],[0.30,0.52],[0.32,0.60],[0.30,0.70],[0.28,0.80],[0.24,0.84],[0.22,0.75],[0.20,0.62],[0.22,0.52]],
+        [[0.44,0.15],[0.47,0.12],[0.50,0.14],[0.53,0.16],[0.52,0.22],[0.48,0.26],[0.46,0.30],[0.43,0.28],[0.42,0.22],[0.44,0.15]],
+        [[0.54,0.14],[0.42,0.20],[0.44,0.26],[0.46,0.30],[0.48,0.28]],
+        [[0.44,0.34],[0.48,0.30],[0.54,0.34],[0.56,0.42],[0.56,0.52],[0.54,0.60],[0.50,0.68],[0.46,0.64],[0.44,0.55],[0.42,0.45],[0.44,0.34]],
+        [[0.52,0.14],[0.58,0.10],[0.66,0.10],[0.74,0.12],[0.82,0.14],[0.88,0.18],[0.92,0.25],[0.88,0.30],[0.82,0.35],[0.76,0.40],[0.70,0.38],[0.64,0.34],[0.58,0.28],[0.54,0.22],[0.52,0.14]],
+        [[0.80,0.60],[0.86,0.56],[0.92,0.60],[0.94,0.66],[0.90,0.72],[0.84,0.70],[0.80,0.64],[0.80,0.60]],
+      ];
 
-      // round indicator
-      ctx.font = "8px monospace";
-      ctx.fillStyle = "#ff0";
-      ctx.fillText("ROUND 1", w/2 - 22, 12);
+      const targets = [
+        {x:0.15,y:0.25},{x:0.12,y:0.32},{x:0.18,y:0.22},{x:0.10,y:0.30},{x:0.20,y:0.28},
+        {x:0.48,y:0.18},{x:0.50,y:0.22},{x:0.52,y:0.17},{x:0.60,y:0.14},{x:0.68,y:0.12},
+        {x:0.82,y:0.32},{x:0.86,y:0.36},{x:0.56,y:0.26},{x:0.46,y:0.20},
+      ];
 
-      // timer
-      ctx.fillStyle = "#fff";
-      ctx.font = "12px monospace";
-      ctx.fillText(String(Math.max(0, 99 - frame)), w/2 - 6, 26);
+      return function draw(frame) {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, w, h);
+        tickCounter++;
 
-      // fighter 1 (left) — simple stick figure style
-      const f1x = 30 + Math.sin(frame * 0.3) * 5;
-      const f1y = h - 30;
-      ctx.fillStyle = "#0cf";
-      ctx.fillRect(f1x, f1y - 20, 8, 16); // body
-      ctx.fillRect(f1x + 1, f1y - 26, 6, 6); // head
-      ctx.fillRect(f1x - 4, f1y - 16, 4, 3); // back arm
-      // punch animation
-      if (frame % 8 < 3) {
-        ctx.fillRect(f1x + 8, f1y - 18, 14, 3); // punch
-        ctx.fillStyle = "#fff";
-        ctx.font = "8px monospace";
-        ctx.fillText("HIT!", f1x + 24, f1y - 14);
-      } else {
-        ctx.fillRect(f1x + 8, f1y - 14, 6, 3); // arm
+        // Draw continents
+        ctx.strokeStyle = "rgba(0, 180, 0, 0.35)";
+        ctx.lineWidth = 0.8;
+        for (const cont of continents) {
+          ctx.beginPath();
+          ctx.moveTo(cont[0][0] * w, cont[0][1] * h);
+          for (let i = 1; i < cont.length; i++) ctx.lineTo(cont[i][0] * w, cont[i][1] * h);
+          ctx.stroke();
+        }
+
+        // Target dots
+        for (const t of targets) {
+          ctx.fillStyle = "rgba(0, 255, 0, 0.5)";
+          ctx.fillRect(t.x * w - 0.5, t.y * h - 0.5, 1.5, 1.5);
+        }
+
+        // Launch missiles
+        if (tickCounter % 18 === 0 && tickCounter < 260) {
+          const from = targets[Math.floor(Math.random() * targets.length)];
+          let to;
+          do { to = targets[Math.floor(Math.random() * targets.length)]; } while (to === from);
+          missiles.push({ x1: from.x*w, y1: from.y*h, x2: to.x*w, y2: to.y*h, progress: 0 });
+        }
+
+        // Update & draw missiles
+        for (let i = missiles.length - 1; i >= 0; i--) {
+          const m = missiles[i];
+          m.progress += 0.025;
+          const cx = (m.x1 + m.x2) / 2;
+          const cy = Math.min(m.y1, m.y2) - 20;
+          // Draw arc trail
+          ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 - m.progress * 0.3})`;
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          for (let s = 0; s <= m.progress; s += 0.04) {
+            const tx = (1-s)*(1-s)*m.x1 + 2*(1-s)*s*cx + s*s*m.x2;
+            const ty = (1-s)*(1-s)*m.y1 + 2*(1-s)*s*cy + s*s*m.y2;
+            s === 0 ? ctx.moveTo(tx, ty) : ctx.lineTo(tx, ty);
+          }
+          ctx.stroke();
+          // Missile head
+          const t = m.progress;
+          const px = (1-t)*(1-t)*m.x1 + 2*(1-t)*t*cx + t*t*m.x2;
+          const py = (1-t)*(1-t)*m.y1 + 2*(1-t)*t*cy + t*t*m.y2;
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(px - 1, py - 1, 2, 2);
+
+          if (m.progress >= 1) {
+            detonations.push({ x: m.x2, y: m.y2, radius: 0, maxRadius: 5 + Math.random() * 10, age: 0 });
+            totalStrikes++;
+            missiles.splice(i, 1);
+          }
+        }
+
+        // Draw detonations
+        for (let i = detonations.length - 1; i >= 0; i--) {
+          const d = detonations[i];
+          d.age++;
+          d.radius = Math.min(d.maxRadius, d.radius + 0.4);
+          const fade = Math.max(0, 1 - d.age / 80);
+          if (fade <= 0) { detonations.splice(i, 1); continue; }
+          ctx.strokeStyle = `rgba(255, 255, 255, ${fade})`;
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.arc(d.x, d.y, d.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          if (d.age < 6) {
+            ctx.fillStyle = `rgba(255, 255, 255, ${(1 - d.age / 6) * 0.8})`;
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, d.radius * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // HUD
+        ctx.fillStyle = "#0f0";
+        ctx.font = "7px monospace";
+        ctx.fillText("WOPR SIMULATION", 4, 8);
+        ctx.fillText("DEFCON 1", w - 48, 8);
+        ctx.fillText(`STRIKES: ${totalStrikes}`, 4, h - 4);
+        // scanlines
+        for (let y = 0; y < h; y += 3) {
+          ctx.fillStyle = "rgba(0,0,0,0.15)";
+          ctx.fillRect(0, y, w, 1);
+        }
+      };
+    }
+
+    function createFighterScene(ctx, w, h) {
+      let p1hp = 60, p2hp = 60, round = 1, timer = 99;
+      const floorY = h - 16;
+      let p1x = 30, p2x = w - 40;
+      let p1action = '', p2action = '';
+      let p1aTimer = 0, p2aTimer = 0;
+      let koMsg = '', koTimer = 0;
+      let tickCounter = 0;
+      const projectiles = [];
+      const hits = [];
+
+      function drawFighter(x, y, color, facing, action) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y - 20, 8, 16); // body
+        ctx.fillRect(x + 1, y - 26, 6, 6); // head
+        if (action === 'punch') {
+          ctx.fillRect(facing > 0 ? x + 8 : x - 14, y - 18, 14, 3);
+        } else if (action === 'kick') {
+          ctx.fillRect(facing > 0 ? x + 8 : x - 10, y - 8, 10, 3);
+          ctx.fillRect(x + (facing > 0 ? 5 : 0), y - 4, 3, 12); // one leg kicks
+          ctx.fillRect(x + (facing > 0 ? 0 : 5), y - 4, 3, 10);
+          return;
+        } else if (action === 'block') {
+          ctx.fillRect(facing > 0 ? x + 6 : x - 2, y - 22, 4, 14); // arms up
+        } else {
+          ctx.fillRect(facing > 0 ? x + 8 : x - 6, y - 14, 6, 3);
+        }
+        ctx.fillRect(facing > 0 ? x - 4 : x + 8, y - 16, 4, 3); // back arm
+        ctx.fillRect(x, y - 4, 3, 10);
+        ctx.fillRect(x + 5, y - 4, 3, 10);
       }
-      ctx.fillStyle = "#0cf";
-      ctx.fillRect(f1x, f1y - 4, 3, 10); // legs
-      ctx.fillRect(f1x + 5, f1y - 4, 3, 10);
 
-      // fighter 2 (right)
-      const f2x = w - 40 - Math.sin(frame * 0.3) * 5;
-      ctx.fillStyle = "#f44";
-      ctx.fillRect(f2x, f1y - 20, 8, 16);
-      ctx.fillRect(f2x + 1, f1y - 26, 6, 6);
-      ctx.fillRect(f2x + 8, f1y - 16, 4, 3);
-      if (frame % 12 < 3) {
-        ctx.fillRect(f2x - 12, f1y - 18, 12, 3); // kick
-      }
-      ctx.fillRect(f2x, f1y - 4, 3, 10);
-      ctx.fillRect(f2x + 5, f1y - 4, 3, 10);
+      return function draw(frame) {
+        ctx.fillStyle = "#111"; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "#333"; ctx.fillRect(0, floorY, w, h - floorY);
+        tickCounter++;
 
-      // hadouken projectile
-      if (frame > 15 && frame % 20 < 10) {
-        const projX = f1x + 20 + (frame % 20) * 6;
-        ctx.fillStyle = "#0ff";
-        ctx.beginPath();
-        ctx.arc(projX, f1y - 14, 4 + Math.sin(frame) * 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#fff";
-        ctx.beginPath();
-        ctx.arc(projX, f1y - 14, 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
+        if (koMsg) {
+          koTimer++;
+          ctx.fillStyle = "#fff"; ctx.font = "bold 10px monospace";
+          ctx.fillText(koMsg, w/2 - 25, h/2 - 10);
+          if (koTimer > 80) {
+            round++; p1hp = 60; p2hp = 60; timer = 99; koMsg = ''; koTimer = 0;
+            p1x = 30; p2x = w - 40;
+          }
+          drawFighter(p1x, floorY, "#0cf", 1, '');
+          drawFighter(p2x, floorY, "#f44", -1, '');
+        } else {
+          // Timer
+          if (tickCounter % 10 === 0 && timer > 0) timer--;
 
-      // floor
-      ctx.fillStyle = "#333";
-      ctx.fillRect(0, h - 16, w, 16);
+          // AI combat
+          if (p1aTimer <= 0 && Math.random() < 0.12) {
+            const r = Math.random();
+            p1action = r < 0.4 ? 'punch' : r < 0.7 ? 'kick' : r < 0.85 ? 'block' : 'hadouken';
+            p1aTimer = p1action === 'hadouken' ? 15 : 8;
+            if (p1action === 'hadouken') projectiles.push({x: p1x + 12, y: floorY - 14, vx: 2.5, owner: 1});
+          }
+          if (p2aTimer <= 0 && Math.random() < 0.10) {
+            const r = Math.random();
+            p2action = r < 0.45 ? 'punch' : r < 0.75 ? 'kick' : 'block';
+            p2aTimer = 8;
+          }
+
+          // Movement
+          const dist = p2x - p1x;
+          if (dist > 20) { p1x += 0.5; p2x -= 0.3; }
+          if (dist < 15) { p1x -= 0.5; p2x += 0.5; }
+          p1x += Math.sin(frame * 0.15) * 0.5;
+          p2x -= Math.sin(frame * 0.12) * 0.5;
+
+          // Hit detection
+          if (p1aTimer > 3 && (p1action === 'punch' || p1action === 'kick') && dist < 25 && p2action !== 'block') {
+            const dmg = p1action === 'kick' ? 4 : 3;
+            p2hp = Math.max(0, p2hp - dmg);
+            if (p1aTimer === 7) hits.push({x: p2x, y: floorY - 16, t: 8});
+          }
+          if (p2aTimer > 3 && (p2action === 'punch' || p2action === 'kick') && dist < 25 && p1action !== 'block') {
+            const dmg = p2action === 'kick' ? 4 : 3;
+            p1hp = Math.max(0, p1hp - dmg);
+            if (p2aTimer === 7) hits.push({x: p1x + 8, y: floorY - 16, t: 8});
+          }
+
+          // Projectiles
+          for (let i = projectiles.length - 1; i >= 0; i--) {
+            const p = projectiles[i];
+            p.x += p.vx;
+            if (p.x > p2x - 5 && p.x < p2x + 10 && p2action !== 'block') {
+              p2hp = Math.max(0, p2hp - 6);
+              hits.push({x: p2x, y: floorY - 14, t: 10});
+              projectiles.splice(i, 1);
+            } else if (p.x > w) { projectiles.splice(i, 1); }
+          }
+
+          p1aTimer--; p2aTimer--;
+          if (p1aTimer <= 0) p1action = '';
+          if (p2aTimer <= 0) p2action = '';
+
+          // KO check
+          if (p1hp <= 0) { koMsg = 'K.O.!'; }
+          if (p2hp <= 0) { koMsg = p2hp <= 0 && p1hp <= 0 ? 'DOUBLE K.O.!' : 'K.O.!'; }
+          if (timer <= 0 && !koMsg) koMsg = p1hp > p2hp ? 'P1 WINS!' : p2hp > p1hp ? 'P2 WINS!' : 'DRAW!';
+
+          drawFighter(p1x, floorY, "#0cf", 1, p1action);
+          drawFighter(p2x, floorY, "#f44", -1, p2action);
+        }
+
+        // Projectiles
+        for (const p of projectiles) {
+          ctx.fillStyle = "#0ff"; ctx.beginPath();
+          ctx.arc(p.x, p.y, 4 + Math.sin(frame) * 1.5, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#fff"; ctx.beginPath();
+          ctx.arc(p.x, p.y, 2, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // Hit effects
+        for (let i = hits.length - 1; i >= 0; i--) {
+          hits[i].t--;
+          if (hits[i].t <= 0) { hits.splice(i, 1); continue; }
+          ctx.fillStyle = `rgba(255,255,0,${hits[i].t/10})`;
+          ctx.font = "bold 8px monospace";
+          ctx.fillText("HIT!", hits[i].x - 5, hits[i].y - hits[i].t);
+        }
+
+        // HUD
+        ctx.fillStyle = "#333"; ctx.fillRect(6, 6, 60, 8); ctx.fillRect(w-66, 6, 60, 8);
+        ctx.fillStyle = p1hp > 20 ? "#0f0" : "#f00"; ctx.fillRect(6, 6, p1hp, 8);
+        ctx.fillStyle = p2hp > 20 ? "#0f0" : "#f00"; ctx.fillRect(w-6-p2hp, 6, p2hp, 8);
+        ctx.fillStyle = "#ff0"; ctx.font = "8px monospace";
+        ctx.fillText(`ROUND ${round}`, w/2 - 22, 12);
+        ctx.fillStyle = "#fff"; ctx.font = "12px monospace";
+        ctx.fillText(String(timer), w/2 - 6, 26);
+        ctx.font = "7px monospace"; ctx.fillText("P1", 6, 22); ctx.fillText("P2", w-16, 22);
+      };
     }
 
     function drawAdventureScene(ctx, w, h, px, frame) {
@@ -893,94 +952,187 @@
       ctx.fillText(`SCORE ${(frame * 100) % 99999}`, w - 70, 9);
     }
 
-    function drawDoomScene(ctx, w, h, px, frame) {
-      // Doom-style first person corridor
-      // ceiling
-      ctx.fillStyle = "#333";
-      ctx.fillRect(0, 0, w, h * 0.4);
-      // floor
-      ctx.fillStyle = "#555";
-      ctx.fillRect(0, h * 0.6, w, h * 0.4);
+    function createDoomScene(ctx, w, h) {
+      // Randomized Doom level — different wall textures, enemies, weapons
+      const levelType = Math.floor(Math.random() * 4); // 0=corridor, 1=room, 2=outdoor, 3=hell
+      const wallBaseColors = [
+        {r:120,g:80,b:40},   // brown tech walls (E1M1)
+        {r:100,g:100,b:100}, // grey stone
+        {r:80,g:40,b:30},    // red hell
+        {r:60,g:80,b:60},    // green marble
+      ];
+      const ceilColors = ["#333","#444","#200","#411"];
+      const floorColors = ["#555","#665","#433","#543"];
+      const wc = wallBaseColors[levelType];
+      let hp = 100, armor = 50, ammo = 50;
+      const enemies = [];
+      let killCount = 0;
+      let weapon = Math.floor(Math.random() * 3); // 0=pistol, 1=shotgun, 2=chaingun
+      let firing = false, fireTimer = 0;
+      let playerAngle = 0, playerBob = 0;
 
-      // fake 3D corridor walls
-      const sway = Math.sin(frame * 0.08) * 3;
-      const wallColors = ["#700", "#800", "#600", "#700"];
-      for (let col = 0; col < w; col += 4) {
-        const distFromCenter = Math.abs(col - w/2 + sway) / (w/2);
-        const wallH = h * 0.5 * (1 - distFromCenter * 0.6);
-        const wallTop = h/2 - wallH/2;
-        const shade = Math.floor(80 + (1 - distFromCenter) * 80);
-        ctx.fillStyle = `rgb(${shade}, ${Math.floor(shade*0.2)}, ${Math.floor(shade*0.1)})`;
-        ctx.fillRect(col, wallTop, 4, wallH);
+      // spawn initial enemies
+      for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) {
+        enemies.push({
+          x: (Math.random() - 0.5) * 60,
+          dist: 30 + Math.random() * 50,
+          type: Math.floor(Math.random() * 3), // 0=zombie, 1=imp, 2=demon
+          hp: [1, 2, 3][Math.floor(Math.random() * 3)],
+          hitTimer: 0, dead: false
+        });
+      }
 
-        // wall detail lines
-        if (col % 16 === 0) {
-          ctx.fillStyle = `rgb(${shade-20}, ${Math.floor(shade*0.15)}, ${Math.floor(shade*0.05)})`;
-          ctx.fillRect(col, wallTop, 1, wallH);
+      return function draw(frame) {
+        playerBob = Math.sin(frame * 0.08) * 2;
+        playerAngle = Math.sin(frame * 0.02) * 8;
+
+        // ceiling & floor
+        ctx.fillStyle = ceilColors[levelType];
+        ctx.fillRect(0, 0, w, h * 0.4);
+        ctx.fillStyle = floorColors[levelType];
+        ctx.fillRect(0, h * 0.6, w, h * 0.4);
+
+        // walls with texture variation
+        for (let col = 0; col < w; col += 3) {
+          const viewCol = col - w/2 + playerAngle;
+          const distFromCenter = Math.abs(viewCol) / (w/2);
+          const wallH = h * 0.55 * (1 - distFromCenter * 0.5);
+          const wallTop = h/2 - wallH/2 + playerBob;
+          const shade = 0.4 + (1 - distFromCenter) * 0.6;
+          const r = Math.floor(wc.r * shade);
+          const g = Math.floor(wc.g * shade);
+          const b = Math.floor(wc.b * shade);
+          ctx.fillStyle = `rgb(${r},${g},${b})`;
+          ctx.fillRect(col, wallTop, 3, wallH);
+
+          // texture detail (vertical lines for panels)
+          if (col % 12 === 0) {
+            ctx.fillStyle = `rgb(${Math.max(0,r-15)},${Math.max(0,g-15)},${Math.max(0,b-15)})`;
+            ctx.fillRect(col, wallTop, 1, wallH);
+          }
+          // horizontal band (tech detail)
+          if (levelType === 0 && distFromCenter < 0.7) {
+            ctx.fillStyle = `rgb(${Math.min(255,r+30)},${Math.min(255,g+20)},${b})`;
+            ctx.fillRect(col, wallTop + wallH * 0.45, 3, 2);
+          }
         }
-      }
 
-      // door at end of corridor
-      const doorW = 30 + Math.sin(frame * 0.05) * 5;
-      const doorH = h * 0.3;
-      ctx.fillStyle = "#555";
-      ctx.fillRect(w/2 - doorW/2 + sway, h/2 - doorH/2, doorW, doorH);
-      ctx.fillStyle = "#777";
-      ctx.fillRect(w/2 + sway + doorW/4, h/2 - 2, 3, 4);
+        // Doors/openings based on level type
+        if (levelType <= 1) {
+          const doorW = 24; const doorH = h * 0.35;
+          ctx.fillStyle = "#555";
+          ctx.fillRect(w/2 - doorW/2 + playerAngle, h/2 - doorH/2 + playerBob, doorW, doorH);
+          ctx.fillStyle = "#666";
+          ctx.fillRect(w/2 + playerAngle + 6, h/2 + playerBob - 2, 3, 4);
+        }
 
-      // weapon at bottom (gun)
-      ctx.fillStyle = "#888";
-      ctx.fillRect(w/2 - 8 + sway * 0.5, h - 35, 16, 25);
-      ctx.fillStyle = "#666";
-      ctx.fillRect(w/2 - 3 + sway * 0.5, h - 40, 6, 8);
-      ctx.fillStyle = "#aaa";
-      ctx.fillRect(w/2 - 1 + sway * 0.5, h - 44, 2, 6);
+        // light pillars for E1M1 feel
+        if (levelType === 0) {
+          for (let i = -1; i <= 1; i += 2) {
+            const px = w/2 + i * 50 + playerAngle;
+            ctx.fillStyle = "#aaa";
+            ctx.fillRect(px, h*0.35 + playerBob, 4, h*0.3);
+            ctx.fillStyle = "#dda";
+            ctx.fillRect(px, h*0.34 + playerBob, 4, 3);
+          }
+        }
 
-      // muzzle flash
-      if (frame % 15 < 2) {
-        ctx.fillStyle = "#ff0";
-        ctx.fillRect(w/2 - 4 + sway * 0.5, h - 48, 8, 4);
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(w/2 - 2 + sway * 0.5, h - 50, 4, 4);
-      }
+        // Enemies
+        for (const e of enemies) {
+          if (e.dead) continue;
+          const screenX = w/2 + e.x - playerAngle;
+          const scale = Math.max(0.3, 1 - e.dist / 100);
+          const eW = 12 * scale, eH = 18 * scale;
+          const eY = h/2 - eH/2 + playerBob;
 
-      // enemy (imp silhouette) occasionally
-      if (frame % 60 < 30) {
-        const impScale = 0.5 + (frame % 30) * 0.02;
-        const impW = 12 * impScale;
-        const impH = 16 * impScale;
-        const impX = w/2 - impW/2 + sway + Math.sin(frame * 0.2) * 10;
-        const impY = h/2 - impH/2;
-        ctx.fillStyle = "#a44";
-        ctx.fillRect(impX, impY, impW, impH);
-        ctx.fillStyle = "#f00";
-        ctx.fillRect(impX + impW * 0.2, impY + impH * 0.15, impW * 0.2, impW * 0.15);
-        ctx.fillRect(impX + impW * 0.6, impY + impH * 0.15, impW * 0.2, impW * 0.15);
-      }
+          if (e.hitTimer > 0) { ctx.fillStyle = "#fff"; e.hitTimer--; }
+          else ctx.fillStyle = ["#584","#a44","#840"][e.type];
+          ctx.fillRect(screenX - eW/2, eY, eW, eH);
+          // eyes
+          if (scale > 0.4) {
+            ctx.fillStyle = "#f00";
+            ctx.fillRect(screenX - eW*0.25, eY + eH*0.15, eW*0.2, eW*0.15);
+            ctx.fillRect(screenX + eW*0.1, eY + eH*0.15, eW*0.2, eW*0.15);
+          }
+          // enemies slowly approach
+          e.dist -= 0.08;
+          e.x += Math.sin(frame * 0.1 + e.x) * 0.3;
+          if (e.dist < 10) { hp -= 2; e.dist = 10 + Math.random() * 10; }
+        }
 
-      // HUD
-      ctx.fillStyle = "#000";
-      ctx.fillRect(0, h - 16, w, 16);
-      // health
-      ctx.fillStyle = "#fff";
-      ctx.font = "8px monospace";
-      ctx.fillText("HEALTH", 4, h - 5);
-      ctx.fillStyle = "#f00";
-      const hp = Math.max(10, 100 - frame % 100);
-      ctx.fillRect(42, h - 12, hp * 0.4, 6);
-      // ammo
-      ctx.fillStyle = "#fff";
-      ctx.fillText("AMMO", w - 60, h - 5);
-      ctx.fillStyle = "#ff0";
-      ctx.fillText(String(Math.max(0, 50 - Math.floor(frame / 15))), w - 20, h - 5);
-      // face (Doom guy)
-      ctx.fillStyle = "#fca";
-      ctx.fillRect(w/2 - 6, h - 14, 12, 12);
-      ctx.fillStyle = "#000";
-      ctx.fillRect(w/2 - 4, h - 11, 2, 2);
-      ctx.fillRect(w/2 + 2, h - 11, 2, 2);
-      ctx.fillStyle = "#a00";
-      ctx.fillRect(w/2 - 2, h - 6, 4, 2);
+        // Weapon firing AI
+        if (!firing && frame % 20 === 0 && enemies.some(e => !e.dead)) {
+          firing = true; fireTimer = weapon === 2 ? 6 : 3;
+          ammo = Math.max(0, ammo - (weapon === 2 ? 3 : 1));
+        }
+        if (firing) {
+          fireTimer--;
+          if (fireTimer <= 0) {
+            firing = false;
+            // hit closest enemy
+            const alive = enemies.filter(e => !e.dead).sort((a,b) => a.dist - b.dist);
+            if (alive.length > 0) {
+              alive[0].hp -= weapon === 1 ? 2 : 1;
+              alive[0].hitTimer = 3;
+              if (alive[0].hp <= 0) { alive[0].dead = true; killCount++; }
+            }
+          }
+        }
+
+        // Respawn enemies
+        if (enemies.every(e => e.dead) && frame % 30 === 0) {
+          for (let i = 0; i < 2; i++)
+            enemies.push({ x: (Math.random()-0.5)*60, dist: 50+Math.random()*40, type: Math.floor(Math.random()*3), hp: 2, hitTimer: 0, dead: false });
+        }
+
+        // Weapon sprite
+        const wx = w/2 - 8 + playerBob * 0.5;
+        const weaponNames = ["PISTOL","SHOTGUN","CHAINGUN"];
+        if (weapon === 0) { // pistol
+          ctx.fillStyle = "#888"; ctx.fillRect(wx, h-32, 16, 22);
+          ctx.fillStyle = "#666"; ctx.fillRect(wx+5, h-38, 6, 8);
+        } else if (weapon === 1) { // shotgun
+          ctx.fillStyle = "#777"; ctx.fillRect(wx-2, h-36, 20, 26);
+          ctx.fillStyle = "#555"; ctx.fillRect(wx+3, h-48, 4, 14);
+          ctx.fillRect(wx+9, h-48, 4, 14);
+        } else { // chaingun
+          ctx.fillStyle = "#888"; ctx.fillRect(wx-4, h-34, 24, 24);
+          ctx.fillStyle = "#666"; ctx.fillRect(wx+2, h-44, 3, 12);
+          ctx.fillRect(wx+7, h-44, 3, 12);
+          ctx.fillRect(wx+12, h-44, 3, 12);
+        }
+        // muzzle flash
+        if (firing && fireTimer > 0) {
+          ctx.fillStyle = "#ff0"; ctx.fillRect(wx+2, h-52, 12, 6);
+          ctx.fillStyle = "#fff"; ctx.fillRect(wx+4, h-54, 8, 4);
+        }
+
+        // Status bar (Doom-style)
+        ctx.fillStyle = "#444"; ctx.fillRect(0, h-16, w, 16);
+        ctx.fillStyle = "#333"; ctx.fillRect(0, h-16, w, 1);
+        // sections
+        ctx.fillStyle = "#fff"; ctx.font = "6px monospace";
+        ctx.fillText("AMMO", 3, h-10); ctx.fillText(String(ammo), 3, h-3);
+        ctx.fillText("HEALTH", 30, h-10);
+        ctx.fillStyle = hp > 25 ? "#0f0" : "#f00"; ctx.fillText(hp+"%", 30, h-3);
+        ctx.fillStyle = "#fff"; ctx.fillText("ARMS", w/2+12, h-10);
+        ctx.fillStyle = "#0af"; ctx.fillText(weaponNames[weapon], w/2+12, h-3);
+        ctx.fillStyle = "#fff"; ctx.fillText("ARMOR", w-40, h-10);
+        ctx.fillStyle = "#08f"; ctx.fillText(armor+"%", w-40, h-3);
+        // Doom guy face
+        ctx.fillStyle = "#fca"; ctx.fillRect(w/2-6, h-14, 12, 12);
+        ctx.fillStyle = "#000";
+        const lookDir = enemies.some(e => !e.dead && e.x < 0) ? -1 : enemies.some(e => !e.dead && e.x > 0) ? 1 : 0;
+        ctx.fillRect(w/2-4+lookDir, h-11, 2, 2); ctx.fillRect(w/2+2+lookDir, h-11, 2, 2);
+        ctx.fillStyle = hp > 50 ? "#a00" : "#800";
+        ctx.fillRect(w/2-2, h-6, 4, 2);
+        if (hp < 30) { // blood
+          ctx.fillStyle = "#800"; ctx.fillRect(w/2-5, h-8, 2, 3);
+        }
+        // KILLS
+        ctx.fillStyle = "#ff0"; ctx.font = "6px monospace";
+        ctx.fillText(`KILLS:${killCount}`, w/2-18, h-10);
+      };
     }
 
     function drawBSODScene(ctx, w, h, px, frame) {
@@ -1044,8 +1196,7 @@
     }
 
     function drawPinwheelScene(ctx, w, h, px, frame) {
-      // Mac OS spinning pinwheel of death
-      // macOS-style gray background with subtle gradient
+      // Mac OS spinning beach ball of death
       const grad = ctx.createLinearGradient(0, 0, 0, h);
       grad.addColorStop(0, "#e8e8e8");
       grad.addColorStop(1, "#d0d0d0");
@@ -1057,11 +1208,9 @@
       ctx.fillRect(10, 8, w - 20, 14);
       ctx.strokeStyle = "#ccc";
       ctx.strokeRect(10, 8, w - 20, 14);
-      // traffic lights
       ctx.fillStyle = "#ff5f56"; ctx.beginPath(); ctx.arc(20, 15, 3, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = "#ffbd2e"; ctx.beginPath(); ctx.arc(30, 15, 3, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = "#27c93f"; ctx.beginPath(); ctx.arc(40, 15, 3, 0, Math.PI*2); ctx.fill();
-      // title text
       ctx.fillStyle = "#333";
       ctx.font = "7px sans-serif";
       ctx.fillText("Finder", w/2 - 12, 18);
@@ -1072,48 +1221,73 @@
       ctx.strokeStyle = "#ccc";
       ctx.strokeRect(10, 22, w - 20, h - 32);
 
-      // "Not Responding" text
       ctx.fillStyle = "#999";
       ctx.font = "7px sans-serif";
       ctx.fillText("Application Not Responding", w/2 - 55, h/2 - 25);
 
-      // spinning pinwheel
+      // spinning rainbow beach ball — the real macOS one
+      // It's a disc split into colored segments that smooth-blend:
+      // Top half: saturated rainbow. Bottom half: pastel/lighter rainbow.
       const cx = w / 2;
-      const cy = h / 2 + 5;
-      const radius = 12;
-      const slices = 12;
-      const rotation = frame * 0.15;
+      const cy = h / 2 + 8;
+      const radius = 14;
+      const rotation = frame * 0.12; // smooth continuous spin
+      const segments = 36; // smooth circle
 
-      for (let i = 0; i < slices; i++) {
-        const angle = (i / slices) * Math.PI * 2 + rotation;
-        const nextAngle = ((i + 1) / slices) * Math.PI * 2 + rotation;
+      // The macOS pinwheel has 6 color bands, each spanning 60 degrees:
+      // Red, Orange, Yellow, Green, Blue, Purple (saturated half)
+      // Then mirrored as lighter versions on the other half
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rotation);
 
-        // alternate colors: blue, red, green, yellow, etc (rainbow pinwheel)
-        const hue = (i / slices) * 360;
-        const saturation = 85;
-        const lightness = i % 2 === 0 ? 50 : 65;
-        ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+      // draw the rainbow disc
+      for (let i = 0; i < segments; i++) {
+        const angle = (i / segments) * Math.PI * 2;
+        const nextAngle = ((i + 1) / segments) * Math.PI * 2;
+        const normAngle = (i / segments) * 360;
 
+        // top half (0-180) is saturated, bottom half (180-360) is lighter
+        let hue, sat, light;
+        if (normAngle < 180) {
+          hue = normAngle * 2; // spread full rainbow across top half
+          sat = 90;
+          light = 50;
+        } else {
+          hue = (normAngle - 180) * 2;
+          sat = 60;
+          light = 75;
+        }
+
+        ctx.fillStyle = `hsl(${hue}, ${sat}%, ${light}%)`;
         ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, radius, angle, nextAngle);
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, angle, nextAngle + 0.02); // slight overlap to avoid gaps
         ctx.closePath();
         ctx.fill();
       }
 
-      // center dot
-      ctx.fillStyle = "#fff";
+      // dark outline
+      ctx.strokeStyle = "rgba(0,0,0,0.2)";
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // small dark center (no white dot — matches real macOS pinwheel)
+      ctx.fillStyle = "rgba(0,0,0,0.15)";
+      ctx.beginPath();
+      ctx.arc(0, 0, 1.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // subtle shadow under pinwheel
-      ctx.fillStyle = "rgba(0,0,0,0.1)";
+      ctx.restore();
+
+      // subtle drop shadow
+      ctx.fillStyle = "rgba(0,0,0,0.08)";
       ctx.beginPath();
-      ctx.ellipse(cx, cy + radius + 4, radius * 0.8, 3, 0, 0, Math.PI * 2);
+      ctx.ellipse(cx + 1, cy + radius + 3, radius * 0.7, 2, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // force quit hint
       if (frame > 60) {
         ctx.fillStyle = "#999";
         ctx.font = "6px sans-serif";
@@ -1510,6 +1684,158 @@
       };
     }
 
+    function createPongScene(ctx, w, h) {
+      let ballX = w/2, ballY = h/2;
+      let ballVX = 1.5 * (Math.random() < 0.5 ? 1 : -1);
+      let ballVY = 1 * (Math.random() < 0.5 ? 1 : -1);
+      let p1Y = h/2, p2Y = h/2;
+      let s1 = 0, s2 = 0;
+      const paddleH = 20, paddleW = 4, speed = 1.8;
+
+      return function draw(frame) {
+        // background
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, w, h);
+        // center line
+        ctx.strokeStyle = "#333";
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // AI paddles — track ball with slight delay
+        const p1Target = ballVX < 0 ? ballY : h/2;
+        const p2Target = ballVX > 0 ? ballY : h/2;
+        if (p1Y < p1Target - 2) p1Y += speed;
+        else if (p1Y > p1Target + 2) p1Y -= speed;
+        if (p2Y < p2Target - 2) p2Y += speed;
+        else if (p2Y > p2Target + 2) p2Y -= speed;
+
+        // move ball
+        ballX += ballVX;
+        ballY += ballVY;
+
+        // wall bounce
+        if (ballY <= 2 || ballY >= h - 2) ballVY *= -1;
+
+        // paddle collision
+        if (ballX <= 10 + paddleW && ballY > p1Y - paddleH/2 && ballY < p1Y + paddleH/2 && ballVX < 0) {
+          ballVX = Math.abs(ballVX) * 1.05;
+          ballVY += (ballY - p1Y) * 0.1;
+        }
+        if (ballX >= w - 10 - paddleW && ballY > p2Y - paddleH/2 && ballY < p2Y + paddleH/2 && ballVX > 0) {
+          ballVX = -Math.abs(ballVX) * 1.05;
+          ballVY += (ballY - p2Y) * 0.1;
+        }
+
+        // speed cap
+        ballVX = Math.max(-4, Math.min(4, ballVX));
+        ballVY = Math.max(-3, Math.min(3, ballVY));
+
+        // score
+        if (ballX < 0) { s2++; ballX = w/2; ballY = h/2; ballVX = 1.5; ballVY = (Math.random()-0.5)*2; }
+        if (ballX > w) { s1++; ballX = w/2; ballY = h/2; ballVX = -1.5; ballVY = (Math.random()-0.5)*2; }
+
+        // draw paddles
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(6, p1Y - paddleH/2, paddleW, paddleH);
+        ctx.fillRect(w - 10, p2Y - paddleH/2, paddleW, paddleH);
+        // draw ball
+        ctx.fillRect(ballX - 2, ballY - 2, 4, 4);
+        // score
+        ctx.font = "14px monospace";
+        ctx.fillText(String(s1), w/2 - 25, 18);
+        ctx.fillText(String(s2), w/2 + 18, 18);
+      };
+    }
+
+    function createBreakoutScene(ctx, w, h) {
+      const brickW = 14, brickH = 5, cols = 10, rows = 5, brickGap = 2;
+      const bricks = [];
+      const colors = ["#f00", "#f80", "#ff0", "#0f0", "#0ff"];
+      for (let r = 0; r < rows; r++)
+        for (let c = 0; c < cols; c++)
+          bricks.push({x: 3 + c * (brickW + brickGap), y: 12 + r * (brickH + brickGap), w: brickW, h: brickH, color: colors[r], alive: true});
+
+      let ballX = w/2, ballY = h - 20;
+      let ballVX = 1.2 * (Math.random() < 0.5 ? 1 : -1);
+      let ballVY = -1.5;
+      let paddleX = w/2;
+      let score = 0;
+
+      return function draw(frame) {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, w, h);
+
+        // AI paddle tracks ball
+        if (paddleX < ballX - 2) paddleX += 1.8;
+        else if (paddleX > ballX + 2) paddleX -= 1.8;
+
+        // move ball
+        ballX += ballVX;
+        ballY += ballVY;
+
+        // wall bounce
+        if (ballX <= 2 || ballX >= w - 2) ballVX *= -1;
+        if (ballY <= 2) ballVY = Math.abs(ballVY);
+
+        // paddle bounce
+        if (ballY >= h - 14 && ballY <= h - 10 && ballX > paddleX - 16 && ballX < paddleX + 16) {
+          ballVY = -Math.abs(ballVY);
+          ballVX += (ballX - paddleX) * 0.08;
+        }
+
+        // brick collision
+        for (const b of bricks) {
+          if (!b.alive) continue;
+          if (ballX >= b.x && ballX <= b.x + b.w && ballY >= b.y && ballY <= b.y + b.h) {
+            b.alive = false;
+            ballVY *= -1;
+            score += 100;
+            break;
+          }
+        }
+
+        // ball lost — reset
+        if (ballY > h + 5) {
+          ballX = w/2; ballY = h - 20;
+          ballVX = 1.2 * (Math.random() < 0.5 ? 1 : -1);
+          ballVY = -1.5;
+        }
+
+        // all bricks cleared — reset
+        if (bricks.every(b => !b.alive)) {
+          for (const b of bricks) b.alive = true;
+          score += 1000;
+        }
+
+        // speed cap
+        ballVX = Math.max(-3, Math.min(3, ballVX));
+
+        // draw bricks
+        for (const b of bricks) {
+          if (!b.alive) continue;
+          ctx.fillStyle = b.color;
+          ctx.fillRect(b.x, b.y, b.w, b.h);
+        }
+
+        // draw paddle
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(paddleX - 14, h - 12, 28, 4);
+
+        // draw ball
+        ctx.fillRect(ballX - 2, ballY - 2, 4, 4);
+
+        // ball trail
+        ctx.fillStyle = "rgba(255,255,255,0.2)";
+        ctx.fillRect(ballX - ballVX*2 - 1, ballY - ballVY*2 - 1, 2, 2);
+
+        // score
+        ctx.fillStyle = "#fff";
+        ctx.font = "8px monospace";
+        ctx.fillText(`SCORE ${score}`, 4, 10);
+      };
+    }
+
     function createFlappyScene(ctx, w, h) {
       let birdY = h / 2, birdVel = 0;
       const gravity = 0.15, flapStrength = -2.5;
@@ -1608,157 +1934,351 @@
     }
 
     function createAngryBirdsScene(ctx, w, h) {
-      let birds = [];
-      let pigs = [];
-      let blocks = [];
-      let slingX = 25, slingY = h - 35;
-      let currentBird = null;
-      let launched = false;
-      let tickCounter = 0;
-      let score = 0;
       const gravity = 0.08;
+      const ground = h - 15;
+      const slingX = 25, slingY = ground - 20;
+      let score = 0, tickCounter = 0;
+      let debris = [];
+      let bodies = [];
+      let currentBird = null, launched = false;
+
+      function addDebris(x, y, color) {
+        for (let i = 0; i < 5; i++)
+          debris.push({ x, y, vx: (Math.random()-0.5)*4, vy: -(1+Math.random()*3), size: 1+Math.random()*2, life: 25+Math.random()*20, color });
+      }
 
       function reset() {
-        pigs = [
-          {x: w - 40, y: h - 22, r: 5, hp: 2},
-          {x: w - 55, y: h - 22, r: 4, hp: 1},
-          {x: w - 47, y: h - 38, r: 4, hp: 1},
+        bodies = [
+          {x:w-65,y:ground-16,w:4,h:16,vx:0,vy:0,hp:2,type:'block'},
+          {x:w-35,y:ground-16,w:4,h:16,vx:0,vy:0,hp:2,type:'block'},
+          {x:w-64,y:ground-20,w:33,h:4,vx:0,vy:0,hp:2,type:'block'},
+          {x:w-58,y:ground-36,w:4,h:16,vx:0,vy:0,hp:1,type:'block'},
+          {x:w-42,y:ground-36,w:4,h:16,vx:0,vy:0,hp:1,type:'block'},
+          {x:w-57,y:ground-40,w:19,h:4,vx:0,vy:0,hp:1,type:'block'},
+          {x:w-50,y:ground-6,w:0,h:0,r:5,vx:0,vy:0,hp:2,type:'pig'},
+          {x:w-50,y:ground-25,w:0,h:0,r:4,vx:0,vy:0,hp:1,type:'pig'},
+          {x:w-50,y:ground-45,w:0,h:0,r:4,vx:0,vy:0,hp:1,type:'pig'},
         ];
-        blocks = [
-          {x: w - 62, y: h - 28, w: 4, h: 16, hp: 2},
-          {x: w - 30, y: h - 28, w: 4, h: 16, hp: 2},
-          {x: w - 60, y: h - 32, w: 34, h: 4, hp: 1},
-          {x: w - 55, y: h - 46, w: 24, h: 4, hp: 1},
-        ];
-        currentBird = {x: slingX, y: slingY, vx: 0, vy: 0, r: 4};
-        launched = false;
+        currentBird = {x:slingX,y:slingY,vx:0,vy:0,r:4};
+        launched = false; debris = [];
       }
       reset();
 
-      return function draw(frame) {
-        // sky
-        const skyGrad = ctx.createLinearGradient(0, 0, 0, h - 15);
-        skyGrad.addColorStop(0, "#87CEEB");
-        skyGrad.addColorStop(1, "#b8e8f8");
-        ctx.fillStyle = skyGrad;
-        ctx.fillRect(0, 0, w, h - 15);
-        // ground
-        ctx.fillStyle = "#5a8f29";
-        ctx.fillRect(0, h - 15, w, 15);
-        ctx.fillStyle = "#7ab839";
-        ctx.fillRect(0, h - 15, w, 3);
+      function bodyBounds(b) {
+        return b.type==='pig'
+          ? {l:b.x-b.r, t:b.y-b.r, r:b.x+b.r, b:b.y+b.r}
+          : {l:b.x, t:b.y, r:b.x+b.w, b:b.y+b.h};
+      }
 
+      return function draw(frame) {
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, ground);
+        skyGrad.addColorStop(0, "#87CEEB"); skyGrad.addColorStop(1, "#b8e8f8");
+        ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, w, ground);
+        ctx.fillStyle = "#5a8f29"; ctx.fillRect(0, ground, w, h - ground);
+        ctx.fillStyle = "#7ab839"; ctx.fillRect(0, ground, w, 3);
         tickCounter++;
 
-        // launch bird AI
-        if (!launched && tickCounter % 60 === 30) {
-          currentBird.vx = 3 + Math.random() * 1.5;
-          currentBird.vy = -(2.5 + Math.random() * 1.5);
+        // Launch AI — aim at the structure
+        if (!launched && tickCounter % 70 === 40) {
+          // Calculate angle to hit the structure (bodies cluster around w-50)
+          const targetX = w - 50 + (Math.random() - 0.5) * 20;
+          const targetY = ground - 20 - Math.random() * 20;
+          const dx = targetX - slingX;
+          const dy = targetY - slingY;
+          const t = dx / 3.5; // time to reach target at vx ~3.5
+          currentBird.vx = dx / t;
+          currentBird.vy = (dy - 0.5 * gravity * t * t) / t; // account for gravity
           launched = true;
         }
 
+        // Bird physics
         if (launched && currentBird) {
           currentBird.vy += gravity;
           currentBird.x += currentBird.vx;
           currentBird.y += currentBird.vy;
+          const speed = Math.sqrt(currentBird.vx*currentBird.vx + currentBird.vy*currentBird.vy);
 
-          // hit blocks
-          for (let i = blocks.length - 1; i >= 0; i--) {
-            const b = blocks[i];
-            if (currentBird.x > b.x - 4 && currentBird.x < b.x + b.w + 4 &&
-                currentBird.y > b.y - 4 && currentBird.y < b.y + b.h + 4) {
+          for (let i = bodies.length - 1; i >= 0; i--) {
+            const b = bodies[i];
+            let hit = false;
+            if (b.type === 'pig') {
+              hit = Math.hypot(currentBird.x-b.x, currentBird.y-b.y) < currentBird.r + b.r;
+            } else {
+              const cx = Math.max(b.x, Math.min(currentBird.x, b.x+b.w));
+              const cy = Math.max(b.y, Math.min(currentBird.y, b.y+b.h));
+              hit = Math.hypot(currentBird.x-cx, currentBird.y-cy) < currentBird.r;
+            }
+            if (hit) {
+              b.vx += currentBird.vx * 0.7; b.vy += currentBird.vy * 0.5;
               b.hp--;
-              if (b.hp <= 0) { blocks.splice(i, 1); score += 500; }
-              currentBird.vx *= 0.5;
+              for (const o of bodies) {
+                if (o === b) continue;
+                const ob = bodyBounds(o), bb = bodyBounds(b);
+                const dist = Math.hypot((ob.l+ob.r)/2-(bb.l+bb.r)/2, (ob.t+ob.b)/2-(bb.t+bb.b)/2);
+                if (dist < 30) { o.vx += currentBird.vx*0.3*(1-dist/30); o.vy -= 0.5; }
+              }
+              if (b.hp <= 0) {
+                addDebris(b.type==='pig'?b.x:b.x+b.w/2, b.type==='pig'?b.y:b.y+b.h/2, b.type==='pig'?'#5a5':'#c4a35a');
+                bodies.splice(i, 1); score += b.type==='pig' ? 5000 : 500;
+              }
+              currentBird.vx *= 0.3; currentBird.vy *= 0.3;
             }
           }
 
-          // hit pigs
-          for (let i = pigs.length - 1; i >= 0; i--) {
-            const p = pigs[i];
-            const dx = currentBird.x - p.x;
-            const dy = currentBird.y - p.y;
-            if (Math.sqrt(dx*dx + dy*dy) < p.r + currentBird.r) {
-              p.hp--;
-              if (p.hp <= 0) { pigs.splice(i, 1); score += 5000; }
-            }
-          }
-
-          // off screen or landed
-          if (currentBird.y > h - 15 || currentBird.x > w + 10) {
-            currentBird = {x: slingX, y: slingY, vx: 0, vy: 0, r: 4};
+          if (currentBird.y > ground || currentBird.x > w + 10) {
+            currentBird = {x:slingX,y:slingY,vx:0,vy:0,r:4};
             launched = false;
-            if (pigs.length === 0) { score += 10000; reset(); }
+            if (!bodies.some(b => b.type==='pig')) { score += 10000; reset(); }
           }
         }
 
-        // slingshot
-        ctx.strokeStyle = "#8B4513";
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(slingX - 5, h - 15); ctx.lineTo(slingX - 3, slingY - 10); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(slingX + 5, h - 15); ctx.lineTo(slingX + 3, slingY - 10); ctx.stroke();
-        // rubber band
-        if (!launched && currentBird) {
-          ctx.strokeStyle = "#333";
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(slingX - 3, slingY - 10);
-          ctx.lineTo(currentBird.x, currentBird.y);
-          ctx.lineTo(slingX + 3, slingY - 10);
-          ctx.stroke();
+        // Physics for bodies
+        const toRemove = [];
+        for (let i = 0; i < bodies.length; i++) {
+          const b = bodies[i];
+          b.vy += gravity; b.x += b.vx; b.y += b.vy; b.vx *= 0.98;
+          const bot = b.type==='pig' ? b.y+b.r : b.y+b.h;
+          if (bot > ground) {
+            if (b.type==='pig') b.y = ground-b.r; else b.y = ground-b.h;
+            if (Math.abs(b.vy) > 2.5) { b.hp -= 0.3; }
+            b.vy *= -0.3; if (Math.abs(b.vy) < 0.3) b.vy = 0;
+            b.vx *= 0.8;
+          }
+          if (b.hp <= 0) toRemove.push(i);
+        }
+        for (let i = toRemove.length - 1; i >= 0; i--) {
+          const b = bodies[toRemove[i]];
+          addDebris(b.type==='pig'?b.x:b.x+b.w/2, b.type==='pig'?b.y:b.y+b.h/2, b.type==='pig'?'#5a5':'#c4a35a');
+          score += b.type==='pig' ? 5000 : 500;
+          bodies.splice(toRemove[i], 1);
         }
 
-        // draw blocks
-        for (const b of blocks) {
+        // Body-body collision
+        for (let i = 0; i < bodies.length; i++) {
+          for (let j = i+1; j < bodies.length; j++) {
+            const a = bodyBounds(bodies[i]), b = bodyBounds(bodies[j]);
+            if (a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t) {
+              const ox = Math.min(a.r-b.l, b.r-a.l), oy = Math.min(a.b-b.t, b.b-a.t);
+              if (ox < oy) {
+                const s = (a.l+a.r)/2 < (b.l+b.r)/2 ? -1 : 1;
+                bodies[i].x += s*ox*0.5; bodies[j].x -= s*ox*0.5;
+                const t = bodies[i].vx; bodies[i].vx = bodies[j].vx*0.5; bodies[j].vx = t*0.5;
+              } else {
+                const s = (a.t+a.b)/2 < (b.t+b.b)/2 ? -1 : 1;
+                bodies[i].y += s*oy*0.5; bodies[j].y -= s*oy*0.5;
+                const t = bodies[i].vy; bodies[i].vy = bodies[j].vy*0.5; bodies[j].vy = t*0.5;
+              }
+            }
+          }
+        }
+
+        // Debris
+        for (let i = debris.length-1; i >= 0; i--) {
+          const d = debris[i];
+          d.vy += gravity; d.x += d.vx; d.y += d.vy; d.life--;
+          if (d.life <= 0 || d.y > ground) { debris.splice(i, 1); continue; }
+          ctx.fillStyle = d.color; ctx.globalAlpha = d.life/40;
+          ctx.fillRect(d.x, d.y, d.size, d.size);
+        }
+        ctx.globalAlpha = 1;
+
+        // Slingshot
+        ctx.strokeStyle = "#8B4513"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(slingX-5,ground); ctx.lineTo(slingX-3,slingY-10); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(slingX+5,ground); ctx.lineTo(slingX+3,slingY-10); ctx.stroke();
+        if (!launched && currentBird) {
+          ctx.strokeStyle = "#333"; ctx.lineWidth = 1; ctx.beginPath();
+          ctx.moveTo(slingX-3,slingY-10); ctx.lineTo(currentBird.x,currentBird.y); ctx.lineTo(slingX+3,slingY-10); ctx.stroke();
+        }
+
+        // Blocks
+        for (const b of bodies) {
+          if (b.type !== 'block') continue;
           ctx.fillStyle = b.hp > 1 ? "#c4a35a" : "#d4b36a";
           ctx.fillRect(b.x, b.y, b.w, b.h);
-          ctx.strokeStyle = "#a08040";
-          ctx.lineWidth = 0.5;
-          ctx.strokeRect(b.x, b.y, b.w, b.h);
+          ctx.strokeStyle = "#a08040"; ctx.lineWidth = 0.5; ctx.strokeRect(b.x, b.y, b.w, b.h);
+          if (b.hp <= 1) {
+            ctx.strokeStyle = "rgba(0,0,0,0.3)"; ctx.beginPath();
+            ctx.moveTo(b.x, b.y); ctx.lineTo(b.x+b.w, b.y+b.h); ctx.stroke();
+          }
         }
 
-        // draw pigs
-        for (const p of pigs) {
-          ctx.fillStyle = "#5a5";
-          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
-          ctx.fillStyle = "#fff";
-          ctx.fillRect(p.x - 2, p.y - 2, 2, 2);
-          ctx.fillRect(p.x + 1, p.y - 2, 2, 2);
-          ctx.fillStyle = "#000";
-          ctx.fillRect(p.x - 1, p.y - 1, 1, 1);
-          ctx.fillRect(p.x + 1, p.y - 1, 1, 1);
-          // snout
-          ctx.fillStyle = "#7c7";
-          ctx.fillRect(p.x - 1, p.y + 1, 3, 2);
+        // Pigs
+        for (const p of bodies) {
+          if (p.type !== 'pig') continue;
+          ctx.fillStyle = "#5a5"; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+          ctx.fillStyle = "#fff"; ctx.fillRect(p.x-2,p.y-2,2,2); ctx.fillRect(p.x+1,p.y-2,2,2);
+          ctx.fillStyle = "#000"; ctx.fillRect(p.x-1,p.y-1,1,1); ctx.fillRect(p.x+1,p.y-1,1,1);
+          ctx.fillStyle = "#7c7"; ctx.fillRect(p.x-1,p.y+1,3,2);
+          if (p.hp < 1.5) {
+            ctx.strokeStyle = "#000"; ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.moveTo(p.x-2,p.y-3); ctx.lineTo(p.x,p.y-1); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(p.x,p.y-3); ctx.lineTo(p.x-2,p.y-1); ctx.stroke();
+          }
         }
 
-        // draw bird
+        // Bird
         if (currentBird) {
-          ctx.fillStyle = "#f00";
-          ctx.beginPath();
-          ctx.arc(currentBird.x, currentBird.y, currentBird.r, 0, Math.PI * 2);
-          ctx.fill();
-          // eye
-          ctx.fillStyle = "#fff";
-          ctx.fillRect(currentBird.x + 1, currentBird.y - 2, 2, 2);
-          ctx.fillStyle = "#000";
-          ctx.fillRect(currentBird.x + 2, currentBird.y - 1, 1, 1);
-          // beak
-          ctx.fillStyle = "#f80";
-          ctx.fillRect(currentBird.x + 3, currentBird.y, 3, 2);
-          // eyebrows (angry!)
-          ctx.strokeStyle = "#000";
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(currentBird.x - 1, currentBird.y - 4);
-          ctx.lineTo(currentBird.x + 3, currentBird.y - 3);
-          ctx.stroke();
+          ctx.fillStyle = "#f00"; ctx.beginPath(); ctx.arc(currentBird.x,currentBird.y,currentBird.r,0,Math.PI*2); ctx.fill();
+          ctx.fillStyle = "#fff"; ctx.fillRect(currentBird.x+1,currentBird.y-2,2,2);
+          ctx.fillStyle = "#000"; ctx.fillRect(currentBird.x+2,currentBird.y-1,1,1);
+          ctx.fillStyle = "#f80"; ctx.fillRect(currentBird.x+3,currentBird.y,3,2);
+          ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.beginPath();
+          ctx.moveTo(currentBird.x-1,currentBird.y-4); ctx.lineTo(currentBird.x+3,currentBird.y-3); ctx.stroke();
+        }
+
+        ctx.fillStyle = "#fff"; ctx.font = "bold 8px monospace"; ctx.fillText(`${score}`, 4, 10);
+      };
+    }
+
+    function createGorillasScene(ctx, w, h) {
+      // QBasic GORILLAS.BAS — banana-throwing gorillas on buildings
+      const buildings = [];
+      const bldgCount = 6 + Math.floor(Math.random() * 3);
+      const bw = w / bldgCount;
+      for (let i = 0; i < bldgCount; i++) {
+        buildings.push({ x: i * bw, w: bw - 2, h: 25 + Math.random() * 45, color: ["#808","#088","#880","#888","#448"][Math.floor(Math.random()*5)] });
+      }
+      const g1bldg = 1, g2bldg = bldgCount - 2;
+      const g1x = buildings[g1bldg].x + buildings[g1bldg].w/2;
+      const g1y = h - buildings[g1bldg].h - 10;
+      const g2x = buildings[g2bldg].x + buildings[g2bldg].w/2;
+      const g2y = h - buildings[g2bldg].h - 10;
+
+      let banana = null, turn = 0, explosions = [], tickCounter = 0;
+      let score1 = 0, score2 = 0;
+
+      function throwBanana() {
+        const isP1 = turn % 2 === 0;
+        const sx = isP1 ? g1x + 5 : g2x - 5;
+        const sy = isP1 ? g1y : g2y;
+        const angle = (30 + Math.random() * 30) * Math.PI / 180;
+        const power = 2.5 + Math.random() * 2;
+        const dir = isP1 ? 1 : -1;
+        banana = { x: sx, y: sy, vx: Math.cos(angle) * power * dir, vy: -Math.sin(angle) * power, rot: 0 };
+      }
+
+      return function draw(frame) {
+        // sky
+        ctx.fillStyle = "#008";
+        ctx.fillRect(0, 0, w, h);
+        // sun
+        ctx.fillStyle = "#ff0";
+        ctx.beginPath(); ctx.arc(w * 0.8, 15, 8, 0, Math.PI * 2); ctx.fill();
+
+        tickCounter++;
+        // buildings
+        for (const b of buildings) {
+          ctx.fillStyle = b.color;
+          ctx.fillRect(b.x, h - b.h, b.w, b.h);
+          // windows
+          ctx.fillStyle = Math.random() < 0.7 ? "#ff0" : "#000";
+          for (let wy = h - b.h + 4; wy < h - 4; wy += 8)
+            for (let wx = b.x + 3; wx < b.x + b.w - 3; wx += 6)
+              ctx.fillRect(wx, wy, 3, 4);
+        }
+
+        // gorillas (simple pixel art)
+        function drawGorilla(gx, gy, throwArm) {
+          ctx.fillStyle = "#840";
+          ctx.fillRect(gx-4, gy-6, 8, 6); // body
+          ctx.fillRect(gx-3, gy-10, 6, 4); // head
+          ctx.fillRect(gx-6, gy-4, 2, 4); // left arm
+          ctx.fillRect(gx+4, gy-4, 2, 4); // right arm
+          if (throwArm) ctx.fillRect(gx+4, gy-8, 2, 4); // raised arm
+          ctx.fillRect(gx-3, gy, 2, 3); ctx.fillRect(gx+1, gy, 2, 3); // legs
+          ctx.fillStyle = "#fc8"; ctx.fillRect(gx-2, gy-9, 4, 3); // face
+          ctx.fillStyle = "#000"; ctx.fillRect(gx-1, gy-8, 1, 1); ctx.fillRect(gx+1, gy-8, 1, 1); // eyes
+        }
+        drawGorilla(g1x, g1y, turn % 2 === 0 && banana);
+        drawGorilla(g2x, g2y, turn % 2 === 1 && banana);
+
+        // banana physics
+        if (!banana && tickCounter % 40 === 20) throwBanana();
+        if (banana) {
+          banana.vy += 0.06; // gravity
+          banana.x += banana.vx;
+          banana.y += banana.vy;
+          banana.rot += 0.3;
+          // draw spinning banana
+          ctx.save(); ctx.translate(banana.x, banana.y); ctx.rotate(banana.rot);
+          ctx.fillStyle = "#ff0"; ctx.fillRect(-3, -1, 6, 2);
+          ctx.restore();
+          // hit check — buildings
+          let hit = false;
+          for (const b of buildings) {
+            if (banana.x > b.x && banana.x < b.x + b.w && banana.y > h - b.h) {
+              explosions.push({x: banana.x, y: banana.y, t: 15});
+              hit = true; break;
+            }
+          }
+          // hit gorilla
+          if (Math.abs(banana.x - g2x) < 6 && Math.abs(banana.y - g2y) < 8 && turn % 2 === 0) {
+            explosions.push({x: g2x, y: g2y, t: 20}); hit = true; score1++;
+          }
+          if (Math.abs(banana.x - g1x) < 6 && Math.abs(banana.y - g1y) < 8 && turn % 2 === 1) {
+            explosions.push({x: g1x, y: g1y, t: 20}); hit = true; score2++;
+          }
+          if (banana.y > h || banana.x < -10 || banana.x > w + 10) hit = true;
+          if (hit) { banana = null; turn++; }
+        }
+
+        // explosions
+        for (let i = explosions.length - 1; i >= 0; i--) {
+          const e = explosions[i]; e.t--;
+          ctx.fillStyle = `rgba(255,${100+e.t*10},0,${e.t/20})`;
+          ctx.beginPath(); ctx.arc(e.x, e.y, 15 - e.t, 0, Math.PI * 2); ctx.fill();
+          if (e.t <= 0) explosions.splice(i, 1);
         }
 
         // HUD
+        ctx.fillStyle = "#fff"; ctx.font = "7px monospace";
+        ctx.fillText(`P1:${score1}`, 4, 8);
+        ctx.fillText(`P2:${score2}`, w - 28, 8);
+        ctx.fillText("GORILLAS.BAS", w/2 - 30, 8);
+      };
+    }
+
+    function createPlasmaScene(ctx, w, h) {
+      // 90s demoscene plasma effect (Future Crew / Second Reality style)
+      const imgData = ctx.createImageData(w, h);
+      let scrollText = "GREETINGS FROM THE DEMOSCENE ... FUTURE CREW SENDS REGARDS ... ";
+      let scrollOffset = w;
+
+      return function draw(frame) {
+        const t = frame * 0.04;
+        const d = imgData.data;
+        for (let y = 0; y < h; y++) {
+          for (let x = 0; x < w; x++) {
+            const v1 = Math.sin(x * 0.06 + t);
+            const v2 = Math.sin(y * 0.07 + t * 1.3);
+            const v3 = Math.sin((x + y) * 0.04 + t * 0.7);
+            const v4 = Math.sin(Math.sqrt(((x - w/2) * (x - w/2) + (y - h/2) * (y - h/2))) * 0.08 - t * 1.5);
+            const val = (v1 + v2 + v3 + v4) / 4;
+            const idx = (y * w + x) * 4;
+            d[idx]   = Math.floor(128 + 127 * Math.sin(val * Math.PI + t * 0.5));
+            d[idx+1] = Math.floor(128 + 127 * Math.sin(val * Math.PI + 2.094 + t * 0.3));
+            d[idx+2] = Math.floor(128 + 127 * Math.sin(val * Math.PI + 4.189 + t * 0.7));
+            d[idx+3] = 255;
+          }
+        }
+        ctx.putImageData(imgData, 0, 0);
+
+        // scroll text overlay
+        scrollOffset -= 1.2;
+        if (scrollOffset < -scrollText.length * 7) scrollOffset = w;
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(0, h - 16, w, 16);
         ctx.fillStyle = "#fff";
-        ctx.font = "bold 8px monospace";
-        ctx.fillText(`${score}`, 4, 10);
+        ctx.font = "bold 10px monospace";
+        ctx.fillText(scrollText, scrollOffset, h - 4);
+
+        // copper bar effect at top
+        for (let i = 0; i < 8; i++) {
+          const cy = 4 + Math.sin(t * 2 + i * 0.5) * 3;
+          ctx.fillStyle = `hsla(${(frame * 3 + i * 30) % 360}, 100%, 60%, 0.6)`;
+          ctx.fillRect(0, cy + i * 2, w, 2);
+        }
       };
     }
 
@@ -1771,8 +2291,22 @@
     function spawnArtifact() {
       const el = document.createElement('div');
       el.className = 'artifact';
-      const x = rand2(5, 90);
-      const y = rand2(5, 90);
+
+      // Exclusion zone around the name text
+      const centerEl = document.querySelector('.center');
+      const rect = centerEl ? centerEl.getBoundingClientRect() : null;
+      const margin = 60;
+      let x, y, attempts = 0;
+      do {
+        x = rand2(5, 90);
+        y = rand2(5, 90);
+        attempts++;
+        if (!rect) break;
+        const px = x * window.innerWidth / 100;
+        const py = y * window.innerHeight / 100;
+        if (px < rect.left - margin || px > rect.right + margin || py < rect.top - margin || py > rect.bottom + margin) break;
+      } while (attempts < 15);
+
       el.style.left = x + 'vw';
       el.style.top = y + 'vh';
       el.style.color = glitchColors2[Math.floor(Math.random() * glitchColors2.length)];
