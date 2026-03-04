@@ -5251,29 +5251,30 @@
           drawStaticWithAlpha(0.5 + t * 0.4, 255);
 
         } else if (frame <= STATIC_END) {
-          // === STATIC — text starts showing through ===
+          // === STATIC — text slowly fades in through the noise ===
           const staticProgress = (frame - STATIC_TRANS) / (STATIC_END - STATIC_TRANS);
-          // start fully opaque, gradually let page bleed through
-          const opacity = Math.max(0.5, 1 - staticProgress * 0.5);
-          ctx.fillStyle = `rgba(0,0,0,${opacity})`; ctx.fillRect(0, 0, W, H);
-          drawStaticWithAlpha(0.85, Math.floor(255 * opacity));
+          // black fill starts fully opaque, fades down so text emerges
+          // first 40%: fully opaque, text hidden. then text gradually appears.
+          const textVisibility = Math.max(0, (staticProgress - 0.4) / 0.6);
+          const blackOpacity = 1 - textVisibility * 0.6;
+          // fill opaque black first, then static on top
+          ctx.fillStyle = `rgba(0,0,0,${blackOpacity})`; ctx.fillRect(0, 0, W, H);
+          drawStaticWithAlpha(0.85, Math.floor(255 * (0.7 + (1 - textVisibility) * 0.3)));
           // horizontal tear lines
           if (Math.random() < 0.3) {
             const tearY = Math.random() * H;
             const tearH = 2 + Math.random() * 4;
-            ctx.fillStyle = Math.random() < 0.5 ? `rgba(255,255,255,${0.6 * opacity})` : `rgba(0,0,0,${0.6 * opacity})`;
+            ctx.fillStyle = Math.random() < 0.5 ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)";
             ctx.fillRect(0, tearY, W, tearH);
           }
 
         } else if (frame <= REVEAL_END) {
-          // === STATIC FADES OUT — page shows through ===
+          // === STATIC FADES OUT — text fully visible, noise dissolves ===
           const revealProgress = (frame - STATIC_END) / (REVEAL_END - STATIC_END);
-          // density and alpha both decrease — static just dissolves everywhere uniformly
           const density = 0.8 * (1 - revealProgress);
-          const alpha = Math.floor(220 * (1 - revealProgress));
+          const alpha = Math.floor(200 * (1 - revealProgress));
           if (density > 0.01 && alpha > 5) {
             drawStaticWithAlpha(density, alpha);
-            // occasional tear lines getting fainter
             if (Math.random() < 0.15 * (1 - revealProgress)) {
               const tearY = Math.random() * H;
               ctx.fillStyle = `rgba(255,255,255,${0.2 * (1 - revealProgress)})`;
