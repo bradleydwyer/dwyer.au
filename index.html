@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brad Dwyer</title>
+  <meta name="description" content="Brad Dwyer">
+  <link rel="canonical" href="https://dwyer.au">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      background: #0a0a0a;
+      color: #e8e8e8;
+      font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", "Courier New", monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .name {
+      font-size: clamp(1.5rem, 5vw, 3.5rem);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .name::after {
+      content: "_";
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="name">Brad Dwyer</div>
+</body>
+</html>
