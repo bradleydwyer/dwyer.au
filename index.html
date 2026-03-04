@@ -48,6 +48,12 @@
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: #555;
+      min-height: 1.2em;
+    }
+
+    .status::after {
+      content: "_";
+      animation: blink 1s step-end infinite;
     }
 
     @keyframes blink {
@@ -57,8 +63,84 @@
 </head>
 <body>
   <div class="center">
-    <div class="name">Brad Dwyer</div>
-    <div class="status">Website arriving soon</div>
+    <div class="name" id="name"></div>
+    <div class="status" id="status"></div>
   </div>
+  <script>
+    const messages = [
+      "Website arriving soon",
+      "Something is brewing",
+      "Under construction",
+      "Watch this space",
+      "Stay tuned",
+      "Almost ready",
+      "Building something new",
+      "Check back shortly",
+    ];
+
+    const el = document.getElementById("status");
+    let msgIndex = 0;
+
+    const TYPE_SPEED = 70;
+    const PAUSE_AFTER = 2500;
+    const DELETE_SPEED = 40;
+    const PAUSE_BEFORE = 500;
+
+    function typeMessage() {
+      const text = messages[msgIndex];
+      let i = 0;
+
+      function typeChar() {
+        if (i < text.length) {
+          el.textContent = text.slice(0, i + 1);
+          i++;
+          setTimeout(typeChar, TYPE_SPEED);
+        } else {
+          setTimeout(deleteMessage, PAUSE_AFTER);
+        }
+      }
+
+      typeChar();
+    }
+
+    function deleteMessage() {
+      const text = el.textContent;
+      let i = text.length;
+
+      function deleteChar() {
+        if (i > 0) {
+          i--;
+          el.textContent = text.slice(0, i);
+          setTimeout(deleteChar, DELETE_SPEED);
+        } else {
+          msgIndex = (msgIndex + 1) % messages.length;
+          setTimeout(typeMessage, PAUSE_BEFORE);
+        }
+      }
+
+      deleteChar();
+    }
+
+    function typeName(callback) {
+      const nameEl = document.getElementById("name");
+      const name = "Brad Dwyer";
+      let i = 0;
+
+      function typeChar() {
+        if (i < name.length) {
+          nameEl.textContent = name.slice(0, i + 1);
+          i++;
+          const delay = 40 + Math.random() * 80;
+          setTimeout(typeChar, delay);
+        } else {
+          setTimeout(callback, 800);
+        }
+      }
+
+      typeChar();
+    }
+
+    typeName(typeMessage);
+  </script>
 </body>
 </html>
