@@ -315,7 +315,7 @@
       canvas.style.imageRendering = "pixelated";
       const ctx = canvas.getContext("2d");
 
-      const scenes = [drawPacmanScene, drawInvadersScene, drawPongScene, drawSnakeScene, drawTetrisScene, drawBreakoutScene, drawWargamesScene, drawFighterScene, drawAdventureScene, drawKeenScene, drawDoomScene];
+      const scenes = [drawPacmanScene, drawInvadersScene, drawPongScene, drawSnakeScene, drawTetrisScene, drawBreakoutScene, drawWargamesScene, drawFighterScene, drawAdventureScene, drawKeenScene, drawDoomScene, drawBSODScene, drawPinwheelScene];
       const scene = scenes[Math.floor(Math.random() * scenes.length)];
 
       let frame = 0;
@@ -951,6 +951,144 @@
       ctx.fillRect(w/2 + 2, h - 11, 2, 2);
       ctx.fillStyle = "#a00";
       ctx.fillRect(w/2 - 2, h - 6, 4, 2);
+    }
+
+    function drawBSODScene(ctx, w, h, px, frame) {
+      // Windows Blue Screen of Death
+      ctx.fillStyle = "#0000aa";
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "9px monospace";
+
+      // title bar
+      ctx.fillStyle = "#aaa";
+      ctx.fillRect(w * 0.15, 6, w * 0.7, 12);
+      ctx.fillStyle = "#0000aa";
+      ctx.font = "9px monospace";
+      ctx.fillText(" Windows ", w * 0.35, 15);
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "8px monospace";
+
+      const lines = [
+        "A problem has been detected and",
+        "Windows has been shut down to",
+        "prevent damage to your computer.",
+        "",
+        "IRQL_NOT_LESS_OR_EQUAL",
+        "",
+        "If this is the first time you've",
+        "seen this Stop error screen,",
+        "restart your computer.",
+        "",
+        "Technical information:",
+        "",
+        "*** STOP: 0x0000000A",
+        "  (0x00000000, 0x00000002,",
+        "   0x00000001, 0x804E3B2C)",
+        "",
+        "*** ntoskrnl.exe",
+        "  Address 804E3B2C",
+        "",
+        "Collecting data for crash dump...",
+        "Initializing disk for crash",
+        "  dump...",
+      ];
+
+      const visibleLines = Math.min(lines.length, Math.floor(frame / 3) + 1);
+      for (let i = 0; i < visibleLines; i++) {
+        ctx.fillText(lines[i], 8, 28 + i * 9);
+      }
+
+      // progress indicator
+      if (visibleLines >= lines.length) {
+        const progress = Math.min(100, (frame - lines.length * 3));
+        ctx.fillText(`Dumping physical memory: ${progress}%`, 8, 28 + lines.length * 9 + 4);
+
+        // blinking cursor
+        if (frame % 8 < 4) {
+          ctx.fillRect(8 + (progress < 100 ? 170 : 0), 28 + lines.length * 9 + (progress < 100 ? -4 : 8), 5, 8);
+        }
+      }
+    }
+
+    function drawPinwheelScene(ctx, w, h, px, frame) {
+      // Mac OS spinning pinwheel of death
+      // macOS-style gray background with subtle gradient
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, "#e8e8e8");
+      grad.addColorStop(1, "#d0d0d0");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // fake window title bar
+      ctx.fillStyle = "#f0f0f0";
+      ctx.fillRect(10, 8, w - 20, 14);
+      ctx.strokeStyle = "#ccc";
+      ctx.strokeRect(10, 8, w - 20, 14);
+      // traffic lights
+      ctx.fillStyle = "#ff5f56"; ctx.beginPath(); ctx.arc(20, 15, 3, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "#ffbd2e"; ctx.beginPath(); ctx.arc(30, 15, 3, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "#27c93f"; ctx.beginPath(); ctx.arc(40, 15, 3, 0, Math.PI*2); ctx.fill();
+      // title text
+      ctx.fillStyle = "#333";
+      ctx.font = "7px sans-serif";
+      ctx.fillText("Finder", w/2 - 12, 18);
+
+      // window body
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(10, 22, w - 20, h - 32);
+      ctx.strokeStyle = "#ccc";
+      ctx.strokeRect(10, 22, w - 20, h - 32);
+
+      // "Not Responding" text
+      ctx.fillStyle = "#999";
+      ctx.font = "7px sans-serif";
+      ctx.fillText("Application Not Responding", w/2 - 55, h/2 - 25);
+
+      // spinning pinwheel
+      const cx = w / 2;
+      const cy = h / 2 + 5;
+      const radius = 12;
+      const slices = 12;
+      const rotation = frame * 0.15;
+
+      for (let i = 0; i < slices; i++) {
+        const angle = (i / slices) * Math.PI * 2 + rotation;
+        const nextAngle = ((i + 1) / slices) * Math.PI * 2 + rotation;
+
+        // alternate colors: blue, red, green, yellow, etc (rainbow pinwheel)
+        const hue = (i / slices) * 360;
+        const saturation = 85;
+        const lightness = i % 2 === 0 ? 50 : 65;
+        ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, angle, nextAngle);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // center dot
+      ctx.fillStyle = "#fff";
+      ctx.beginPath();
+      ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // subtle shadow under pinwheel
+      ctx.fillStyle = "rgba(0,0,0,0.1)";
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + radius + 4, radius * 0.8, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // force quit hint
+      if (frame > 60) {
+        ctx.fillStyle = "#999";
+        ctx.font = "6px sans-serif";
+        ctx.fillText("⌘⌥⎋ Force Quit", w/2 - 30, h - 14);
+      }
     }
 
     const glitchColors2 = ['#0ff', '#f0f', '#f00', '#0f0', '#ff0', '#f80', '#0ff', '#fff'];
