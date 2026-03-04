@@ -94,24 +94,6 @@
       transition: opacity 0.3s;
     }
 
-    /* Page tear effect */
-    .page-tear {
-      position: fixed;
-      pointer-events: none;
-      z-index: 998;
-      overflow: hidden;
-    }
-
-    .page-tear-inner {
-      width: 100%;
-      height: 100%;
-      font-family: "JetBrains Mono", monospace;
-      font-size: 8px;
-      line-height: 1;
-      white-space: pre;
-      overflow: hidden;
-      letter-spacing: -1px;
-    }
 
     .artifact {
       position: fixed;
@@ -253,6 +235,7 @@
 
     // --- Glitch artifacts ---
     const codeSnippets = [
+      // code
       'if (err != nil) {\n  return err\n}',
       'sudo rm -rf /',
       '#include <stdio.h>\nint main() {',
@@ -275,60 +258,700 @@
       'pip install --upgrade',
       'fn main() {\n  println!("ok");\n}',
       'async fn poll() ->\n  Result<()>',
+      // WarGames
+      'SHALL WE PLAY\n  A GAME?',
+      'GREETINGS PROFESSOR\n  FALKEN',
+      'A STRANGE GAME.\nTHE ONLY WINNING\nMOVE IS NOT TO PLAY.',
+      'GLOBAL THERMONUCLEAR\n  WAR',
+      'HOW ABOUT A NICE\n  GAME OF CHESS?',
+      'LOGON: Joshua',
+      'WOPR ONLINE',
+      // Sierra / adventure games
+      'SIERRA ON-LINE\n  PRESENTS',
+      'Roger Wilco\n  Space Janitor',
+      '>LOOK AROUND\nYou are in a\n  dark room.',
+      '>GET LAMP',
+      'YOU ARE LIKELY\nTO BE EATEN\n  BY A GRUE',
+      'LOAD"*",8,1',
+      'READY.\n>RUN',
+      'C:\\>dir',
+      'A>FORMAT C:',
+      // fighting games
+      'ROUND 1\n  FIGHT!',
+      'HADOUKEN!',
+      'FINISH HIM!',
+      'FATALITY',
+      'PERFECT',
+      'K.O.',
+      'PLAYER 1\n  SELECT YOUR\n  FIGHTER',
+      'TOASTY!',
+      // classic gaming
+      'INSERT COIN',
+      'GAME OVER\n  CONTINUE? 9',
+      'HIGH SCORE\n  AAA 999999',
+      'PRESS START',
+      'ALL YOUR BASE\nARE BELONG\n  TO US',
+      'IT\'S DANGEROUS\nTO GO ALONE!\nTAKE THIS.',
+      'THE CAKE\n  IS A LIE',
+      'DO A\n  BARREL ROLL!',
+      'UP UP DOWN DOWN\nLEFT RIGHT\nLEFT RIGHT B A',
+      // 80s/90s computing
+      'GURU MEDITATION\n  ERROR',
+      'KEYBOARD NOT FOUND\nPRESS F1 TO\n  CONTINUE',
+      'ABORT, RETRY,\n  FAIL?',
+      'BAD COMMAND OR\n  FILE NAME',
+      'GENERAL FAILURE\nREADING DRIVE A',
+      'PC LOAD LETTER',
+      'INSUFFICIENT\n  MEMORY',
     ];
 
-    // pixel art as block characters (each row is a string)
-    const sprites = {
-      invader1: [
-        '  ▓▓  ▓▓  ',
-        '  ▓▓▓▓▓▓  ',
-        ' ▓▓████▓▓ ',
-        ' ▓█▓▓▓▓█▓ ',
-        ' ▓▓▓▓▓▓▓▓ ',
-        '  ▓ ▓▓ ▓  ',
-        ' ▓  ▓▓  ▓ ',
-      ],
-      invader2: [
-        '   ▓▓▓▓   ',
-        ' ▓▓▓▓▓▓▓▓ ',
-        '▓▓█▓▓▓▓█▓▓',
-        '▓▓▓▓▓▓▓▓▓▓',
-        ' ▓▓ ▓▓ ▓▓ ',
-        '▓▓ ▓▓▓▓ ▓▓',
-      ],
-      pacman: [
-        '  ████  ',
-        ' ██████ ',
-        '████    ',
-        '███████ ',
-        ' ██████ ',
-        '  ████  ',
-      ],
-      ghost: [
-        '  ████  ',
-        ' ██████ ',
-        '█▓█▓████',
-        '████████',
-        '████████',
-        '█ ██ ██ ',
-      ],
-      heart: [
-        ' ██ ██ ',
-        '███████',
-        '███████',
-        ' █████ ',
-        '  ███  ',
-        '   █   ',
-      ],
-      skull: [
-        ' ████ ',
-        '██████',
-        '█▓██▓█',
-        '██████',
-        ' █ █ █',
-        ' █ █ █',
-      ],
-    };
+    // --- Mini game scene renderers (canvas-based, animated) ---
+    function spawnGameScene() {
+      const w = 160, h = 120, px = 4;
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.style.width = (w * 1.5) + "px";
+      canvas.style.height = (h * 1.5) + "px";
+      canvas.style.imageRendering = "pixelated";
+      const ctx = canvas.getContext("2d");
+
+      const scenes = [drawPacmanScene, drawInvadersScene, drawPongScene, drawSnakeScene, drawTetrisScene, drawBreakoutScene, drawWargamesScene, drawFighterScene, drawAdventureScene, drawKeenScene, drawDoomScene];
+      const scene = scenes[Math.floor(Math.random() * scenes.length)];
+
+      let frame = 0;
+      const totalFrames = 300 + Math.floor(Math.random() * 300);
+
+      function animate() {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, w, h);
+        scene(ctx, w, h, px, frame, totalFrames);
+        frame++;
+        if (frame < totalFrames) {
+          requestAnimationFrame(animate);
+        }
+      }
+
+      animate();
+      return canvas;
+    }
+
+    function drawPacmanScene(ctx, w, h, px, frame) {
+      const midY = h / 2;
+      // dots
+      for (let x = 10; x < w; x += 12) {
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(x, midY - 1, 3, 3);
+      }
+      // erase eaten dots
+      const pacX = 8 + frame * 4;
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, midY - 4, pacX - 4, 10);
+      // pac-man
+      ctx.fillStyle = "#ff0";
+      ctx.beginPath();
+      const mouth = Math.abs(Math.sin(frame * 0.5)) * 0.8;
+      ctx.arc(pacX, midY, 8, mouth, Math.PI * 2 - mouth);
+      ctx.lineTo(pacX, midY);
+      ctx.fill();
+      // ghost chasing
+      const ghostX = pacX - 30;
+      if (ghostX > 0) {
+        ctx.fillStyle = "#f00";
+        ctx.fillRect(ghostX - 7, midY - 8, 14, 14);
+        ctx.fillRect(ghostX - 8, midY - 4, 16, 8);
+        // ghost eyes
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(ghostX - 4, midY - 6, 4, 4);
+        ctx.fillRect(ghostX + 2, midY - 6, 4, 4);
+        ctx.fillStyle = "#00f";
+        ctx.fillRect(ghostX - 3, midY - 5, 2, 2);
+        ctx.fillRect(ghostX + 3, midY - 5, 2, 2);
+        // ghost skirt
+        ctx.fillStyle = "#f00";
+        for (let i = 0; i < 4; i++) {
+          ctx.fillRect(ghostX - 8 + i * 5, midY + 6, 3, 3);
+        }
+      }
+      // second ghost
+      const g2X = ghostX - 22;
+      if (g2X > 0) {
+        ctx.fillStyle = "#f0f";
+        ctx.fillRect(g2X - 7, midY - 8, 14, 14);
+        ctx.fillRect(g2X - 8, midY - 4, 16, 8);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(g2X - 4, midY - 6, 4, 4);
+        ctx.fillRect(g2X + 2, midY - 6, 4, 4);
+      }
+      // score
+      ctx.fillStyle = "#fff";
+      ctx.font = "8px monospace";
+      ctx.fillText(`SCORE ${frame * 10}`, 4, 10);
+    }
+
+    function drawInvadersScene(ctx, w, h, px, frame) {
+      // invader grid
+      const invaderW = 10, invaderH = 8, cols = 8, rows = 3;
+      const offsetX = (frame % 40 < 20 ? frame % 20 : 20 - frame % 20) * 2;
+      const offsetY = Math.floor(frame / 40) * 4;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          // some invaders "destroyed"
+          if ((r * cols + c + frame) % 17 < 2 && frame > 10) continue;
+          const ix = 10 + c * (invaderW + 6) + offsetX;
+          const iy = 12 + r * (invaderH + 6) + offsetY;
+          ctx.fillStyle = ["#0f0", "#0ff", "#ff0"][r];
+          // simple invader shape
+          ctx.fillRect(ix + 2, iy, 6, 2);
+          ctx.fillRect(ix, iy + 2, 10, 2);
+          ctx.fillRect(ix + 1, iy + 4, 8, 2);
+          ctx.fillRect(ix + 3, iy + 6, 1, 2);
+          ctx.fillRect(ix + 6, iy + 6, 1, 2);
+          // animate legs
+          if (frame % 4 < 2) {
+            ctx.fillRect(ix, iy + 6, 2, 2);
+            ctx.fillRect(ix + 8, iy + 6, 2, 2);
+          } else {
+            ctx.fillRect(ix + 1, iy + 6, 2, 2);
+            ctx.fillRect(ix + 7, iy + 6, 2, 2);
+          }
+        }
+      }
+      // player ship
+      const shipX = w / 2 + Math.sin(frame * 0.2) * 30;
+      ctx.fillStyle = "#0f0";
+      ctx.fillRect(shipX - 5, h - 14, 10, 4);
+      ctx.fillRect(shipX - 1, h - 18, 2, 4);
+      // bullets
+      if (frame % 5 === 0) {
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(shipX, h - 20 - (frame % 15) * 6, 1, 4);
+      }
+      // enemy bullets
+      for (let b = 0; b < 3; b++) {
+        const bx = 20 + ((frame * 7 + b * 47) % (w - 40));
+        const by = 30 + ((frame * 3 + b * 23) % (h - 50));
+        ctx.fillStyle = "#f00";
+        ctx.fillRect(bx, by, 1, 4);
+      }
+      // score
+      ctx.fillStyle = "#fff";
+      ctx.font = "8px monospace";
+      ctx.fillText(`SCORE ${frame * 50}`, 4, 10);
+      ctx.fillText("LIVES ♥♥♥", w - 65, 10);
+    }
+
+    function drawPongScene(ctx, w, h, px, frame) {
+      // center line
+      ctx.strokeStyle = "#333";
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(w/2, 0);
+      ctx.lineTo(w/2, h);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // paddles
+      const p1Y = h/2 + Math.sin(frame * 0.15) * 30;
+      const p2Y = h/2 + Math.sin(frame * 0.15 + 1) * 30;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(6, p1Y - 12, 4, 24);
+      ctx.fillRect(w - 10, p2Y - 12, 4, 24);
+      // ball
+      const ballX = w/2 + Math.sin(frame * 0.12) * (w/2 - 20);
+      const ballY = h/2 + Math.cos(frame * 0.18) * (h/2 - 10);
+      ctx.fillRect(ballX - 2, ballY - 2, 4, 4);
+      // score
+      ctx.font = "16px monospace";
+      ctx.fillText(`${3 + Math.floor(frame/10)}`, w/2 - 30, 20);
+      ctx.fillText(`${2 + Math.floor(frame/12)}`, w/2 + 22, 20);
+    }
+
+    function drawSnakeScene(ctx, w, h, px, frame) {
+      // grid
+      const gridSize = 6;
+      // snake body
+      const segments = [];
+      let sx = 40, sy = 40;
+      const path = [{dx:1,dy:0},{dx:1,dy:0},{dx:0,dy:1},{dx:0,dy:1},{dx:1,dy:0},{dx:1,dy:0},{dx:1,dy:0},{dx:0,dy:-1},{dx:1,dy:0}];
+      for (let i = 0; i < 8 + Math.floor(frame / 4); i++) {
+        const p = path[i % path.length];
+        segments.push({x: sx, y: sy});
+        sx += p.dx * gridSize;
+        sy += p.dy * gridSize;
+        if (sx > w - 10) sx = 10;
+        if (sy > h - 10) sy = 10;
+      }
+      // draw snake
+      const headIdx = Math.min(frame, segments.length - 1);
+      for (let i = Math.max(0, headIdx - 12); i <= headIdx; i++) {
+        const fade = 1 - (headIdx - i) / 13;
+        ctx.fillStyle = `rgba(0, ${Math.floor(150 + fade * 105)}, 0, ${fade})`;
+        ctx.fillRect(segments[i].x, segments[i].y, gridSize - 1, gridSize - 1);
+      }
+      // food
+      ctx.fillStyle = "#f00";
+      ctx.fillRect(100 + (frame * 3) % 40, 60 + (frame * 7) % 30, gridSize - 1, gridSize - 1);
+      // score
+      ctx.fillStyle = "#fff";
+      ctx.font = "8px monospace";
+      ctx.fillText(`SCORE ${frame * 10}`, 4, 10);
+    }
+
+    function drawTetrisScene(ctx, w, h, px, frame) {
+      const colors = ["#0ff", "#ff0", "#f0f", "#0f0", "#f00", "#00f", "#f80"];
+      const gridW = 10, cellSize = 6;
+      const boardX = (w - gridW * cellSize) / 2;
+      // board outline
+      ctx.strokeStyle = "#333";
+      ctx.strokeRect(boardX - 1, 10, gridW * cellSize + 2, h - 20);
+      // fallen blocks (random pile at bottom)
+      for (let row = 0; row < 6; row++) {
+        for (let col = 0; col < gridW; col++) {
+          if (Math.random() < 0.6 + row * 0.05) {
+            ctx.fillStyle = colors[(row * 3 + col * 7) % colors.length];
+            ctx.fillRect(boardX + col * cellSize, h - 20 - row * cellSize, cellSize - 1, cellSize - 1);
+          }
+        }
+      }
+      // falling piece (T-piece)
+      const pieceY = 14 + (frame * 2) % (h - 70);
+      const pieceX = boardX + (3 + Math.floor(frame / 15) % 4) * cellSize;
+      ctx.fillStyle = "#f0f";
+      ctx.fillRect(pieceX, pieceY, cellSize - 1, cellSize - 1);
+      ctx.fillRect(pieceX - cellSize, pieceY + cellSize, cellSize - 1, cellSize - 1);
+      ctx.fillRect(pieceX, pieceY + cellSize, cellSize - 1, cellSize - 1);
+      ctx.fillRect(pieceX + cellSize, pieceY + cellSize, cellSize - 1, cellSize - 1);
+      // next piece preview
+      ctx.fillStyle = "#fff";
+      ctx.font = "7px monospace";
+      ctx.fillText("NEXT", boardX + gridW * cellSize + 6, 18);
+      ctx.fillStyle = "#0ff";
+      const nx = boardX + gridW * cellSize + 8;
+      for (let i = 0; i < 4; i++) ctx.fillRect(nx + i * 5, 22, 4, 4); // I-piece
+      // level
+      ctx.fillStyle = "#fff";
+      ctx.fillText("LVL " + (1 + Math.floor(frame / 20)), boardX + gridW * cellSize + 6, 42);
+      ctx.fillText(`${frame * 100}`, boardX + gridW * cellSize + 6, 52);
+    }
+
+    function drawBreakoutScene(ctx, w, h, px, frame) {
+      const colors = ["#f00", "#f80", "#ff0", "#0f0", "#0ff", "#00f"];
+      // bricks
+      const brickW = 16, brickH = 6, cols = 9, rows = 4;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if ((r * cols + c + frame * 3) % 13 < 3 && frame > 5) continue;
+          ctx.fillStyle = colors[r % colors.length];
+          ctx.fillRect(4 + c * (brickW + 2), 10 + r * (brickH + 2), brickW, brickH);
+        }
+      }
+      // paddle
+      const paddleX = w/2 + Math.sin(frame * 0.15) * 40;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(paddleX - 14, h - 12, 28, 4);
+      // ball
+      const ballX = w/2 + Math.sin(frame * 0.2) * 50;
+      const ballY = h/2 + Math.cos(frame * 0.25) * 30;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(ballX - 2, ballY - 2, 4, 4);
+      // ball trail
+      for (let t = 1; t < 4; t++) {
+        ctx.fillStyle = `rgba(255,255,255,${0.1 * (4-t)})`;
+        const tx = w/2 + Math.sin((frame - t * 2) * 0.2) * 50;
+        const ty = h/2 + Math.cos((frame - t * 2) * 0.25) * 30;
+        ctx.fillRect(tx - 1, ty - 1, 2, 2);
+      }
+      ctx.fillStyle = "#fff";
+      ctx.font = "8px monospace";
+      ctx.fillText(`SCORE ${frame * 25}`, 4, h - 2);
+    }
+
+    function drawWargamesScene(ctx, w, h, px, frame) {
+      // WOPR terminal style
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, w, h);
+      ctx.font = "9px monospace";
+      ctx.fillStyle = "#0f0";
+
+      const lines = [
+        "LOGON:",
+        "  Joshua",
+        "",
+        "GREETINGS PROFESSOR FALKEN.",
+        "",
+        "SHALL WE PLAY A GAME?",
+        "",
+        "LIST OF GAMES:",
+        "  CHESS",
+        "  POKER",
+        "  FIGHTER COMBAT",
+        "  GUERRILLA ENGAGEMENT",
+        "  GLOBAL THERMONUCLEAR WAR",
+        "",
+        "> GLOBAL THERMONUCLEAR WAR",
+        "",
+        "FINE.",
+      ];
+
+      const visibleLines = Math.min(lines.length, Math.floor(frame / 2) + 1);
+      for (let i = 0; i < visibleLines; i++) {
+        const lineText = lines[i];
+        const charsVisible = Math.min(lineText.length, (frame - i * 2) * 3);
+        ctx.fillText(lineText.slice(0, charsVisible), 6, 14 + i * 10);
+      }
+
+      // blinking cursor
+      if (frame % 6 < 3) {
+        const lastLine = Math.min(visibleLines - 1, lines.length - 1);
+        const cursorX = 6 + lines[lastLine].length * 5.5;
+        ctx.fillRect(cursorX, 6 + lastLine * 10, 5, 8);
+      }
+
+      // scanline effect
+      for (let y = 0; y < h; y += 3) {
+        ctx.fillStyle = "rgba(0,0,0,0.15)";
+        ctx.fillRect(0, y, w, 1);
+      }
+    }
+
+    function drawFighterScene(ctx, w, h, px, frame) {
+      // health bars
+      ctx.fillStyle = "#333";
+      ctx.fillRect(6, 6, 60, 8);
+      ctx.fillRect(w - 66, 6, 60, 8);
+      const p1Health = Math.max(0, 60 - frame * 0.8);
+      const p2Health = Math.max(0, 60 - frame * 0.5);
+      ctx.fillStyle = p1Health > 20 ? "#0f0" : "#f00";
+      ctx.fillRect(6, 6, p1Health, 8);
+      ctx.fillStyle = p2Health > 20 ? "#0f0" : "#f00";
+      ctx.fillRect(w - 6 - p2Health, 6, p2Health, 8);
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "7px monospace";
+      ctx.fillText("P1", 6, 22);
+      ctx.fillText("P2", w - 16, 22);
+
+      // round indicator
+      ctx.font = "8px monospace";
+      ctx.fillStyle = "#ff0";
+      ctx.fillText("ROUND 1", w/2 - 22, 12);
+
+      // timer
+      ctx.fillStyle = "#fff";
+      ctx.font = "12px monospace";
+      ctx.fillText(String(Math.max(0, 99 - frame)), w/2 - 6, 26);
+
+      // fighter 1 (left) — simple stick figure style
+      const f1x = 30 + Math.sin(frame * 0.3) * 5;
+      const f1y = h - 30;
+      ctx.fillStyle = "#0cf";
+      ctx.fillRect(f1x, f1y - 20, 8, 16); // body
+      ctx.fillRect(f1x + 1, f1y - 26, 6, 6); // head
+      ctx.fillRect(f1x - 4, f1y - 16, 4, 3); // back arm
+      // punch animation
+      if (frame % 8 < 3) {
+        ctx.fillRect(f1x + 8, f1y - 18, 14, 3); // punch
+        ctx.fillStyle = "#fff";
+        ctx.font = "8px monospace";
+        ctx.fillText("HIT!", f1x + 24, f1y - 14);
+      } else {
+        ctx.fillRect(f1x + 8, f1y - 14, 6, 3); // arm
+      }
+      ctx.fillStyle = "#0cf";
+      ctx.fillRect(f1x, f1y - 4, 3, 10); // legs
+      ctx.fillRect(f1x + 5, f1y - 4, 3, 10);
+
+      // fighter 2 (right)
+      const f2x = w - 40 - Math.sin(frame * 0.3) * 5;
+      ctx.fillStyle = "#f44";
+      ctx.fillRect(f2x, f1y - 20, 8, 16);
+      ctx.fillRect(f2x + 1, f1y - 26, 6, 6);
+      ctx.fillRect(f2x + 8, f1y - 16, 4, 3);
+      if (frame % 12 < 3) {
+        ctx.fillRect(f2x - 12, f1y - 18, 12, 3); // kick
+      }
+      ctx.fillRect(f2x, f1y - 4, 3, 10);
+      ctx.fillRect(f2x + 5, f1y - 4, 3, 10);
+
+      // hadouken projectile
+      if (frame > 15 && frame % 20 < 10) {
+        const projX = f1x + 20 + (frame % 20) * 6;
+        ctx.fillStyle = "#0ff";
+        ctx.beginPath();
+        ctx.arc(projX, f1y - 14, 4 + Math.sin(frame) * 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(projX, f1y - 14, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // floor
+      ctx.fillStyle = "#333";
+      ctx.fillRect(0, h - 16, w, 16);
+    }
+
+    function drawAdventureScene(ctx, w, h, px, frame) {
+      // Sierra-style adventure game
+      // sky
+      ctx.fillStyle = "#114";
+      ctx.fillRect(0, 0, w, h * 0.5);
+      // ground
+      ctx.fillStyle = "#141";
+      ctx.fillRect(0, h * 0.5, w, h * 0.5);
+      // stars
+      for (let i = 0; i < 12; i++) {
+        ctx.fillStyle = `rgba(255,255,255,${0.3 + Math.random() * 0.7})`;
+        ctx.fillRect((i * 37 + 11) % w, (i * 13 + 7) % (h * 0.45), 1, 1);
+      }
+      // building/structure
+      ctx.fillStyle = "#333";
+      ctx.fillRect(w * 0.6, h * 0.25, 40, h * 0.25);
+      ctx.fillStyle = "#444";
+      ctx.fillRect(w * 0.62, h * 0.28, 10, 12);
+      ctx.fillRect(w * 0.78, h * 0.28, 10, 12);
+      ctx.fillStyle = "#ff0";
+      ctx.fillRect(w * 0.64, h * 0.3, 6, 6);
+      // door
+      ctx.fillStyle = "#552";
+      ctx.fillRect(w * 0.7, h * 0.38, 8, 12);
+
+      // character (Roger Wilco-esque)
+      const charX = 20 + (frame * 1.5) % (w - 40);
+      const charY = h * 0.5 - 16;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(charX, charY, 6, 8); // body
+      ctx.fillRect(charX + 1, charY - 5, 4, 5); // head
+      ctx.fillStyle = "#00f";
+      ctx.fillRect(charX, charY + 2, 6, 4); // pants
+      // legs walking
+      if (frame % 4 < 2) {
+        ctx.fillRect(charX + 1, charY + 8, 2, 4);
+        ctx.fillRect(charX + 3, charY + 8, 2, 3);
+      } else {
+        ctx.fillRect(charX + 1, charY + 8, 2, 3);
+        ctx.fillRect(charX + 3, charY + 8, 2, 4);
+      }
+
+      // text box at bottom
+      ctx.fillStyle = "rgba(0,0,0,0.8)";
+      ctx.fillRect(4, h - 28, w - 8, 24);
+      ctx.strokeStyle = "#666";
+      ctx.strokeRect(4, h - 28, w - 8, 24);
+      ctx.fillStyle = "#fff";
+      ctx.font = "7px monospace";
+      const texts = [
+        "You are standing outside a",
+        "mysterious building. A sign",
+        "reads: 'SIERRA ON-LINE'",
+      ];
+      const visibleText = Math.min(texts.length, Math.floor(frame / 8) + 1);
+      for (let i = 0; i < visibleText; i++) {
+        ctx.fillText(texts[i], 8, h - 20 + i * 8);
+      }
+
+      // title bar
+      ctx.fillStyle = "#00a";
+      ctx.fillRect(0, 0, w, 10);
+      ctx.fillStyle = "#fff";
+      ctx.font = "7px monospace";
+      ctx.fillText("Space Quest XII    Score: " + (frame * 5), 4, 8);
+    }
+
+    function drawKeenScene(ctx, w, h, px, frame) {
+      // Commander Keen side-scroller
+      // sky
+      ctx.fillStyle = "#48f";
+      ctx.fillRect(0, 0, w, h * 0.65);
+      // clouds
+      ctx.fillStyle = "#fff";
+      for (let i = 0; i < 3; i++) {
+        const cx = ((i * 60 + 20) - frame * 0.3 + w * 2) % (w + 40) - 20;
+        ctx.fillRect(cx, 10 + i * 12, 24, 6);
+        ctx.fillRect(cx + 4, 6 + i * 12, 16, 4);
+      }
+      // ground tiles
+      ctx.fillStyle = "#84c";
+      ctx.fillRect(0, h * 0.65, w, h * 0.35);
+      ctx.fillStyle = "#63a";
+      for (let x = 0; x < w; x += 12) {
+        ctx.fillRect(x, h * 0.65, 11, 3);
+      }
+      // platforms
+      ctx.fillStyle = "#888";
+      ctx.fillRect(30, h * 0.45, 40, 6);
+      ctx.fillRect(90, h * 0.35, 35, 6);
+      ctx.fillRect(20, h * 0.55, 25, 6);
+
+      // Keen character
+      const keenX = 20 + (frame * 1.5) % (w - 30);
+      const keenY = h * 0.65 - 18;
+      const jumping = Math.sin(frame * 0.15) > 0.5;
+      const jumpOffset = jumping ? -12 : 0;
+
+      // helmet (green)
+      ctx.fillStyle = "#0a0";
+      ctx.fillRect(keenX, keenY - 6 + jumpOffset, 8, 4);
+      ctx.fillRect(keenX + 1, keenY - 8 + jumpOffset, 6, 2);
+      // face
+      ctx.fillStyle = "#fca";
+      ctx.fillRect(keenX + 1, keenY - 2 + jumpOffset, 6, 4);
+      // eyes
+      ctx.fillStyle = "#000";
+      ctx.fillRect(keenX + 2, keenY - 1 + jumpOffset, 1, 1);
+      ctx.fillRect(keenX + 5, keenY - 1 + jumpOffset, 1, 1);
+      // body (red shirt)
+      ctx.fillStyle = "#f00";
+      ctx.fillRect(keenX + 1, keenY + 2 + jumpOffset, 6, 6);
+      // arms
+      if (frame % 8 < 4) {
+        ctx.fillRect(keenX - 2, keenY + 3 + jumpOffset, 3, 2);
+        ctx.fillRect(keenX + 7, keenY + 4 + jumpOffset, 3, 2);
+      } else {
+        ctx.fillRect(keenX - 2, keenY + 4 + jumpOffset, 3, 2);
+        ctx.fillRect(keenX + 7, keenY + 3 + jumpOffset, 3, 2);
+      }
+      // pants (blue)
+      ctx.fillStyle = "#00f";
+      ctx.fillRect(keenX + 1, keenY + 8 + jumpOffset, 6, 3);
+      // legs/boots
+      ctx.fillStyle = "#840";
+      if (frame % 6 < 3) {
+        ctx.fillRect(keenX + 1, keenY + 11 + jumpOffset, 2, 3);
+        ctx.fillRect(keenX + 5, keenY + 11 + jumpOffset, 2, 2);
+      } else {
+        ctx.fillRect(keenX + 1, keenY + 11 + jumpOffset, 2, 2);
+        ctx.fillRect(keenX + 5, keenY + 11 + jumpOffset, 2, 3);
+      }
+
+      // ray gun blast
+      if (frame % 20 < 4) {
+        ctx.fillStyle = "#0f0";
+        for (let b = 0; b < 3; b++) {
+          ctx.fillRect(keenX + 10 + b * 8, keenY + 3 + jumpOffset, 6, 2);
+        }
+      }
+
+      // enemies (slugs)
+      for (let e = 0; e < 2; e++) {
+        const ex = (w - 20 - e * 50 - frame * 0.8 + w * 10) % (w + 20) - 10;
+        ctx.fillStyle = "#0a0";
+        ctx.fillRect(ex, h * 0.65 - 6, 8, 6);
+        ctx.fillStyle = "#0f0";
+        ctx.fillRect(ex + 1, h * 0.65 - 8, 3, 2);
+        ctx.fillStyle = "#000";
+        ctx.fillRect(ex + 1, h * 0.65 - 7, 1, 1);
+      }
+
+      // collectibles (lollipops)
+      for (let c = 0; c < 4; c++) {
+        const lx = 30 + c * 35;
+        if (Math.abs(keenX - lx) > 8) {
+          ctx.fillStyle = "#f0f";
+          ctx.fillRect(lx, h * 0.65 - 14, 4, 4);
+          ctx.fillStyle = "#840";
+          ctx.fillRect(lx + 1, h * 0.65 - 10, 2, 5);
+        }
+      }
+
+      // HUD
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, w, 12);
+      ctx.fillStyle = "#fff";
+      ctx.font = "8px monospace";
+      ctx.fillText("CMDR KEEN EP4", 4, 9);
+      ctx.fillStyle = "#ff0";
+      ctx.fillText(`SCORE ${(frame * 100) % 99999}`, w - 70, 9);
+    }
+
+    function drawDoomScene(ctx, w, h, px, frame) {
+      // Doom-style first person corridor
+      // ceiling
+      ctx.fillStyle = "#333";
+      ctx.fillRect(0, 0, w, h * 0.4);
+      // floor
+      ctx.fillStyle = "#555";
+      ctx.fillRect(0, h * 0.6, w, h * 0.4);
+
+      // fake 3D corridor walls
+      const sway = Math.sin(frame * 0.08) * 3;
+      const wallColors = ["#700", "#800", "#600", "#700"];
+      for (let col = 0; col < w; col += 4) {
+        const distFromCenter = Math.abs(col - w/2 + sway) / (w/2);
+        const wallH = h * 0.5 * (1 - distFromCenter * 0.6);
+        const wallTop = h/2 - wallH/2;
+        const shade = Math.floor(80 + (1 - distFromCenter) * 80);
+        ctx.fillStyle = `rgb(${shade}, ${Math.floor(shade*0.2)}, ${Math.floor(shade*0.1)})`;
+        ctx.fillRect(col, wallTop, 4, wallH);
+
+        // wall detail lines
+        if (col % 16 === 0) {
+          ctx.fillStyle = `rgb(${shade-20}, ${Math.floor(shade*0.15)}, ${Math.floor(shade*0.05)})`;
+          ctx.fillRect(col, wallTop, 1, wallH);
+        }
+      }
+
+      // door at end of corridor
+      const doorW = 30 + Math.sin(frame * 0.05) * 5;
+      const doorH = h * 0.3;
+      ctx.fillStyle = "#555";
+      ctx.fillRect(w/2 - doorW/2 + sway, h/2 - doorH/2, doorW, doorH);
+      ctx.fillStyle = "#777";
+      ctx.fillRect(w/2 + sway + doorW/4, h/2 - 2, 3, 4);
+
+      // weapon at bottom (gun)
+      ctx.fillStyle = "#888";
+      ctx.fillRect(w/2 - 8 + sway * 0.5, h - 35, 16, 25);
+      ctx.fillStyle = "#666";
+      ctx.fillRect(w/2 - 3 + sway * 0.5, h - 40, 6, 8);
+      ctx.fillStyle = "#aaa";
+      ctx.fillRect(w/2 - 1 + sway * 0.5, h - 44, 2, 6);
+
+      // muzzle flash
+      if (frame % 15 < 2) {
+        ctx.fillStyle = "#ff0";
+        ctx.fillRect(w/2 - 4 + sway * 0.5, h - 48, 8, 4);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(w/2 - 2 + sway * 0.5, h - 50, 4, 4);
+      }
+
+      // enemy (imp silhouette) occasionally
+      if (frame % 60 < 30) {
+        const impScale = 0.5 + (frame % 30) * 0.02;
+        const impW = 12 * impScale;
+        const impH = 16 * impScale;
+        const impX = w/2 - impW/2 + sway + Math.sin(frame * 0.2) * 10;
+        const impY = h/2 - impH/2;
+        ctx.fillStyle = "#a44";
+        ctx.fillRect(impX, impY, impW, impH);
+        ctx.fillStyle = "#f00";
+        ctx.fillRect(impX + impW * 0.2, impY + impH * 0.15, impW * 0.2, impW * 0.15);
+        ctx.fillRect(impX + impW * 0.6, impY + impH * 0.15, impW * 0.2, impW * 0.15);
+      }
+
+      // HUD
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, h - 16, w, 16);
+      // health
+      ctx.fillStyle = "#fff";
+      ctx.font = "8px monospace";
+      ctx.fillText("HEALTH", 4, h - 5);
+      ctx.fillStyle = "#f00";
+      const hp = Math.max(10, 100 - frame % 100);
+      ctx.fillRect(42, h - 12, hp * 0.4, 6);
+      // ammo
+      ctx.fillStyle = "#fff";
+      ctx.fillText("AMMO", w - 60, h - 5);
+      ctx.fillStyle = "#ff0";
+      ctx.fillText(String(Math.max(0, 50 - Math.floor(frame / 15))), w - 20, h - 5);
+      // face (Doom guy)
+      ctx.fillStyle = "#fca";
+      ctx.fillRect(w/2 - 6, h - 14, 12, 12);
+      ctx.fillStyle = "#000";
+      ctx.fillRect(w/2 - 4, h - 11, 2, 2);
+      ctx.fillRect(w/2 + 2, h - 11, 2, 2);
+      ctx.fillStyle = "#a00";
+      ctx.fillRect(w/2 - 2, h - 6, 4, 2);
+    }
 
     const glitchColors2 = ['#0ff', '#f0f', '#f00', '#0f0', '#ff0', '#f80', '#0ff', '#fff'];
 
@@ -347,18 +970,17 @@
 
       const type = Math.random();
 
-      if (type < 0.35) {
+      if (type < 0.3) {
         // code snippet
         el.classList.add('artifact-code');
         el.textContent = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
         el.style.transform = `rotate(${rand2(-8, 8).toFixed(1)}deg) scale(${rand2(0.8, 1.5).toFixed(2)})`;
-      } else if (type < 0.65) {
-        // pixel sprite
-        el.classList.add('artifact-pixel');
-        const keys = Object.keys(sprites);
-        const sprite = sprites[keys[Math.floor(Math.random() * keys.length)]];
-        el.textContent = sprite.join('\n');
-        el.style.transform = `scale(${rand2(1, 3).toFixed(1)})`;
+      } else if (type < 0.6) {
+        // mini game scene (animated)
+        el.classList.add('artifact-block');
+        const canvas = spawnGameScene();
+        el.appendChild(canvas);
+        el.style.transform = `rotate(${rand2(-5, 5).toFixed(1)}deg)`;
       } else {
         // JPEG block artifact
         el.classList.add('artifact-block');
@@ -382,12 +1004,16 @@
         el.style.transform = `rotate(${rand2(-15, 15).toFixed(1)}deg)`;
       }
 
-      el.style.opacity = rand2(0.3, 0.9).toFixed(2);
+      el.style.opacity = rand2(0.4, 0.9).toFixed(2);
       document.body.appendChild(el);
 
-      const duration = rand2(80, 400);
+      // game scenes last 15-30 seconds
+      const isGame = type >= 0.3 && type < 0.6;
+      const duration = isGame ? rand2(15000, 30000) : rand2(80, 400);
       setTimeout(() => {
-        if (el.parentNode) el.parentNode.removeChild(el);
+        el.style.transition = "opacity 0.3s";
+        el.style.opacity = "0";
+        setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 300);
       }, duration);
 
       return el;
@@ -612,38 +1238,82 @@
     function initMatrix() {
       const canvas = document.getElementById("matrix-canvas");
       const ctx = canvas.getContext("2d");
-      let cols, drops;
-      const chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF";
+      const chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF<>/{}();=+*&|^~";
+      const cellW = 14, cellH = 16;
+      let streams = [];
+      let animId = null;
+      let active = false;
+      let spawning = false;
 
       function resize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        cols = Math.floor(canvas.width / 14);
-        drops = new Array(cols).fill(0);
       }
       resize();
       window.addEventListener("resize", resize);
 
-      let animId = null;
-      let active = false;
+      function spawnStream() {
+        const x = Math.floor(Math.random() * (canvas.width / cellW)) * cellW;
+        const speed = 1 + Math.random() * 4;
+        const length = 5 + Math.floor(Math.random() * 25);
+        const brightness = 0.5 + Math.random() * 0.5;
+        return {
+          x,
+          y: -Math.random() * canvas.height * 0.5,
+          speed,
+          length,
+          brightness,
+          chars: Array.from({length}, () => chars[Math.floor(Math.random() * chars.length)]),
+          age: 0,
+        };
+      }
 
       function draw() {
-        ctx.fillStyle = "rgba(10, 10, 10, 0.1)";
+        ctx.fillStyle = "rgba(10, 10, 10, 0.12)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#0f0";
-        ctx.font = "12px JetBrains Mono, monospace";
+        ctx.font = "13px JetBrains Mono, monospace";
 
-        for (let i = 0; i < cols; i++) {
-          if (Math.random() < 0.98) {
-            const ch = chars[Math.floor(Math.random() * chars.length)];
-            ctx.fillStyle = `rgba(0, ${150 + Math.floor(Math.random()*105)}, 0, ${0.5 + Math.random()*0.5})`;
-            ctx.fillText(ch, i * 14, drops[i] * 14);
+        // spawn new streams sporadically (only while spawning)
+        if (spawning) {
+          const maxStreams = Math.floor(canvas.width / cellW * 0.15);
+          if (streams.length < maxStreams && Math.random() < 0.3) {
+            streams.push(spawnStream());
           }
-          if (drops[i] * 14 > canvas.height && Math.random() > 0.98) {
-            drops[i] = 0;
-          }
-          drops[i]++;
         }
+
+        const alive = [];
+        for (const s of streams) {
+          s.y += s.speed;
+          s.age++;
+
+          // occasionally mutate characters
+          if (Math.random() < 0.1) {
+            const idx = Math.floor(Math.random() * s.chars.length);
+            s.chars[idx] = chars[Math.floor(Math.random() * chars.length)];
+          }
+
+          for (let i = 0; i < s.length; i++) {
+            const charY = s.y - i * cellH;
+            if (charY < -cellH || charY > canvas.height) continue;
+
+            const fade = 1 - (i / s.length);
+            if (i === 0) {
+              // leading character is bright white-green
+              ctx.fillStyle = `rgba(180, 255, 180, ${s.brightness})`;
+            } else {
+              const g = Math.floor(100 + fade * 155);
+              ctx.fillStyle = `rgba(0, ${g}, 0, ${fade * s.brightness * 0.8})`;
+            }
+            ctx.fillText(s.chars[i], s.x, charY);
+          }
+
+          // keep stream alive while tail is still on screen
+          const tailY = s.y - s.length * cellH;
+          if (tailY < canvas.height) {
+            alive.push(s);
+          }
+        }
+        streams = alive;
 
         if (active) animId = requestAnimationFrame(draw);
       }
@@ -652,107 +1322,35 @@
         start() {
           if (active) return;
           active = true;
+          spawning = true;
           canvas.style.opacity = "1";
-          drops.fill(0);
+          canvas.style.transition = "";
+          streams = [];
+          // seed a few initial streams
+          for (let i = 0; i < 5 + Math.floor(Math.random() * 8); i++) {
+            const s = spawnStream();
+            s.y = Math.random() * canvas.height;
+            streams.push(s);
+          }
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           draw();
         },
         stop() {
-          active = false;
-          if (animId) cancelAnimationFrame(animId);
+          // stop spawning new streams, let existing ones drain off screen
+          spawning = false;
+          // fade out gradually over 2 seconds
+          canvas.style.transition = "opacity 2s";
           canvas.style.opacity = "0";
+          setTimeout(() => {
+            active = false;
+            if (animId) cancelAnimationFrame(animId);
+            canvas.style.transition = "";
+          }, 2500);
         }
       };
     }
 
     const matrix = initMatrix();
-
-    // --- Page tear effect ---
-    function initPageTear() {
-      const tearChars = "░▒▓█▄▀▐▌╔╗╚╝║═╬╣╠╩╦01";
-      const colors = ["#0ff", "#f0f", "#0f0", "#f00"];
-      let lastX = 0, lastY = 0;
-      let moveCount = 0;
-
-      function makeTearContent(w, h) {
-        const cols = Math.floor(w / 6);
-        const rows = Math.floor(h / 10);
-        let text = "";
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            text += tearChars[Math.floor(Math.random() * tearChars.length)];
-          }
-          if (r < rows - 1) text += "\n";
-        }
-        return text;
-      }
-
-      document.addEventListener("mousemove", (e) => {
-        const dx = e.clientX - lastX;
-        const dy = e.clientY - lastY;
-        const dist = Math.abs(dx) + Math.abs(dy);
-        if (dist < 50) return;
-        lastX = e.clientX;
-        lastY = e.clientY;
-        moveCount++;
-
-        // only tear occasionally — roughly 1 in 4 qualifying moves
-        if (Math.random() > 0.25) return;
-
-        const tear = document.createElement("div");
-        tear.className = "page-tear";
-
-        // random tear shape and size
-        const w = 40 + Math.random() * 120;
-        const h = 20 + Math.random() * 80;
-        tear.style.width = w + "px";
-        tear.style.height = h + "px";
-        tear.style.left = (e.clientX - w/2) + "px";
-        tear.style.top = (e.clientY - h/2) + "px";
-
-        // jagged clip for torn edge look
-        const points = [];
-        const steps = 8 + Math.floor(Math.random() * 6);
-        for (let i = 0; i <= steps; i++) {
-          const t = i / steps;
-          const jitter = 5 + Math.random() * 15;
-          if (i === 0 || i === steps) {
-            points.push(`${t*100}% ${50 + (Math.random()-0.5)*20}%`);
-          } else {
-            points.push(`${t*100}% ${jitter}%`);
-          }
-        }
-        for (let i = steps; i >= 0; i--) {
-          const t = i / steps;
-          const jitter = 85 + Math.random() * 15;
-          points.push(`${t*100}% ${jitter}%`);
-        }
-        tear.style.clipPath = `polygon(${points.join(", ")})`;
-
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        const bgAlpha = (0.6 + Math.random() * 0.3).toFixed(2);
-
-        const inner = document.createElement("div");
-        inner.className = "page-tear-inner";
-        inner.style.color = color;
-        inner.style.backgroundColor = `rgba(10, 10, 10, ${bgAlpha})`;
-        inner.style.borderLeft = `2px solid ${color}`;
-        inner.style.borderRight = `2px solid ${color}`;
-        inner.textContent = makeTearContent(w, h);
-
-        tear.appendChild(inner);
-        document.body.appendChild(tear);
-
-        const duration = 200 + Math.random() * 600;
-        setTimeout(() => {
-          tear.style.transition = "opacity 0.2s";
-          tear.style.opacity = "0";
-          setTimeout(() => { if (tear.parentNode) tear.parentNode.removeChild(tear); }, 200);
-        }, duration);
-      });
-    }
-
-    initPageTear();
 
     // --- Cursor proximity distortion ---
     function initCursorProximity() {
