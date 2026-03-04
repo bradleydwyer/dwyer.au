@@ -34,11 +34,22 @@
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+      position: relative;
     }
 
     .name::after {
       content: "_";
       animation: blink 1s step-end infinite;
+    }
+
+    .name.glitch::before,
+    .name.glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      overflow: hidden;
     }
 
     .status {
@@ -157,6 +168,7 @@
       function typeChar() {
         if (i < name.length) {
           nameEl.textContent = name.slice(0, i + 1);
+          nameEl.setAttribute("data-text", name.slice(0, i + 1));
           i++;
           const delay = 40 + Math.random() * 80;
           setTimeout(typeChar, delay);
@@ -168,7 +180,102 @@
       typeChar();
     }
 
-    typeName(typeMessage);
+    function startGlitch() {
+      const nameEl = document.getElementById("name");
+
+      const glitchColors = [
+        ["#0ff", "#f0f"],
+        ["#f00", "#0ff"],
+        ["#0f0", "#f0f"],
+        ["#ff0", "#f00"],
+        ["#f0f", "#0f0"],
+      ];
+
+      function rand(min, max) {
+        return min + Math.random() * (max - min);
+      }
+
+      function glitchFrame(before, after, duration) {
+        const [c1, c2] = glitchColors[Math.floor(Math.random() * glitchColors.length)];
+        const clipTop = rand(0, 80);
+        const clipBot = rand(clipTop + 10, 100);
+
+        nameEl.style.transform = `skewX(${rand(-4, 4).toFixed(1)}deg) translateX(${rand(-2, 2).toFixed(1)}px)`;
+        before.style.color = c1;
+        before.style.transform = `translateX(${rand(-5, 5).toFixed(1)}px)`;
+        before.style.clipPath = `inset(0 0 ${100 - clipTop}% 0)`;
+        after.style.color = c2;
+        after.style.transform = `translateX(${rand(-5, 5).toFixed(1)}px)`;
+        after.style.clipPath = `inset(${clipBot}% 0 0 0)`;
+
+        if (Math.random() < 0.3) {
+          nameEl.style.opacity = Math.random() < 0.5 ? "0" : "1";
+        }
+      }
+
+      function clearGlitch(before, after) {
+        nameEl.style.transform = "";
+        nameEl.style.opacity = "";
+        before.style.transform = "";
+        before.style.color = "";
+        before.style.clipPath = "";
+        after.style.transform = "";
+        after.style.color = "";
+        after.style.clipPath = "";
+        nameEl.classList.remove("glitch");
+      }
+
+      function triggerGlitch() {
+        nameEl.classList.add("glitch");
+        const before = nameEl.querySelector(":scope")?.parentNode
+          ? window.getComputedStyle(nameEl, "::before")
+          : null;
+
+        const style = document.createElement("style");
+        const id = "g" + Math.random().toString(36).slice(2, 8);
+        document.head.appendChild(style);
+
+        const beforeEl = Object.assign(document.createElement("span"), {
+          textContent: nameEl.getAttribute("data-text"),
+          style: "position:absolute;top:0;left:0;width:100%;overflow:hidden;pointer-events:none",
+        });
+        const afterEl = Object.assign(document.createElement("span"), {
+          textContent: nameEl.getAttribute("data-text"),
+          style: "position:absolute;top:0;left:0;width:100%;overflow:hidden;pointer-events:none",
+        });
+        nameEl.appendChild(beforeEl);
+        nameEl.appendChild(afterEl);
+
+        const burstCount = Math.random() < 0.4 ? Math.floor(rand(2, 5)) : 1;
+        const frameDuration = rand(30, 80);
+        const totalDuration = burstCount * frameDuration + rand(50, 150);
+        let frame = 0;
+
+        const interval = setInterval(() => {
+          if (frame >= burstCount) {
+            clearInterval(interval);
+            clearGlitch(beforeEl, afterEl);
+            nameEl.removeChild(beforeEl);
+            nameEl.removeChild(afterEl);
+            style.remove();
+            return;
+          }
+          glitchFrame(beforeEl, afterEl, frameDuration);
+          frame++;
+        }, frameDuration);
+
+        const next = rand(1500, 4000);
+        setTimeout(triggerGlitch, next);
+      }
+
+      const initial = rand(1000, 2000);
+      setTimeout(triggerGlitch, initial);
+    }
+
+    typeName(() => {
+      startGlitch();
+      typeMessage();
+    });
   </script>
 </body>
 </html>
