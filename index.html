@@ -303,9 +303,24 @@
       'GENERAL FAILURE\nREADING DRIVE A',
       'PC LOAD LETTER',
       'INSUFFICIENT\n  MEMORY',
+      // Java stack trace
+      'Exception in thread\n  "main"\njava.lang.Null\n  PointerException\n  at Main.run\n  (Main.java:42)',
+      'java.lang.StackOverflow\n  Error\n  at com.app.Service\n  .process(Svc:117)',
+      // C/C++ crashes
+      'Segmentation fault\n  (core dumped)',
+      'malloc(): corrupted\n  top size\nAborted',
+      '*** stack smashing\n  detected ***:\n  terminated',
+      // Python
+      'Traceback (most\n  recent call last):\nFile "app.py"\n  line 69\nTypeError: \'NoneType\'',
+      // Rust
+      'thread \'main\'\n  panicked at\n  \'index out of\n  bounds\'',
+      // Node
+      'RangeError: Maximum\n  call stack size\n  exceeded',
     ];
 
     // --- Mini game scene renderers (canvas-based, animated) ---
+    const activeSceneTypes = new Set();
+
     function spawnGameScene() {
       const w = 160, h = 120, px = 4;
       const canvas = document.createElement("canvas");
@@ -315,8 +330,19 @@
       canvas.style.imageRendering = "pixelated";
       const ctx = canvas.getContext("2d");
 
-      const scenes = [drawPacmanScene, drawInvadersScene, drawPongScene, drawSnakeScene, drawTetrisScene, drawBreakoutScene, drawWargamesScene, drawFighterScene, drawAdventureScene, drawKeenScene, drawDoomScene, drawBSODScene, drawPinwheelScene];
-      const scene = scenes[Math.floor(Math.random() * scenes.length)];
+      const sceneFactories = [drawPacmanScene, drawInvadersScene, drawPongScene, drawSnakeScene, createTetrisScene, drawBreakoutScene, drawWargamesScene, drawFighterScene, drawAdventureScene, drawKeenScene, drawDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene];
+
+      // pick a scene that isn't already on screen
+      const available = sceneFactories.filter(f => !activeSceneTypes.has(f.name));
+      if (available.length === 0) return canvas; // all active, return blank
+      const factory = available[Math.floor(Math.random() * available.length)];
+      activeSceneTypes.add(factory.name);
+      canvas._sceneType = factory.name;
+
+      // stateful scenes return a draw function; stateless are used directly
+      const sceneResult = factory(ctx, w, h, px, -1, 0);
+      const isStateful = typeof sceneResult === "function";
+      const drawFn = isStateful ? sceneResult : null;
 
       let frame = 0;
       const totalFrames = 300 + Math.floor(Math.random() * 300);
@@ -324,7 +350,11 @@
       function animate() {
         ctx.fillStyle = "#000";
         ctx.fillRect(0, 0, w, h);
-        scene(ctx, w, h, px, frame, totalFrames);
+        if (isStateful) {
+          drawFn(frame);
+        } else {
+          factory(ctx, w, h, px, frame, totalFrames);
+        }
         frame++;
         if (frame < totalFrames) {
           requestAnimationFrame(animate);
@@ -1091,6 +1121,647 @@
       }
     }
 
+    // --- Stateful game scenes (return a draw function) ---
+
+    function createTetrisScene(ctx, w, h) {
+      const cols = 10, rows = 18, cell = 6;
+      const boardX = (w - cols * cell) / 2;
+      const boardY = 14;
+      const board = Array.from({length: rows}, () => new Array(cols).fill(0));
+      const colors = ["", "#0ff", "#ff0", "#f0f", "#0f0", "#f00", "#00f", "#f80"];
+      const pieces = [
+        [[1,1,1,1]],
+        [[1,1],[1,1]],
+        [[0,1,0],[1,1,1]],
+        [[1,0,0],[1,1,1]],
+        [[0,0,1],[1,1,1]],
+        [[1,1,0],[0,1,1]],
+        [[0,1,1],[1,1,0]],
+      ];
+
+      let piece, pieceX, pieceY, pieceColor, score = 0, lines = 0;
+
+      function spawnPiece() {
+        const idx = Math.floor(Math.random() * pieces.length);
+        piece = pieces[idx].map(r => [...r]);
+        pieceColor = idx + 1;
+        pieceX = Math.floor((cols - piece[0].length) / 2);
+        pieceY = 0;
+      }
+
+      function fits(px, py, p) {
+        for (let r = 0; r < p.length; r++)
+          for (let c = 0; c < p[0].length; c++)
+            if (p[r][c]) {
+              const bx = px + c, by = py + r;
+              if (bx < 0 || bx >= cols || by >= rows) return false;
+              if (by >= 0 && board[by][bx]) return false;
+            }
+        return true;
+      }
+
+      function lock() {
+        for (let r = 0; r < piece.length; r++)
+          for (let c = 0; c < piece[0].length; c++)
+            if (piece[r][c] && pieceY + r >= 0)
+              board[pieceY + r][pieceX + c] = pieceColor;
+        // clear lines
+        for (let r = rows - 1; r >= 0; r--) {
+          if (board[r].every(c => c)) {
+            board.splice(r, 1);
+            board.unshift(new Array(cols).fill(0));
+            lines++; score += 100;
+            r++;
+          }
+        }
+      }
+
+      function rotate() {
+        const rotated = piece[0].map((_, c) => piece.map(r => r[c]).reverse());
+        if (fits(pieceX, pieceY, rotated)) piece = rotated;
+      }
+
+      spawnPiece();
+      let tickCounter = 0;
+
+      return function draw(frame) {
+        tickCounter++;
+        // AI: move piece toward best column and occasionally rotate
+        if (tickCounter % 3 === 0 && Math.random() < 0.3) rotate();
+        if (tickCounter % 4 === 0) {
+          const dir = Math.random() < 0.5 ? -1 : 1;
+          if (fits(pieceX + dir, pieceY, piece)) pieceX += dir;
+        }
+        // drop
+        if (tickCounter % 6 === 0) {
+          if (fits(pieceX, pieceY + 1, piece)) {
+            pieceY++;
+          } else {
+            lock();
+            spawnPiece();
+            if (!fits(pieceX, pieceY, piece)) {
+              // game over, reset
+              for (let r = 0; r < rows; r++) board[r].fill(0);
+              score = 0; lines = 0;
+            }
+          }
+        }
+
+        // draw board
+        ctx.strokeStyle = "#222";
+        ctx.strokeRect(boardX - 1, boardY - 1, cols * cell + 2, rows * cell + 2);
+        for (let r = 0; r < rows; r++)
+          for (let c = 0; c < cols; c++) {
+            if (board[r][c]) {
+              ctx.fillStyle = colors[board[r][c]];
+              ctx.fillRect(boardX + c * cell, boardY + r * cell, cell - 1, cell - 1);
+            }
+          }
+        // draw current piece
+        for (let r = 0; r < piece.length; r++)
+          for (let c = 0; c < piece[0].length; c++)
+            if (piece[r][c] && pieceY + r >= 0) {
+              ctx.fillStyle = colors[pieceColor];
+              ctx.fillRect(boardX + (pieceX + c) * cell, boardY + (pieceY + r) * cell, cell - 1, cell - 1);
+            }
+        // HUD
+        ctx.fillStyle = "#fff";
+        ctx.font = "7px monospace";
+        ctx.fillText("TETRIS", boardX + cols * cell + 4, boardY + 8);
+        ctx.fillText(`LN ${lines}`, boardX + cols * cell + 4, boardY + 20);
+        ctx.fillText(`${score}`, boardX + cols * cell + 4, boardY + 32);
+      };
+    }
+
+    function createInvadersScene(ctx, w, h) {
+      const invCols = 8, invRows = 3;
+      const alive = Array.from({length: invRows}, () => new Array(invCols).fill(true));
+      let invX = 10, invY = 14, invDir = 1, invSpeed = 0.3;
+      let shipX = w / 2;
+      const bullets = [];
+      const eBullets = [];
+      const explosions = [];
+      let score = 0, lives = 3;
+      let tickCounter = 0;
+      const invW = 10, invH = 8, invSpaceX = 16, invSpaceY = 14;
+
+      function aliveCount() {
+        let c = 0;
+        for (const row of alive) for (const v of row) if (v) c++;
+        return c;
+      }
+
+      return function draw(frame) {
+        tickCounter++;
+
+        // move invaders
+        invX += invDir * invSpeed;
+        const rightEdge = invX + invCols * invSpaceX;
+        const leftEdge = invX;
+        if (rightEdge > w - 5 || leftEdge < 5) {
+          invDir *= -1;
+          invY += 4;
+        }
+
+        // move ship (AI — track nearest invader column)
+        let nearestCol = invCols / 2;
+        outer: for (let r = invRows - 1; r >= 0; r--)
+          for (let c = 0; c < invCols; c++)
+            if (alive[r][c]) { nearestCol = c; break outer; }
+        const targetX = invX + nearestCol * invSpaceX + invW / 2;
+        if (shipX < targetX - 2) shipX += 1.5;
+        else if (shipX > targetX + 2) shipX -= 1.5;
+
+        // fire
+        if (tickCounter % 12 === 0) {
+          bullets.push({x: shipX, y: h - 18});
+        }
+        // enemy fire
+        if (tickCounter % 25 === 0) {
+          const col = Math.floor(Math.random() * invCols);
+          for (let r = invRows - 1; r >= 0; r--) {
+            if (alive[r][col]) {
+              eBullets.push({x: invX + col * invSpaceX + invW/2, y: invY + r * invSpaceY + invH});
+              break;
+            }
+          }
+        }
+
+        // update bullets
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          bullets[i].y -= 3;
+          if (bullets[i].y < 0) { bullets.splice(i, 1); continue; }
+          // hit detection
+          for (let r = 0; r < invRows; r++)
+            for (let c = 0; c < invCols; c++)
+              if (alive[r][c]) {
+                const ix = invX + c * invSpaceX;
+                const iy = invY + r * invSpaceY;
+                if (bullets[i] && bullets[i].x >= ix && bullets[i].x <= ix + invW && bullets[i].y >= iy && bullets[i].y <= iy + invH) {
+                  alive[r][c] = false;
+                  explosions.push({x: ix, y: iy, t: 10});
+                  score += 50;
+                  bullets.splice(i, 1);
+                  invSpeed += 0.02;
+                }
+              }
+        }
+
+        // enemy bullets
+        for (let i = eBullets.length - 1; i >= 0; i--) {
+          eBullets[i].y += 2;
+          if (eBullets[i].y > h) eBullets.splice(i, 1);
+        }
+
+        // explosions
+        for (let i = explosions.length - 1; i >= 0; i--) {
+          explosions[i].t--;
+          if (explosions[i].t <= 0) explosions.splice(i, 1);
+        }
+
+        // respawn if all dead
+        if (aliveCount() === 0) {
+          for (const row of alive) row.fill(true);
+          invY = 14; invSpeed = 0.3;
+        }
+
+        // draw invaders
+        for (let r = 0; r < invRows; r++)
+          for (let c = 0; c < invCols; c++)
+            if (alive[r][c]) {
+              const ix = invX + c * invSpaceX;
+              const iy = invY + r * invSpaceY;
+              ctx.fillStyle = ["#0f0", "#0ff", "#ff0"][r];
+              ctx.fillRect(ix + 2, iy, 6, 2);
+              ctx.fillRect(ix, iy + 2, 10, 2);
+              ctx.fillRect(ix + 1, iy + 4, 8, 2);
+              if (frame % 4 < 2) {
+                ctx.fillRect(ix, iy + 6, 2, 2);
+                ctx.fillRect(ix + 8, iy + 6, 2, 2);
+              } else {
+                ctx.fillRect(ix + 1, iy + 6, 2, 2);
+                ctx.fillRect(ix + 7, iy + 6, 2, 2);
+              }
+            }
+
+        // draw explosions
+        for (const e of explosions) {
+          ctx.fillStyle = `rgba(255,${100+e.t*15},0,${e.t/10})`;
+          ctx.fillRect(e.x - 2, e.y - 2, 14, 12);
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(e.x + 2, e.y + 2, 6, 4);
+        }
+
+        // draw bullets
+        ctx.fillStyle = "#fff";
+        for (const b of bullets) ctx.fillRect(b.x, b.y, 1, 4);
+        ctx.fillStyle = "#f00";
+        for (const b of eBullets) ctx.fillRect(b.x, b.y, 1, 4);
+
+        // draw ship
+        ctx.fillStyle = "#0f0";
+        ctx.fillRect(shipX - 5, h - 14, 10, 4);
+        ctx.fillRect(shipX - 1, h - 18, 2, 4);
+
+        // HUD
+        ctx.fillStyle = "#fff";
+        ctx.font = "8px monospace";
+        ctx.fillText(`SCORE ${score}`, 4, 10);
+        ctx.fillText("♥".repeat(lives), w - 25, 10);
+      };
+    }
+
+    function createWordleScene(ctx, w, h) {
+      const words = [
+        "CRANE","SLATE","TRACE","CRATE","STARE","RAISE","ARISE","IRATE",
+        "STALE","SNARE","TRAIN","BRAIN","GRAIN","PLAIN","CHAIN","CHAIR",
+        "CHARM","SHARP","SHARE","SHAPE","SHADE","BLADE","BLAME","FLAME",
+        "FRAME","GRACE","GRAPE","GREAT","TREAT","WHEAT","SWEAT","DREAM",
+        "STEAM","CREAM","GLEAM","CLEAN","CLEAR","SPEAR","PEARL","WORLD",
+        "PROUD","CLOUD","HOUSE","MOUSE","SOUND","ROUND","FOUND","BOUND",
+        "MOUND","HOUND","WOUND","WOULD","COULD","GHOST","THOSE","CHOSE",
+        "CLOSE","STONE","PHONE","PLANE","PLANT","GIANT","PAINT","FAINT",
+        "SAINT","LIGHT","NIGHT","RIGHT","FIGHT","SIGHT","TIGHT","MIGHT",
+      ];
+
+      const guessWords = [
+        "CRANE","SLATE","ADIEU","ROAST","LINER","MUNCH","PYGMY","BLUFF",
+        "CLOTH","DRINK","SOUTH","DEPTH","HUMOR","WRIST","PLUMB","GLYPH",
+      ];
+
+      const answer = words[Math.floor(Math.random() * words.length)];
+      const guesses = [];
+      let currentGuess = "";
+      let guessIndex = 0;
+      let charIndex = 0;
+      let tickCounter = 0;
+      let won = false;
+      let typingDelay = 0;
+
+      // simple AI: pick guesses that are reasonable
+      function pickGuess() {
+        if (guessIndex === 0) return guessWords[Math.floor(Math.random() * 4)]; // common starters
+        // try to use known info (simplified)
+        const pool = words.filter(w => w !== answer || guessIndex >= 5);
+        return pool[Math.floor(Math.random() * pool.length)];
+      }
+
+      function evaluate(guess, answer) {
+        const result = new Array(5).fill("absent");
+        const ansArr = answer.split("");
+        const used = new Array(5).fill(false);
+        // greens first
+        for (let i = 0; i < 5; i++) {
+          if (guess[i] === answer[i]) {
+            result[i] = "correct";
+            used[i] = true;
+            ansArr[i] = null;
+          }
+        }
+        // yellows
+        for (let i = 0; i < 5; i++) {
+          if (result[i] !== "correct") {
+            const idx = ansArr.indexOf(guess[i]);
+            if (idx !== -1) {
+              result[i] = "present";
+              ansArr[idx] = null;
+            }
+          }
+        }
+        return result;
+      }
+
+      const cellSize = 14;
+      const gap = 2;
+      const startX = (w - 5 * (cellSize + gap)) / 2;
+      const startY = 18;
+
+      let nextGuess = pickGuess();
+
+      return function draw(frame) {
+        // background
+        ctx.fillStyle = "#121213";
+        ctx.fillRect(0, 0, w, h);
+
+        // title
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 9px monospace";
+        ctx.fillText("WORDLE", w/2 - 18, 12);
+
+        tickCounter++;
+
+        // typing simulation
+        if (!won && guessIndex < 6 && tickCounter > typingDelay) {
+          if (charIndex < 5) {
+            if (tickCounter % 6 === 0) {
+              currentGuess += nextGuess[charIndex];
+              charIndex++;
+            }
+          } else if (tickCounter % 10 === 0) {
+            // submit guess
+            const result = evaluate(currentGuess, answer);
+            guesses.push({word: currentGuess, result});
+            if (currentGuess === answer) won = true;
+            guessIndex++;
+            currentGuess = "";
+            charIndex = 0;
+            typingDelay = tickCounter + 15;
+            if (!won && guessIndex < 6) nextGuess = pickGuess();
+          }
+        }
+
+        // draw grid
+        const colorMap = {correct: "#538d4e", present: "#b59f3b", absent: "#3a3a3c"};
+
+        for (let row = 0; row < 6; row++) {
+          for (let col = 0; col < 5; col++) {
+            const x = startX + col * (cellSize + gap);
+            const y = startY + row * (cellSize + gap);
+
+            if (row < guesses.length) {
+              ctx.fillStyle = colorMap[guesses[row].result[col]];
+              ctx.fillRect(x, y, cellSize, cellSize);
+              ctx.fillStyle = "#fff";
+              ctx.font = "bold 9px monospace";
+              ctx.fillText(guesses[row].word[col], x + 3, y + 11);
+            } else if (row === guessIndex && col < currentGuess.length) {
+              ctx.strokeStyle = "#565758";
+              ctx.strokeRect(x, y, cellSize, cellSize);
+              ctx.fillStyle = "#fff";
+              ctx.font = "bold 9px monospace";
+              ctx.fillText(currentGuess[col], x + 3, y + 11);
+            } else {
+              ctx.strokeStyle = "#3a3a3c";
+              ctx.strokeRect(x, y, cellSize, cellSize);
+            }
+          }
+        }
+
+        // win/lose message
+        if (won) {
+          ctx.fillStyle = "#538d4e";
+          ctx.font = "bold 8px monospace";
+          ctx.fillText("SPLENDID!", w/2 - 25, h - 8);
+        } else if (guessIndex >= 6) {
+          ctx.fillStyle = "#f00";
+          ctx.font = "7px monospace";
+          ctx.fillText(`ANSWER: ${answer}`, w/2 - 28, h - 8);
+        }
+      };
+    }
+
+    function createFlappyScene(ctx, w, h) {
+      let birdY = h / 2, birdVel = 0;
+      const gravity = 0.15, flapStrength = -2.5;
+      const pipes = [];
+      let pipeTimer = 0, score = 0, dead = false;
+      let tickCounter = 0;
+      const gap = 35, pipeW = 16;
+
+      function spawnPipe() {
+        const gapY = 25 + Math.random() * (h - 60);
+        pipes.push({x: w + 5, gapY});
+      }
+
+      return function draw(frame) {
+        // sky
+        ctx.fillStyle = "#4ec0ca";
+        ctx.fillRect(0, 0, w, h);
+        // ground
+        ctx.fillStyle = "#ded895";
+        ctx.fillRect(0, h - 12, w, 12);
+        ctx.fillStyle = "#5a8f29";
+        ctx.fillRect(0, h - 12, w, 3);
+
+        tickCounter++;
+        if (!dead) {
+          // AI: flap when heading toward pipe gap
+          let shouldFlap = false;
+          if (pipes.length > 0) {
+            const nextPipe = pipes.find(p => p.x + pipeW > 20) || pipes[0];
+            if (birdY > nextPipe.gapY + 5 || birdVel > 1.5) shouldFlap = true;
+          } else {
+            if (birdY > h / 2 + 10) shouldFlap = true;
+          }
+          if (shouldFlap && tickCounter % 4 === 0) birdVel = flapStrength;
+
+          birdVel += gravity;
+          birdY += birdVel;
+
+          // pipes
+          pipeTimer++;
+          if (pipeTimer > 50) { spawnPipe(); pipeTimer = 0; }
+          for (let i = pipes.length - 1; i >= 0; i--) {
+            pipes[i].x -= 1.2;
+            // score
+            if (Math.abs(pipes[i].x - 20) < 1.5) score++;
+            if (pipes[i].x < -pipeW) pipes.splice(i, 1);
+            // collision
+            if (pipes[i] && pipes[i].x < 28 && pipes[i].x + pipeW > 16) {
+              if (birdY < pipes[i].gapY - gap/2 || birdY > pipes[i].gapY + gap/2) dead = true;
+            }
+          }
+          if (birdY > h - 16 || birdY < 0) dead = true;
+        }
+
+        if (dead && tickCounter % 80 === 0) {
+          // restart
+          dead = false; birdY = h/2; birdVel = 0; pipes.length = 0; score = 0; pipeTimer = 0;
+        }
+
+        // draw pipes
+        for (const p of pipes) {
+          ctx.fillStyle = "#5a8f29";
+          ctx.fillRect(p.x, 0, pipeW, p.gapY - gap/2);
+          ctx.fillRect(p.x, p.gapY + gap/2, pipeW, h - p.gapY - gap/2 - 12);
+          // pipe caps
+          ctx.fillStyle = "#4a7f19";
+          ctx.fillRect(p.x - 2, p.gapY - gap/2 - 4, pipeW + 4, 4);
+          ctx.fillRect(p.x - 2, p.gapY + gap/2, pipeW + 4, 4);
+        }
+
+        // draw bird
+        ctx.fillStyle = dead ? "#f00" : "#f8e020";
+        ctx.fillRect(18, birdY - 5, 10, 8);
+        ctx.fillStyle = "#f80";
+        ctx.fillRect(26, birdY - 2, 5, 3); // beak
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(22, birdY - 4, 4, 3); // eye
+        ctx.fillStyle = "#000";
+        ctx.fillRect(24, birdY - 3, 2, 2); // pupil
+        // wing
+        ctx.fillStyle = "#e8d020";
+        const wingY = birdVel < 0 ? -3 : 2;
+        ctx.fillRect(16, birdY + wingY, 6, 3);
+
+        // score
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 12px monospace";
+        ctx.fillText(String(score), w/2 - 4, 16);
+
+        if (dead) {
+          ctx.fillStyle = "#f00";
+          ctx.font = "bold 10px monospace";
+          ctx.fillText("GAME OVER", w/2 - 30, h/2);
+        }
+      };
+    }
+
+    function createAngryBirdsScene(ctx, w, h) {
+      let birds = [];
+      let pigs = [];
+      let blocks = [];
+      let slingX = 25, slingY = h - 35;
+      let currentBird = null;
+      let launched = false;
+      let tickCounter = 0;
+      let score = 0;
+      const gravity = 0.08;
+
+      function reset() {
+        pigs = [
+          {x: w - 40, y: h - 22, r: 5, hp: 2},
+          {x: w - 55, y: h - 22, r: 4, hp: 1},
+          {x: w - 47, y: h - 38, r: 4, hp: 1},
+        ];
+        blocks = [
+          {x: w - 62, y: h - 28, w: 4, h: 16, hp: 2},
+          {x: w - 30, y: h - 28, w: 4, h: 16, hp: 2},
+          {x: w - 60, y: h - 32, w: 34, h: 4, hp: 1},
+          {x: w - 55, y: h - 46, w: 24, h: 4, hp: 1},
+        ];
+        currentBird = {x: slingX, y: slingY, vx: 0, vy: 0, r: 4};
+        launched = false;
+      }
+      reset();
+
+      return function draw(frame) {
+        // sky
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, h - 15);
+        skyGrad.addColorStop(0, "#87CEEB");
+        skyGrad.addColorStop(1, "#b8e8f8");
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, w, h - 15);
+        // ground
+        ctx.fillStyle = "#5a8f29";
+        ctx.fillRect(0, h - 15, w, 15);
+        ctx.fillStyle = "#7ab839";
+        ctx.fillRect(0, h - 15, w, 3);
+
+        tickCounter++;
+
+        // launch bird AI
+        if (!launched && tickCounter % 60 === 30) {
+          currentBird.vx = 3 + Math.random() * 1.5;
+          currentBird.vy = -(2.5 + Math.random() * 1.5);
+          launched = true;
+        }
+
+        if (launched && currentBird) {
+          currentBird.vy += gravity;
+          currentBird.x += currentBird.vx;
+          currentBird.y += currentBird.vy;
+
+          // hit blocks
+          for (let i = blocks.length - 1; i >= 0; i--) {
+            const b = blocks[i];
+            if (currentBird.x > b.x - 4 && currentBird.x < b.x + b.w + 4 &&
+                currentBird.y > b.y - 4 && currentBird.y < b.y + b.h + 4) {
+              b.hp--;
+              if (b.hp <= 0) { blocks.splice(i, 1); score += 500; }
+              currentBird.vx *= 0.5;
+            }
+          }
+
+          // hit pigs
+          for (let i = pigs.length - 1; i >= 0; i--) {
+            const p = pigs[i];
+            const dx = currentBird.x - p.x;
+            const dy = currentBird.y - p.y;
+            if (Math.sqrt(dx*dx + dy*dy) < p.r + currentBird.r) {
+              p.hp--;
+              if (p.hp <= 0) { pigs.splice(i, 1); score += 5000; }
+            }
+          }
+
+          // off screen or landed
+          if (currentBird.y > h - 15 || currentBird.x > w + 10) {
+            currentBird = {x: slingX, y: slingY, vx: 0, vy: 0, r: 4};
+            launched = false;
+            if (pigs.length === 0) { score += 10000; reset(); }
+          }
+        }
+
+        // slingshot
+        ctx.strokeStyle = "#8B4513";
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(slingX - 5, h - 15); ctx.lineTo(slingX - 3, slingY - 10); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(slingX + 5, h - 15); ctx.lineTo(slingX + 3, slingY - 10); ctx.stroke();
+        // rubber band
+        if (!launched && currentBird) {
+          ctx.strokeStyle = "#333";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(slingX - 3, slingY - 10);
+          ctx.lineTo(currentBird.x, currentBird.y);
+          ctx.lineTo(slingX + 3, slingY - 10);
+          ctx.stroke();
+        }
+
+        // draw blocks
+        for (const b of blocks) {
+          ctx.fillStyle = b.hp > 1 ? "#c4a35a" : "#d4b36a";
+          ctx.fillRect(b.x, b.y, b.w, b.h);
+          ctx.strokeStyle = "#a08040";
+          ctx.lineWidth = 0.5;
+          ctx.strokeRect(b.x, b.y, b.w, b.h);
+        }
+
+        // draw pigs
+        for (const p of pigs) {
+          ctx.fillStyle = "#5a5";
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(p.x - 2, p.y - 2, 2, 2);
+          ctx.fillRect(p.x + 1, p.y - 2, 2, 2);
+          ctx.fillStyle = "#000";
+          ctx.fillRect(p.x - 1, p.y - 1, 1, 1);
+          ctx.fillRect(p.x + 1, p.y - 1, 1, 1);
+          // snout
+          ctx.fillStyle = "#7c7";
+          ctx.fillRect(p.x - 1, p.y + 1, 3, 2);
+        }
+
+        // draw bird
+        if (currentBird) {
+          ctx.fillStyle = "#f00";
+          ctx.beginPath();
+          ctx.arc(currentBird.x, currentBird.y, currentBird.r, 0, Math.PI * 2);
+          ctx.fill();
+          // eye
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(currentBird.x + 1, currentBird.y - 2, 2, 2);
+          ctx.fillStyle = "#000";
+          ctx.fillRect(currentBird.x + 2, currentBird.y - 1, 1, 1);
+          // beak
+          ctx.fillStyle = "#f80";
+          ctx.fillRect(currentBird.x + 3, currentBird.y, 3, 2);
+          // eyebrows (angry!)
+          ctx.strokeStyle = "#000";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(currentBird.x - 1, currentBird.y - 4);
+          ctx.lineTo(currentBird.x + 3, currentBird.y - 3);
+          ctx.stroke();
+        }
+
+        // HUD
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 8px monospace";
+        ctx.fillText(`${score}`, 4, 10);
+      };
+    }
+
     const glitchColors2 = ['#0ff', '#f0f', '#f00', '#0f0', '#ff0', '#f80', '#0ff', '#fff'];
 
     function rand2(min, max) {
@@ -1151,7 +1822,14 @@
       setTimeout(() => {
         el.style.transition = "opacity 0.3s";
         el.style.opacity = "0";
-        setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 300);
+        setTimeout(() => {
+          // clean up scene type tracking
+          if (isGame) {
+            const canvas = el.querySelector("canvas");
+            if (canvas && canvas._sceneType) activeSceneTypes.delete(canvas._sceneType);
+          }
+          if (el.parentNode) el.parentNode.removeChild(el);
+        }, 300);
       }, duration);
 
       return el;
@@ -1643,13 +2321,35 @@
     initColorDrift();
 
     // --- Main init ---
-    typeName(() => {
+    let glitchStarted = false;
+
+    function startEverything() {
+      if (glitchStarted) return;
+      glitchStarted = true;
       const nameEl = document.getElementById("name");
-      wrapChars(nameEl);
+      if (!nameEl.querySelector(".char")) return; // name not typed yet
       startGlitch();
       initInteractionGlitch();
       initCursorProximity();
+    }
+
+    typeName(() => {
+      const nameEl = document.getElementById("name");
+      wrapChars(nameEl);
       typeMessage();
+
+      // start glitch effects after 45 seconds, or on any click/mouse move
+      const autoTimer = setTimeout(startEverything, 45000);
+
+      function earlyStart() {
+        clearTimeout(autoTimer);
+        startEverything();
+        document.removeEventListener("click", earlyStart);
+        document.removeEventListener("mousemove", earlyStart);
+      }
+
+      document.addEventListener("click", earlyStart);
+      document.addEventListener("mousemove", earlyStart);
     });
   </script>
 </body>
