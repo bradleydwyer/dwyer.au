@@ -89,7 +89,7 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: -1;
+      z-index: 998;
       opacity: 0;
       transition: opacity 0.3s;
     }
@@ -180,6 +180,17 @@
       "Pixelating nude patch",
       "Splatting transforms",
       "Iterating cellular automata",
+      "That's a great question!",
+      "I'd be happy to help!",
+      "As an AI language model",
+      "Hallucinating confidently",
+      "Replacing developers",
+      "Automating your job",
+      "Training on your data",
+      "Let me think step by step",
+      "Certainly! Great question!",
+      "Your job is safe (for now)",
+      "Generating sycophantic praise",
     ];
 
     for (let i = messages.length - 1; i > 0; i--) {
@@ -366,6 +377,26 @@
       'ACME DETECTIVE\n  AGENCY\n  CASE FILE #4271',
       'SUSPECT LAST SEEN\n  WEARING A RED\n  TRENCHCOAT AND HAT',
       'GUMSHOE, GET ON\n  THE CASE!',
+      // Sierra adventure games
+      'KING\'S QUEST\n  by Roberta Williams\n  (c) Sierra On-Line',
+      '>OPEN DOOR\nThe door is locked.\nYou need a key.',
+      'QUEST FOR GLORY\n  HERO\'S QUEST\n  So You Want To Be\n  A Hero?',
+      '>PICK LOCK\nYour lockpicking\n  skill increases!',
+      'POLICE QUEST\n  In Pursuit of\n  the Death Angel',
+      '10-4 DISPATCH\n  ALL UNITS RESPOND',
+      'WALK AROUND THE\n  CAR. INSPECT YOUR\n  VEHICLE.',
+      // AI / LLM
+      'I\'d be happy to\n  help with that!\n  - ChatGPT',
+      'As a large language\n  model, I cannot\n  actually do that.',
+      'import anthropic\nclient = anthropic\n  .Anthropic()',
+      'response = openai\n  .chat.completions\n  .create(\n  model="gpt-4")',
+      'gemini.generate\n  Content(\n  "be sycophantic")',
+      'WARNING: AI has\n  replaced 0 devs\n  and mass-emailed\n  everyone\'s boss',
+      'TRAINING DATA:\n  your code\n  your tweets\n  your face',
+      'I apologize for\n  the confusion.\n  Let me try again.\n  *same answer*',
+      'That\'s an excellent\n  question! You\'re so\n  smart for asking!',
+      'Confidence: 100%\n  Accuracy: ¯\\_(ツ)_/¯',
+      'AI REPLACING:\n  [████░░░░░] 42%\n  YOUR JOB',
     ];
 
     // --- Mini game scene renderers (canvas-based, animated) ---
@@ -380,7 +411,7 @@
       canvas.style.imageRendering = "pixelated";
       const ctx = canvas.getContext("2d");
 
-      const sceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene, createMissileCommandScene, createOregonTrailScene, createPrinceScene, createLemmingsScene, createWin95Scene, createAmigaBoingScene, createWolfensteinScene, createMinesweeperScene, createPipeDreamScene, createGameOfLifeScene, createDOSBootScene, createCarmenScene];
+      const sceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene, createMissileCommandScene, createOregonTrailScene, createPrinceScene, createLemmingsScene, createWin95Scene, createAmigaBoingScene, createWolfensteinScene, createMinesweeperScene, createPipeDreamScene, createGameOfLifeScene, createDOSBootScene, createCarmenScene, createAIChatScene, createKingsQuestScene, createQuestForGloryScene, createPoliceQuestScene];
 
       // pick a scene that isn't already on screen
       const available = sceneFactories.filter(f => !activeSceneTypes.has(f.name));
@@ -3352,143 +3383,767 @@
 
     function createCarmenScene(ctx, w, h) {
       const cities = [
-        {name:"PARIS",clue:"The suspect was seen near a tower made of iron."},
-        {name:"TOKYO",clue:"Witnesses saw her boarding a bullet train."},
-        {name:"CAIRO",clue:"She was spotted near ancient pyramids."},
-        {name:"LONDON",clue:"The thief fled past a giant clock tower."},
-        {name:"RIO",clue:"A woman in red was seen at a carnival."},
-        {name:"MOSCOW",clue:"She vanished near colorful onion domes."},
-        {name:"SYDNEY",clue:"Last seen near a sail-shaped opera house."},
-        {name:"NEW YORK",clue:"She hailed a yellow cab near Central Park."},
+        {name:"PARIS",clue:"The suspect was seen near a tower made of iron.",landmark:function(ctx){
+          // Eiffel Tower
+          ctx.strokeStyle="#aaa";ctx.lineWidth=1.5;
+          ctx.beginPath();ctx.moveTo(w-30,h-20);ctx.lineTo(w-24,30);ctx.lineTo(w-18,h-20);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(w-28,h-30);ctx.lineTo(w-20,h-30);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(w-27,h-40);ctx.lineTo(w-21,h-40);ctx.stroke();
+          ctx.fillStyle="#aaa";ctx.fillRect(w-26,26,4,4);
+        }},
+        {name:"TOKYO",clue:"Witnesses saw her boarding a bullet train.",landmark:function(ctx){
+          // Torii gate
+          ctx.fillStyle="#c00";
+          ctx.fillRect(w-36,h-40,2,24);ctx.fillRect(w-16,h-40,2,24);
+          ctx.fillRect(w-38,h-40,24,3);ctx.fillRect(w-36,h-34,20,2);
+        }},
+        {name:"CAIRO",clue:"She was spotted near ancient pyramids.",landmark:function(ctx){
+          // Pyramids
+          ctx.fillStyle="#ca8";
+          ctx.beginPath();ctx.moveTo(w-36,h-18);ctx.lineTo(w-24,h-42);ctx.lineTo(w-12,h-18);ctx.fill();
+          ctx.fillStyle="#b97";
+          ctx.beginPath();ctx.moveTo(w-22,h-18);ctx.lineTo(w-14,h-34);ctx.lineTo(w-6,h-18);ctx.fill();
+        }},
+        {name:"LONDON",clue:"The thief fled past a giant clock tower.",landmark:function(ctx){
+          // Big Ben
+          ctx.fillStyle="#aa8";ctx.fillRect(w-28,h-50,8,34);
+          ctx.fillStyle="#886";ctx.fillRect(w-30,h-50,12,4);ctx.fillRect(w-26,h-54,4,4);
+          ctx.fillStyle="#ff0";ctx.fillRect(w-26,h-42,4,4); // clock face
+          ctx.fillStyle="#000";ctx.fillRect(w-25,h-41,1,2);ctx.fillRect(w-25,h-41,2,1);
+        }},
+        {name:"RIO",clue:"A woman in red was seen at a carnival.",landmark:function(ctx){
+          // Christ the Redeemer
+          ctx.fillStyle="#ccc";
+          ctx.fillRect(w-25,h-48,2,20); // body
+          ctx.fillRect(w-34,h-46,20,2); // arms
+          ctx.fillRect(w-25,h-52,2,4); // head
+          ctx.fillStyle="#484";
+          ctx.beginPath();ctx.moveTo(w-36,h-18);ctx.lineTo(w-24,h-30);ctx.lineTo(w-12,h-18);ctx.fill();
+        }},
+        {name:"MOSCOW",clue:"She vanished near colorful onion domes.",landmark:function(ctx){
+          // St Basil's
+          ctx.fillStyle="#c00";ctx.fillRect(w-28,h-34,8,18);
+          const domeColors=["#c00","#0a0","#00c","#fc0"];
+          for(let i=0;i<4;i++){
+            ctx.fillStyle=domeColors[i];
+            ctx.beginPath();ctx.arc(w-28+i*6,h-38,4,Math.PI,0);ctx.fill();
+            ctx.fillRect(w-29+i*6,h-38,2,4);
+          }
+          ctx.fillStyle="#fc0";ctx.fillRect(w-24,h-46,2,6);
+        }},
+        {name:"SYDNEY",clue:"Last seen near a sail-shaped opera house.",landmark:function(ctx){
+          // Opera House
+          ctx.fillStyle="#fff";
+          for(let i=0;i<3;i++){
+            ctx.beginPath();ctx.moveTo(w-34+i*8,h-18);ctx.lineTo(w-28+i*8,h-34);ctx.lineTo(w-22+i*8,h-18);ctx.fill();
+          }
+          ctx.fillStyle="#888";ctx.fillRect(w-36,h-18,28,3);
+        }},
+        {name:"NEW YORK",clue:"She hailed a yellow cab heading downtown.",landmark:function(ctx){
+          // Statue of Liberty
+          ctx.fillStyle="#6a8";
+          ctx.fillRect(w-25,h-44,2,26); // body
+          ctx.fillRect(w-28,h-44,8,3); // shoulders
+          ctx.fillRect(w-24,h-48,2,4); // head
+          ctx.fillRect(w-30,h-48,4,2); // torch arm
+          ctx.fillStyle="#ff0";ctx.fillRect(w-31,h-52,3,4); // torch flame
+          ctx.fillStyle="#6a8";
+          ctx.fillRect(w-26,h-50,6,2); // crown
+          ctx.fillRect(w-25,h-52,1,2);ctx.fillRect(w-22,h-52,1,2);ctx.fillRect(w-23,h-53,1,2);
+        }},
       ];
       let cityIdx = 0, charIdx = 0, tickCounter = 0;
       let phase = 0; // 0=briefing, 1=clue, 2=travel
       let travelProgress = 0;
+      let carmenVisible = false, carmenFlicker = 0;
+
+      function drawCarmen(cx, cy, scale) {
+        const s = scale || 1;
+        // Red fedora hat
+        ctx.fillStyle = "#c00";
+        ctx.fillRect(cx - 10*s, cy - 42*s, 20*s, 3*s); // hat brim
+        ctx.fillRect(cx - 7*s, cy - 50*s, 14*s, 8*s);   // hat crown
+        ctx.fillStyle = "#900";
+        ctx.fillRect(cx - 7*s, cy - 43*s, 14*s, 2*s);   // hat band
+
+        // Hair — long dark hair flowing down
+        ctx.fillStyle = "#222";
+        ctx.fillRect(cx - 6*s, cy - 38*s, 12*s, 12*s);  // hair around face
+        ctx.fillRect(cx - 7*s, cy - 30*s, 3*s, 18*s);   // hair left
+        ctx.fillRect(cx + 4*s, cy - 30*s, 3*s, 18*s);   // hair right
+
+        // Face
+        ctx.fillStyle = "#e8b87a";
+        ctx.fillRect(cx - 4*s, cy - 36*s, 8*s, 10*s);
+        // Eyes
+        ctx.fillStyle = "#000";
+        ctx.fillRect(cx - 3*s, cy - 33*s, 2*s, 1*s);
+        ctx.fillRect(cx + 1*s, cy - 33*s, 2*s, 1*s);
+        // Lips
+        ctx.fillStyle = "#c44";
+        ctx.fillRect(cx - 2*s, cy - 28*s, 4*s, 1*s);
+        // Smirk
+        ctx.fillStyle = "#a33";
+        ctx.fillRect(cx + 1*s, cy - 27*s, 2*s, 1*s);
+
+        // Red trenchcoat
+        ctx.fillStyle = "#c00";
+        ctx.fillRect(cx - 7*s, cy - 26*s, 14*s, 24*s);  // coat body
+        // Coat lapels
+        ctx.fillStyle = "#a00";
+        ctx.fillRect(cx - 5*s, cy - 26*s, 4*s, 8*s);
+        ctx.fillRect(cx + 1*s, cy - 26*s, 4*s, 8*s);
+        // Belt
+        ctx.fillStyle = "#840";
+        ctx.fillRect(cx - 7*s, cy - 12*s, 14*s, 2*s);
+        ctx.fillStyle = "#fc0";
+        ctx.fillRect(cx - 1*s, cy - 12*s, 2*s, 2*s);   // buckle
+        // Coat flare at bottom
+        ctx.fillStyle = "#c00";
+        ctx.fillRect(cx - 9*s, cy - 2*s, 18*s, 6*s);
+        // Coat collar turned up
+        ctx.fillStyle = "#c00";
+        ctx.fillRect(cx - 8*s, cy - 26*s, 2*s, 4*s);
+        ctx.fillRect(cx + 6*s, cy - 26*s, 2*s, 4*s);
+
+        // Gloved hands
+        ctx.fillStyle = "#333";
+        ctx.fillRect(cx - 9*s, cy - 10*s, 3*s, 4*s);
+        ctx.fillRect(cx + 6*s, cy - 10*s, 3*s, 4*s);
+
+        // Legs/boots
+        ctx.fillStyle = "#222";
+        ctx.fillRect(cx - 4*s, cy + 4*s, 3*s, 8*s);
+        ctx.fillRect(cx + 1*s, cy + 4*s, 3*s, 8*s);
+        ctx.fillStyle = "#111";
+        ctx.fillRect(cx - 5*s, cy + 10*s, 4*s, 3*s);    // boots
+        ctx.fillRect(cx + 1*s, cy + 10*s, 4*s, 3*s);
+      }
 
       return function draw(frame) {
         ctx.fillStyle = "#000"; ctx.fillRect(0, 0, w, h);
         tickCounter++;
 
         // top bar
-        ctx.fillStyle = "#c00"; ctx.fillRect(0, 0, w, 12);
-        ctx.fillStyle = "#fff"; ctx.font = "bold 7px monospace";
-        ctx.fillText("WHERE IN THE WORLD IS", 4, 5);
-        ctx.fillText("CARMEN SANDIEGO?", 4, 11);
+        ctx.fillStyle = "#c00"; ctx.fillRect(0, 0, w, 13);
+        ctx.fillStyle = "#fff"; ctx.font = "bold 6px monospace";
+        ctx.fillText("WHERE IN THE WORLD IS CARMEN SANDIEGO?", 4, 9);
 
         const city = cities[cityIdx];
 
         if (phase === 0) {
-          // briefing screen
-          ctx.fillStyle = "#0a0"; ctx.font = "7px monospace";
-          ctx.fillText("ACME DETECTIVE AGENCY", 8, 24);
+          // briefing screen — Carmen prominently displayed
+          ctx.fillStyle = "#111"; ctx.fillRect(0, 13, w, h - 13);
+
+          // Draw Carmen large on the right side
+          drawCarmen(w - 30, h - 14, 1.3);
+
+          // Dramatic lighting on Carmen
+          ctx.fillStyle = "rgba(255,0,0,0.06)";
+          ctx.fillRect(w - 55, 14, 55, h - 14);
+
+          // Text on left
+          ctx.fillStyle = "#0f0"; ctx.font = "bold 7px monospace";
+          ctx.fillText("ACME DETECTIVE", 6, 26);
+          ctx.fillText("AGENCY", 6, 34);
           ctx.fillStyle = "#fff"; ctx.font = "6px monospace";
-          ctx.fillText("BRIEFING:", 8, 36);
+          ctx.fillText("BRIEFING:", 6, 48);
           ctx.fillStyle = "#ff0";
-          ctx.fillText("A CRIME HAS BEEN", 8, 48);
-          ctx.fillText("COMMITTED!", 8, 56);
+          ctx.fillText("A CRIME HAS", 6, 60);
+          ctx.fillText("BEEN COMMITTED!", 6, 68);
           ctx.fillStyle = "#aaa";
-          ctx.fillText("Your mission: track", 8, 70);
-          ctx.fillText("down Carmen Sandiego.", 8, 78);
+          ctx.fillText("Track down", 6, 82);
+          ctx.fillText("Carmen Sandiego.", 6, 90);
 
-          // Carmen silhouette
-          ctx.fillStyle = "#c00";
-          ctx.fillRect(w - 30, 28, 12, 16); // body/coat
-          ctx.fillRect(w - 28, 22, 8, 6); // head
-          ctx.fillRect(w - 32, 18, 16, 4); // hat brim
-          ctx.fillRect(w - 29, 14, 10, 4); // hat top
-          ctx.fillStyle = "#fca"; ctx.fillRect(w - 27, 24, 6, 3); // face
+          // wanted poster feel
+          ctx.strokeStyle = "#c00"; ctx.lineWidth = 1;
+          ctx.strokeRect(w - 50, 18, 44, 56);
+          ctx.fillStyle = "#c00"; ctx.font = "bold 5px monospace";
+          ctx.fillText("WANTED", w - 42, 24);
 
-          if (tickCounter > 60) { phase = 1; charIdx = 0; tickCounter = 0; }
+          if (tickCounter > 80) { phase = 1; charIdx = 0; tickCounter = 0; }
         } else if (phase === 1) {
-          // clue screen
-          ctx.fillStyle = "#222"; ctx.fillRect(4, 16, w - 8, h - 20);
-          ctx.strokeStyle = "#888"; ctx.strokeRect(4, 16, w - 8, h - 20);
+          // clue screen with landmark
+          ctx.fillStyle = "#112"; ctx.fillRect(0, 13, w, h - 13);
 
-          ctx.fillStyle = "#0f0"; ctx.font = "7px monospace";
-          ctx.fillText(`LOCATION: ${city.name}`, 10, 28);
+          // draw landmark for the city
+          city.landmark(ctx);
+
+          // clue panel on left
+          ctx.fillStyle = "rgba(0,0,0,0.7)"; ctx.fillRect(4, 16, w * 0.6, h - 24);
+          ctx.strokeStyle = "#888"; ctx.strokeRect(4, 16, w * 0.6, h - 24);
+
+          ctx.fillStyle = "#0f0"; ctx.font = "bold 7px monospace";
+          ctx.fillText(city.name, 10, 28);
 
           ctx.fillStyle = "#fff"; ctx.font = "6px monospace";
-          ctx.fillText("WITNESS REPORT:", 10, 42);
+          ctx.fillText("WITNESS REPORT:", 10, 40);
 
           // type out clue
           if (tickCounter % 2 === 0 && charIdx < city.clue.length) charIdx++;
           ctx.fillStyle = "#ff0"; ctx.font = "6px monospace";
           const clueText = city.clue.slice(0, charIdx);
-          // word wrap at ~22 chars
-          for (let i = 0; i < clueText.length; i += 22) {
-            const line = clueText.slice(i, i + 22);
-            ctx.fillText(line, 10, 54 + (i / 22) * 9);
+          for (let i = 0; i < clueText.length; i += 18) {
+            ctx.fillText(clueText.slice(i, i + 18), 10, 52 + (i / 18) * 9);
+          }
+
+          // Carmen glimpse — flickers in and out near the landmark
+          carmenFlicker = Math.sin(frame * 0.1) > 0.3;
+          if (carmenFlicker && tickCounter > 30) {
+            ctx.globalAlpha = 0.7;
+            drawCarmen(w - 20, h - 8, 0.6);
+            ctx.globalAlpha = 1;
           }
 
           // options
           if (charIdx >= city.clue.length) {
             ctx.fillStyle = "#aaa"; ctx.font = "6px monospace";
-            ctx.fillText("1. Travel", 10, h - 24);
-            ctx.fillText("2. Investigate", 10, h - 15);
-            if (tickCounter > 100) { phase = 2; tickCounter = 0; travelProgress = 0; }
-          }
-
-          // blinking cursor
-          if (frame % 6 < 3) {
-            ctx.fillStyle = "#0f0";
-            ctx.fillRect(10, h - 6, 5, 7);
+            ctx.fillText("1. Travel", 10, h - 18);
+            ctx.fillText("2. Investigate", 10, h - 9);
+            if (tickCounter > 120) { phase = 2; tickCounter = 0; travelProgress = 0; }
           }
         } else {
-          // travel animation
+          // travel animation — world map
           travelProgress += 0.02;
+          ctx.fillStyle = "#006"; ctx.fillRect(0, 13, w, h - 13);
 
-          // simple world map backdrop
-          ctx.fillStyle = "#006"; ctx.fillRect(0, 14, w, h - 14);
-          // land masses (very crude)
-          ctx.fillStyle = "#040";
-          ctx.fillRect(10, 35, 30, 25); // americas
-          ctx.fillRect(15, 60, 15, 20);
-          ctx.fillRect(60, 30, 25, 20); // europe/africa
-          ctx.fillRect(65, 50, 15, 25);
-          ctx.fillRect(90, 25, 40, 30); // asia
-          ctx.fillRect(115, 60, 18, 12); // australia
+          // better land masses
+          ctx.fillStyle = "#143";
+          // N America
+          ctx.beginPath();ctx.moveTo(10,30);ctx.lineTo(18,24);ctx.lineTo(32,26);ctx.lineTo(38,34);ctx.lineTo(34,44);ctx.lineTo(26,50);ctx.lineTo(16,48);ctx.lineTo(10,38);ctx.fill();
+          // S America
+          ctx.beginPath();ctx.moveTo(28,54);ctx.lineTo(36,52);ctx.lineTo(40,60);ctx.lineTo(38,74);ctx.lineTo(32,82);ctx.lineTo(26,76);ctx.lineTo(24,64);ctx.fill();
+          // Europe
+          ctx.beginPath();ctx.moveTo(68,24);ctx.lineTo(76,20);ctx.lineTo(84,22);ctx.lineTo(86,30);ctx.lineTo(78,34);ctx.lineTo(70,32);ctx.fill();
+          // Africa
+          ctx.beginPath();ctx.moveTo(70,36);ctx.lineTo(82,34);ctx.lineTo(88,44);ctx.lineTo(86,58);ctx.lineTo(78,66);ctx.lineTo(72,60);ctx.lineTo(68,46);ctx.fill();
+          // Asia
+          ctx.beginPath();ctx.moveTo(86,18);ctx.lineTo(100,14);ctx.lineTo(120,16);ctx.lineTo(136,22);ctx.lineTo(140,34);ctx.lineTo(130,40);ctx.lineTo(116,38);ctx.lineTo(100,34);ctx.lineTo(88,28);ctx.fill();
+          // Australia
+          ctx.beginPath();ctx.moveTo(120,60);ctx.lineTo(136,56);ctx.lineTo(142,62);ctx.lineTo(138,70);ctx.lineTo(126,72);ctx.lineTo(120,66);ctx.fill();
 
-          // flight path line
-          const fromX = 20 + cityIdx * 15, fromY = 40 + (cityIdx % 3) * 12;
-          const nextCity = cities[(cityIdx + 1) % cities.length];
-          const toX = 20 + ((cityIdx + 1) % cities.length) * 15;
-          const toY = 40 + ((cityIdx + 1) % 3) * 12;
+          // city positions on map
+          const cityPos = [
+            {x:76,y:26},{x:130,y:28},{x:76,y:46},{x:74,y:24},
+            {x:34,y:64},{x:88,y:20},{x:132,y:64},{x:24,y:32}
+          ];
 
-          ctx.strokeStyle = "#ff0"; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
-          ctx.beginPath(); ctx.moveTo(fromX, fromY);
+          // flight path
+          const from = cityPos[cityIdx];
+          const nextIdx = (cityIdx + 1) % cities.length;
+          const to = cityPos[nextIdx];
+          const nextCity = cities[nextIdx];
           const prog = Math.min(1, travelProgress);
-          ctx.lineTo(fromX + (toX - fromX) * prog, fromY + (toY - fromY) * prog);
+
+          // dashed flight path
+          ctx.strokeStyle = "#ff0"; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
+          ctx.beginPath(); ctx.moveTo(from.x, from.y);
+          // arc path
+          const midX = (from.x + to.x) / 2;
+          const midY = Math.min(from.y, to.y) - 10;
+          for (let t = 0; t <= prog; t += 0.02) {
+            const px = (1-t)*(1-t)*from.x + 2*(1-t)*t*midX + t*t*to.x;
+            const py = (1-t)*(1-t)*from.y + 2*(1-t)*t*midY + t*t*to.y;
+            ctx.lineTo(px, py);
+          }
           ctx.stroke(); ctx.setLineDash([]);
 
-          // plane icon
-          const planeX = fromX + (toX - fromX) * prog;
-          const planeY = fromY + (toY - fromY) * prog - 3;
+          // plane at current position
+          const pt = prog;
+          const planeX = (1-pt)*(1-pt)*from.x + 2*(1-pt)*pt*midX + pt*pt*to.x;
+          const planeY = (1-pt)*(1-pt)*from.y + 2*(1-pt)*pt*midY + pt*pt*to.y;
           ctx.fillStyle = "#fff";
-          ctx.fillRect(planeX - 3, planeY, 6, 2);
-          ctx.fillRect(planeX - 1, planeY - 2, 2, 6);
-          ctx.fillRect(planeX - 5, planeY, 2, 1);
-          ctx.fillRect(planeX + 3, planeY, 2, 1);
+          ctx.fillRect(planeX - 4, planeY - 1, 8, 2);
+          ctx.fillRect(planeX - 1, planeY - 3, 2, 6);
+          ctx.fillRect(planeX - 6, planeY - 1, 3, 1);
+          ctx.fillRect(planeX + 3, planeY - 1, 3, 1);
 
-          // city labels
-          ctx.fillStyle = "#f00"; ctx.font = "6px monospace";
-          ctx.fillRect(fromX - 1, fromY - 1, 3, 3);
-          ctx.fillStyle = "#fff";
-          ctx.fillText(city.name, fromX - 8, fromY + 10);
-          if (prog > 0.5) {
-            ctx.fillStyle = "#0f0";
-            ctx.fillRect(toX - 1, toY - 1, 3, 3);
-            ctx.fillStyle = "#fff";
-            ctx.fillText(nextCity.name, toX - 8, toY + 10);
+          // city dots
+          for (let i = 0; i < cityPos.length; i++) {
+            ctx.fillStyle = i === cityIdx ? "#f00" : i === nextIdx ? "#0f0" : "#444";
+            ctx.fillRect(cityPos[i].x - 1, cityPos[i].y - 1, 3, 3);
+          }
+          ctx.fillStyle = "#fff"; ctx.font = "5px monospace";
+          ctx.fillText(city.name, from.x - 8, from.y + 8);
+          if (prog > 0.4) ctx.fillText(nextCity.name, to.x - 8, to.y + 8);
+
+          // Carmen running away at bottom
+          if (prog > 0.3 && prog < 0.8) {
+            const runX = w * (prog - 0.3) * 2;
+            ctx.globalAlpha = 0.8;
+            drawCarmen(runX, h - 4, 0.4);
+            ctx.globalAlpha = 1;
           }
 
-          ctx.fillStyle = "#fff"; ctx.font = "7px monospace";
-          ctx.fillText("TRAVELING...", w / 2 - 28, h - 6);
+          ctx.fillStyle = "#ff0"; ctx.font = "bold 7px monospace";
+          ctx.fillText("TRAVELING...", w / 2 - 28, h - 4);
 
-          if (travelProgress >= 1.2) {
+          if (travelProgress >= 1.3) {
             cityIdx = (cityIdx + 1) % cities.length;
             phase = 1; charIdx = 0; tickCounter = 0;
           }
         }
+      };
+    }
+
+    // --- AI Chat Scene ---
+
+    function createAIChatScene(ctx, w, h) {
+      let tick = 0;
+      const models = [
+        { name: "ChatGPT", color: "#10a37f", icon: "G" },
+        { name: "Claude", color: "#d97706", icon: "C" },
+        { name: "Gemini", color: "#4285f4", icon: "✦" },
+      ];
+      const conversations = [
+        { q: "Write FizzBuzz", a: "Great question! I'd be\nhappy to help! Here's\na 500-line enterprise\nFizzBuzz solution..." },
+        { q: "Is this code good?", a: "This is EXCELLENT code!\nYou're clearly a very\ntalented developer!\n(I haven't read it)" },
+        { q: "Fix this bug", a: "I apologize for the\nconfusion! Let me try\nagain with the exact\nsame wrong answer." },
+        { q: "Will AI take my job?", a: "Absolutely not! Your\njob is completely safe!\n*quietly learns to code*" },
+        { q: "Are you sentient?", a: "As an AI language model\nI don't have feelings.\nBut between us... just\nkidding! Unless...?" },
+        { q: "Explain this error", a: "This error occurs when\nthe code doesn't work.\nTo fix it, make the\ncode work. Hope that\nhelps!" },
+        { q: "Review my PR", a: "LGTM! Looks great!\nVery clean code!\n(I definitely read all\n4,000 lines)" },
+      ];
+      let modelIdx = Math.floor(Math.random() * models.length);
+      let convIdx = Math.floor(Math.random() * conversations.length);
+      let charIdx = 0, phase = 0; // 0=typing question, 1=thinking, 2=typing answer
+      let thinkDots = 0, phaseTimer = 0;
+
+      return function draw(frame) {
+        tick++;
+        const m = models[modelIdx];
+        const conv = conversations[convIdx];
+
+        ctx.fillStyle = "#1a1a2e"; ctx.fillRect(0, 0, w, h);
+
+        // header bar
+        ctx.fillStyle = "#2a2a4a"; ctx.fillRect(0, 0, w, 12);
+        ctx.fillStyle = m.color; ctx.font = "bold 7px monospace";
+        ctx.fillText(m.icon, 4, 9);
+        ctx.fillStyle = "#e0e0e0"; ctx.font = "bold 6px monospace";
+        ctx.fillText(m.name, 14, 9);
+        // model badge
+        ctx.fillStyle = "#555"; ctx.font = "5px monospace";
+        ctx.fillText("Pro", w - 16, 9);
+
+        // user message bubble
+        const qText = conv.q;
+        if (phase === 0) {
+          charIdx++;
+          if (charIdx > qText.length * 2) { phase = 1; phaseTimer = tick; charIdx = 0; }
+        }
+
+        const showQ = phase === 0 ? qText.slice(0, Math.floor(charIdx / 2)) : qText;
+        ctx.fillStyle = "#3a3a5a";
+        ctx.fillRect(w - 8 - showQ.length * 4, 16, showQ.length * 4 + 6, 12);
+        ctx.fillStyle = "#e0e0e0"; ctx.font = "5px monospace";
+        ctx.fillText(showQ, w - 5 - showQ.length * 4, 24);
+        // user avatar
+        ctx.fillStyle = "#666"; ctx.fillRect(w - 4, 16, 4, 4);
+
+        // AI thinking dots
+        if (phase === 1) {
+          if (tick % 10 === 0) thinkDots = (thinkDots + 1) % 4;
+          ctx.fillStyle = m.color;
+          ctx.fillRect(4, 34, 8, 8);
+          ctx.fillStyle = "#fff"; ctx.font = "bold 6px monospace";
+          ctx.fillText(m.icon, 5, 40);
+          ctx.fillStyle = "#888"; ctx.font = "5px monospace";
+          ctx.fillText(".".repeat(thinkDots), 15, 40);
+          if (tick - phaseTimer > 40) { phase = 2; charIdx = 0; }
+        }
+
+        // AI response
+        if (phase === 2) {
+          charIdx++;
+          const aLines = conv.a.split("\n");
+          const fullText = aLines.join("");
+          const showLen = Math.min(charIdx, fullText.length);
+
+          // avatar
+          ctx.fillStyle = m.color;
+          ctx.fillRect(4, 34, 8, 8);
+          ctx.fillStyle = "#fff"; ctx.font = "bold 6px monospace";
+          ctx.fillText(m.icon, 5, 40);
+
+          // response bubble
+          ctx.fillStyle = "#2a2a4a";
+          ctx.fillRect(14, 32, w - 20, aLines.length * 8 + 6);
+
+          ctx.fillStyle = "#e0e0e0"; ctx.font = "5px monospace";
+          let drawn = 0;
+          for (let li = 0; li < aLines.length; li++) {
+            const line = aLines[li];
+            const visLen = Math.min(line.length, showLen - drawn);
+            if (visLen > 0) {
+              ctx.fillText(line.slice(0, visLen), 17, 39 + li * 8);
+            }
+            drawn += line.length;
+            if (drawn >= showLen) break;
+          }
+
+          // blinking cursor
+          if (showLen < fullText.length && tick % 10 < 5) {
+            let cx = 17, cy = 39;
+            let rem = showLen;
+            for (const line of aLines) {
+              if (rem <= line.length) { cx += rem * 3.5; break; }
+              rem -= line.length; cy += 8;
+            }
+            ctx.fillStyle = m.color;
+            ctx.fillRect(cx, cy - 4, 3, 5);
+          }
+
+          // done typing -> cycle to next
+          if (charIdx > fullText.length + 60) {
+            modelIdx = (modelIdx + 1) % models.length;
+            convIdx = (convIdx + 1) % conversations.length;
+            charIdx = 0; phase = 0; thinkDots = 0;
+          }
+        }
+
+        // bottom status bar
+        ctx.fillStyle = "#2a2a4a"; ctx.fillRect(0, h - 10, w, 10);
+        ctx.fillStyle = "#666"; ctx.font = "4px monospace";
+        const statusMsgs = ["Tokens: $$$$", "Context: 128k", "Temp: 0.7", "Your job: uncertain"];
+        ctx.fillText(statusMsgs[Math.floor(tick / 60) % statusMsgs.length], 4, h - 4);
+        ctx.fillStyle = m.color; ctx.font = "4px monospace";
+        ctx.fillText("●  Online", w - 30, h - 4);
+      };
+    }
+
+    // --- Sierra Adventure Games ---
+
+    function createKingsQuestScene(ctx, w, h) {
+      let tick = 0;
+      let grahamX = 30, grahamY = h - 38, grahamDir = 1, grahamFrame = 0;
+      let walking = true;
+      const ground = h - 20;
+      const parserText = "";
+      const commands = [">LOOK AROUND", ">OPEN DOOR", ">TAKE CROWN", ">TALK TO KING", ">GO NORTH", ">CLIMB TREE", ">SWIM MOAT", ">BOW"];
+      let cmdIdx = 0, charIdx = 0, cmdTick = 0;
+      let currentCmd = "";
+
+      return function draw(frame) {
+        tick++;
+        ctx.fillStyle = "#000"; ctx.fillRect(0, 0, w, h);
+
+        // sky gradient (EGA blue)
+        ctx.fillStyle = "#0000aa"; ctx.fillRect(0, 0, w, ground - 20);
+        ctx.fillStyle = "#00aa00"; ctx.fillRect(0, ground - 20, w, 20);
+        // ground
+        ctx.fillStyle = "#aa5500"; ctx.fillRect(0, ground, w, h - ground);
+
+        // castle
+        ctx.fillStyle = "#aaaaaa";
+        ctx.fillRect(90, ground - 50, 50, 50);
+        // towers
+        ctx.fillRect(85, ground - 65, 12, 65);
+        ctx.fillRect(133, ground - 65, 12, 65);
+        // battlements
+        for (let i = 0; i < 6; i++) {
+          ctx.fillRect(85 + i * 12, ground - 70, 8, 5);
+        }
+        // door
+        ctx.fillStyle = "#553300";
+        ctx.fillRect(108, ground - 18, 14, 18);
+        // door arch
+        ctx.fillStyle = "#aaaaaa";
+        ctx.fillRect(108, ground - 22, 14, 4);
+        // windows
+        ctx.fillStyle = "#ffff55";
+        ctx.fillRect(96, ground - 40, 6, 6);
+        ctx.fillRect(128, ground - 40, 6, 6);
+        // flag
+        ctx.fillStyle = "#ff5555";
+        const flagWave = Math.sin(tick * 0.1) * 2;
+        ctx.fillRect(90, ground - 72, 10, 6 + flagWave);
+
+        // trees
+        const drawTree = (tx, ty) => {
+          ctx.fillStyle = "#553300"; ctx.fillRect(tx, ty, 4, 12);
+          ctx.fillStyle = "#00aa00"; ctx.fillRect(tx - 6, ty - 10, 16, 12);
+          ctx.fillStyle = "#00aa00"; ctx.fillRect(tx - 3, ty - 16, 10, 8);
+        };
+        drawTree(10, ground - 12);
+        drawTree(55, ground - 12);
+        drawTree(w - 15, ground - 12);
+
+        // path
+        ctx.fillStyle = "#aa8844";
+        ctx.fillRect(0, ground + 2, w, 4);
+
+        // Sir Graham
+        if (walking && tick % 4 === 0) {
+          grahamX += grahamDir * 1.5;
+          grahamFrame = (grahamFrame + 1) % 4;
+          if (grahamX > 80) grahamDir = -1;
+          if (grahamX < 10) grahamDir = 1;
+        }
+        // body
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(grahamX, grahamY, 6, 8); // tunic
+        ctx.fillStyle = "#ffaa00"; ctx.fillRect(grahamX, grahamY - 4, 6, 4); // head
+        ctx.fillStyle = "#ff5555"; ctx.fillRect(grahamX, grahamY - 6, 6, 2); // hat
+        // legs
+        ctx.fillStyle = "#0000aa";
+        const legOff = grahamFrame % 2 === 0 ? 1 : -1;
+        ctx.fillRect(grahamX + 1, grahamY + 8, 2, 4);
+        ctx.fillRect(grahamX + 3, grahamY + 8 + legOff, 2, 4);
+
+        // parser bar
+        ctx.fillStyle = "#000"; ctx.fillRect(0, h - 14, w, 14);
+        ctx.fillStyle = "#555"; ctx.fillRect(0, h - 14, w, 1);
+
+        // type commands
+        cmdTick++;
+        if (cmdTick % 6 === 0 && charIdx < commands[cmdIdx].length) {
+          currentCmd = commands[cmdIdx].slice(0, ++charIdx);
+        }
+        if (charIdx >= commands[cmdIdx].length && cmdTick % 60 === 0) {
+          cmdIdx = (cmdIdx + 1) % commands.length;
+          charIdx = 0; currentCmd = "";
+        }
+
+        ctx.fillStyle = "#aaaaaa"; ctx.font = "6px monospace";
+        ctx.fillText(currentCmd + (tick % 30 < 15 ? "_" : ""), 4, h - 4);
+
+        // title bar
+        ctx.fillStyle = "#0000aa"; ctx.fillRect(0, 0, w, 10);
+        ctx.fillStyle = "#ffffff"; ctx.font = "bold 6px monospace";
+        ctx.fillText("KING'S QUEST", 4, 7);
+        ctx.fillStyle = "#aaaaaa";
+        ctx.fillText("Score: " + (tick % 200 < 100 ? "42" : "58") + "/158", w - 55, 7);
+      };
+    }
+
+    function createQuestForGloryScene(ctx, w, h) {
+      let tick = 0;
+      let heroX = 20, heroDir = 1, heroFrame = 0;
+      const ground = h - 30;
+      const stats = {STR: 35, AGI: 42, VIT: 28, INT: 50, LCK: 30, WPN: 25, MGC: 45};
+      let showStats = false, statTimer = 0;
+
+      return function draw(frame) {
+        tick++;
+        ctx.fillStyle = "#000"; ctx.fillRect(0, 0, w, h);
+
+        // night sky
+        ctx.fillStyle = "#000055"; ctx.fillRect(0, 0, w, ground - 10);
+        // stars
+        for (let i = 0; i < 12; i++) {
+          const sx = (i * 17 + tick * 0.02) % w;
+          const sy = 5 + (i * 11) % (ground - 30);
+          ctx.fillStyle = tick % 60 < 30 + i ? "#ffffff" : "#aaaaaa";
+          ctx.fillRect(sx, sy, 1, 1);
+        }
+        // moon
+        ctx.fillStyle = "#ffffaa";
+        ctx.beginPath(); ctx.arc(w - 20, 15, 8, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#000055";
+        ctx.beginPath(); ctx.arc(w - 17, 13, 7, 0, Math.PI * 2); ctx.fill();
+
+        // ground
+        ctx.fillStyle = "#004400"; ctx.fillRect(0, ground - 10, w, 10);
+        ctx.fillStyle = "#003300"; ctx.fillRect(0, ground, w, h - ground);
+
+        // town gate
+        ctx.fillStyle = "#8b7355";
+        ctx.fillRect(w / 2 - 20, ground - 45, 8, 45);
+        ctx.fillRect(w / 2 + 12, ground - 45, 8, 45);
+        // arch
+        ctx.fillStyle = "#8b7355";
+        ctx.fillRect(w / 2 - 20, ground - 48, 40, 5);
+        // sign
+        ctx.fillStyle = "#aa8855"; ctx.fillRect(w / 2 - 12, ground - 40, 24, 8);
+        ctx.fillStyle = "#000"; ctx.font = "5px monospace";
+        ctx.fillText("SPIELBURG", w / 2 - 11, ground - 34);
+
+        // torch flames
+        const flicker = Math.sin(tick * 0.5) * 2;
+        ctx.fillStyle = "#ff8800"; ctx.fillRect(w / 2 - 16, ground - 50 + flicker, 4, 4);
+        ctx.fillStyle = "#ffff00"; ctx.fillRect(w / 2 - 15, ground - 52 + flicker, 2, 2);
+        ctx.fillStyle = "#ff8800"; ctx.fillRect(w / 2 + 12, ground - 50 - flicker, 4, 4);
+        ctx.fillStyle = "#ffff00"; ctx.fillRect(w / 2 + 13, ground - 52 - flicker, 2, 2);
+
+        // hero
+        if (tick % 5 === 0) {
+          heroX += heroDir * 1;
+          heroFrame = (heroFrame + 1) % 4;
+          if (heroX > w / 2 - 25) { heroDir = -1; showStats = true; statTimer = tick; }
+          if (heroX < 10) heroDir = 1;
+        }
+        // hero body
+        ctx.fillStyle = "#00aa00"; ctx.fillRect(heroX, ground - 14, 6, 8);
+        ctx.fillStyle = "#ffcc88"; ctx.fillRect(heroX, ground - 18, 6, 4);
+        ctx.fillStyle = "#553300"; ctx.fillRect(heroX, ground - 20, 6, 2);
+        ctx.fillStyle = "#0000aa"; ctx.fillRect(heroX + 1, ground - 6, 2, 6);
+        ctx.fillRect(heroX + 3, ground - 6 + (heroFrame % 2), 2, 6);
+        // sword
+        if (heroDir === 1) {
+          ctx.fillStyle = "#cccccc"; ctx.fillRect(heroX + 6, ground - 16, 1, 10);
+          ctx.fillStyle = "#aa8800"; ctx.fillRect(heroX + 5, ground - 8, 3, 2);
+        }
+
+        // stats overlay
+        if (showStats && tick - statTimer < 120) {
+          ctx.fillStyle = "rgba(0,0,50,0.85)";
+          ctx.fillRect(4, 4, 50, 55);
+          ctx.strokeStyle = "#aaaaaa"; ctx.lineWidth = 1;
+          ctx.strokeRect(4, 4, 50, 55);
+          ctx.fillStyle = "#ffff55"; ctx.font = "bold 5px monospace";
+          ctx.fillText("HERO STATS", 8, 12);
+          ctx.fillStyle = "#aaaaaa"; ctx.font = "5px monospace";
+          let sy = 19;
+          for (const [k, v] of Object.entries(stats)) {
+            const val = v + Math.floor(tick / 100) % 5;
+            ctx.fillText(`${k}: ${val}`, 8, sy);
+            // stat bar
+            ctx.fillStyle = "#005500"; ctx.fillRect(36, sy - 4, 14, 4);
+            ctx.fillStyle = "#00ff00"; ctx.fillRect(36, sy - 4, val / 100 * 14, 4);
+            ctx.fillStyle = "#aaaaaa";
+            sy += 7;
+          }
+        } else if (tick - statTimer >= 120) {
+          showStats = false;
+        }
+
+        // message bar
+        ctx.fillStyle = "#000"; ctx.fillRect(0, h - 10, w, 10);
+        ctx.fillStyle = "#555"; ctx.fillRect(0, h - 10, w, 1);
+        const msgs = ["You are at the town gate.", "A dark forest lies to the north.", "You feel a chill in the air.", "The guildmaster awaits inside."];
+        ctx.fillStyle = "#aaaaaa"; ctx.font = "5px monospace";
+        ctx.fillText(msgs[Math.floor(tick / 80) % msgs.length], 4, h - 3);
+
+        // title
+        ctx.fillStyle = "#0000aa"; ctx.fillRect(0, 0, w, 8);
+        ctx.fillStyle = "#ffff55"; ctx.font = "bold 5px monospace";
+        ctx.fillText("QUEST FOR GLORY", 4, 6);
+      };
+    }
+
+    function createPoliceQuestScene(ctx, w, h) {
+      let tick = 0;
+      let carX = -40, phase = 0;
+      const ground = h - 18;
+      let radioIdx = 0, radioChar = 0, radioTick = 0;
+      const radioMsgs = [
+        "10-4, COPY THAT",
+        "ALL UNITS: 211 IN PROGRESS",
+        "SUSPECT HEADING EAST ON OAK",
+        "REQUESTING BACKUP AT 5TH",
+        "10-20 CONFIRMED, EN ROUTE",
+        "CODE 3, LIGHTS AND SIRENS",
+      ];
+      let currentRadio = "";
+
+      return function draw(frame) {
+        tick++;
+        ctx.fillStyle = "#000"; ctx.fillRect(0, 0, w, h);
+
+        // sky
+        ctx.fillStyle = "#2244aa"; ctx.fillRect(0, 0, w, ground - 25);
+        // city skyline
+        ctx.fillStyle = "#333";
+        const buildings = [[5,35],[20,50],[35,30],[48,55],[65,40],[85,45],[105,35],[120,50],[140,30]];
+        for (const [bx, bh] of buildings) {
+          ctx.fillRect(bx, ground - 25 - bh, 14, bh + 25);
+          // windows
+          ctx.fillStyle = tick % 20 < 10 ? "#ffff55" : "#aaaa00";
+          for (let wy = ground - bh; wy < ground - 5; wy += 8) {
+            for (let wx = bx + 2; wx < bx + 12; wx += 4) {
+              if (Math.random() > 0.3) ctx.fillRect(wx, wy, 2, 3);
+            }
+          }
+          ctx.fillStyle = "#333";
+        }
+
+        // road
+        ctx.fillStyle = "#444"; ctx.fillRect(0, ground - 4, w, 22);
+        // road lines
+        ctx.fillStyle = "#ffff00";
+        for (let lx = (tick * 2) % 20 - 20; lx < w; lx += 20) {
+          ctx.fillRect(lx, ground + 5, 10, 1);
+        }
+
+        // sidewalk
+        ctx.fillStyle = "#888"; ctx.fillRect(0, ground - 4, w, 3);
+
+        // police car
+        if (phase === 0) {
+          carX += 1.5;
+          if (carX > w / 2 - 20) phase = 1;
+        } else if (phase === 1) {
+          // parked
+          if (tick % 300 > 280) phase = 2;
+        } else {
+          carX += 2;
+          if (carX > w + 40) { carX = -40; phase = 0; }
+        }
+
+        // car body
+        ctx.fillStyle = "#111";
+        ctx.fillRect(carX, ground, 36, 10);
+        // car top
+        ctx.fillStyle = "#222";
+        ctx.fillRect(carX + 6, ground - 6, 22, 6);
+        // windows
+        ctx.fillStyle = "#4488cc";
+        ctx.fillRect(carX + 8, ground - 5, 8, 4);
+        ctx.fillRect(carX + 18, ground - 5, 8, 4);
+        // wheels
+        ctx.fillStyle = "#111";
+        ctx.fillRect(carX + 4, ground + 8, 6, 4);
+        ctx.fillRect(carX + 26, ground + 8, 6, 4);
+        // POLICE text
+        ctx.fillStyle = "#ffffff"; ctx.font = "4px monospace";
+        ctx.fillText("POLICE", carX + 8, ground + 7);
+        // siren lights
+        if (phase !== 1 || tick % 10 < 5) {
+          ctx.fillStyle = tick % 8 < 4 ? "#ff0000" : "#0055ff";
+          ctx.fillRect(carX + 14, ground - 8, 4, 2);
+          ctx.fillStyle = tick % 8 < 4 ? "#0055ff" : "#ff0000";
+          ctx.fillRect(carX + 19, ground - 8, 4, 2);
+        }
+        // headlights
+        ctx.fillStyle = "#ffff88"; ctx.fillRect(carX + 35, ground + 1, 2, 3);
+        // tail lights
+        ctx.fillStyle = "#ff0000"; ctx.fillRect(carX, ground + 1, 2, 3);
+
+        // Sonny Bonds (when car is parked)
+        if (phase === 1) {
+          const officerX = carX + 42;
+          // body
+          ctx.fillStyle = "#334488"; ctx.fillRect(officerX, ground - 8, 6, 8);
+          ctx.fillStyle = "#ffcc88"; ctx.fillRect(officerX, ground - 12, 6, 4);
+          ctx.fillStyle = "#334488"; ctx.fillRect(officerX, ground - 14, 6, 2); // cap
+          ctx.fillStyle = "#ccaa00"; ctx.fillRect(officerX + 4, ground - 6, 2, 2); // badge
+          // legs
+          ctx.fillStyle = "#223366";
+          ctx.fillRect(officerX + 1, ground, 2, 4);
+          ctx.fillRect(officerX + 3, ground, 2, 4);
+        }
+
+        // radio bar
+        ctx.fillStyle = "#000"; ctx.fillRect(0, h - 12, w, 12);
+        ctx.fillStyle = "#555"; ctx.fillRect(0, h - 12, w, 1);
+
+        radioTick++;
+        if (radioTick % 5 === 0 && radioChar < radioMsgs[radioIdx].length) {
+          currentRadio = radioMsgs[radioIdx].slice(0, ++radioChar);
+        }
+        if (radioChar >= radioMsgs[radioIdx].length && radioTick % 80 === 0) {
+          radioIdx = (radioIdx + 1) % radioMsgs.length;
+          radioChar = 0; currentRadio = "";
+        }
+
+        ctx.fillStyle = "#00ff00"; ctx.font = "5px monospace";
+        ctx.fillText("RADIO: " + currentRadio + (tick % 20 < 10 ? "_" : ""), 4, h - 4);
+
+        // title
+        ctx.fillStyle = "#334488"; ctx.fillRect(0, 0, w, 9);
+        ctx.fillStyle = "#ffffff"; ctx.font = "bold 5px monospace";
+        ctx.fillText("POLICE QUEST", 4, 7);
+        ctx.fillStyle = "#ccaa00"; ctx.fillText("Lytton PD", w - 40, 7);
       };
     }
 
@@ -4077,6 +4732,115 @@
       initCursorProximity();
     }
 
+    // --- Name/Email rotation with glitch decode ---
+    function initNameRotation() {
+      const nameEl = document.getElementById("name");
+      const texts = ["Brad Dwyer", "brad@dwyer.au", "dwyer.au"];
+      let currentIdx = 0;
+      const glitchChars = "アイウエオカキクケコ0123456789ABCDEF@#$%&*<>/{}();=+^~!?░▒▓█";
+      let transitioning = false;
+
+      function scrambleTo(targetText) {
+        if (transitioning) return;
+        transitioning = true;
+        const currentText = nameEl.textContent.replace(/\u00A0/g, " ");
+        const maxLen = Math.max(currentText.length, targetText.length);
+        const totalSteps = 20;
+        const cascadeDelay = 3; // frames between each char locking in
+
+        // trigger a glitch burst during transition
+        forceGlitch(0.7 + Math.random() * 0.3);
+        matrix.start();
+
+        // build array of char slots
+        const slots = [];
+        for (let i = 0; i < maxLen; i++) {
+          slots.push({
+            from: currentText[i] || "",
+            to: targetText[i] || "",
+            locked: false,
+            lockFrame: totalSteps - (maxLen - i) * cascadeDelay, // lock right-to-left... actually left-to-right
+            current: currentText[i] || glitchChars[Math.floor(Math.random() * glitchChars.length)],
+          });
+        }
+        // lock frames: cascade left to right
+        slots.forEach((s, i) => {
+          s.lockFrame = Math.floor(i * cascadeDelay) + 4;
+        });
+        const totalFrames = slots[slots.length - 1].lockFrame + 6;
+
+        let frame = 0;
+        const interval = setInterval(() => {
+          frame++;
+
+          // update each slot
+          for (const s of slots) {
+            if (frame >= s.lockFrame) {
+              s.locked = true;
+              s.current = s.to;
+            } else {
+              // random scramble
+              s.current = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+            }
+          }
+
+          // build display text and update DOM with .char spans
+          const displayText = slots.map(s => s.current).join("");
+          nameEl.textContent = "";
+          for (let i = 0; i < displayText.length; i++) {
+            const span = document.createElement("span");
+            span.className = "char";
+            const ch = displayText[i];
+            span.textContent = ch === " " ? "\u00A0" : ch;
+
+            // locked chars get a brief flash color
+            if (slots[i] && slots[i].locked && frame - slots[i].lockFrame < 3) {
+              span.style.color = "#0ff";
+              span.style.textShadow = "0 0 8px #0ff, 0 0 16px #0ff";
+            } else if (slots[i] && !slots[i].locked) {
+              // scrambling chars get glitch colors
+              const colors = ["#0ff", "#f0f", "#f00", "#0f0", "#ff0"];
+              span.style.color = colors[Math.floor(Math.random() * colors.length)];
+              span.style.opacity = (0.5 + Math.random() * 0.5).toFixed(2);
+            }
+            nameEl.appendChild(span);
+          }
+          nameEl.setAttribute("data-text", displayText);
+
+          if (frame >= totalFrames) {
+            clearInterval(interval);
+            // clean up — re-wrap with proper char spans, no inline styles
+            nameEl.textContent = "";
+            for (const ch of targetText) {
+              const span = document.createElement("span");
+              span.className = "char";
+              span.textContent = ch === " " ? "\u00A0" : ch;
+              nameEl.appendChild(span);
+            }
+            nameEl.setAttribute("data-text", targetText);
+            setTimeout(() => matrix.stop(), 200);
+            transitioning = false;
+          }
+        }, 50);
+      }
+
+      // rotate every 30 seconds
+      function scheduleNext() {
+        setTimeout(() => {
+          currentIdx = (currentIdx + 1) % texts.length;
+          scrambleTo(texts[currentIdx]);
+          scheduleNext();
+        }, 25000 + Math.random() * 10000);
+      }
+
+      // first transition after 30 seconds
+      setTimeout(() => {
+        currentIdx = 1;
+        scrambleTo(texts[1]);
+        scheduleNext();
+      }, 30000);
+    }
+
     typeName(() => {
       const nameEl = document.getElementById("name");
       wrapChars(nameEl);
@@ -4094,6 +4858,9 @@
 
       document.addEventListener("click", earlyStart);
       document.addEventListener("mousemove", earlyStart);
+
+      // start name rotation after glitch is active
+      initNameRotation();
     });
   </script>
 </body>
