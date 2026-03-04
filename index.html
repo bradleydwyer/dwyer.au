@@ -62,6 +62,57 @@
       animation: blink 1s step-end infinite;
     }
 
+    /* CRT scanline overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.08) 2px,
+        rgba(0, 0, 0, 0.08) 4px
+      );
+    }
+
+    /* Matrix rain canvas */
+    #matrix-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    /* Page tear effect */
+    .page-tear {
+      position: fixed;
+      pointer-events: none;
+      z-index: 998;
+      overflow: hidden;
+    }
+
+    .page-tear-inner {
+      width: 100%;
+      height: 100%;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 8px;
+      line-height: 1;
+      white-space: pre;
+      overflow: hidden;
+      letter-spacing: -1px;
+    }
+
     .artifact {
       position: fixed;
       pointer-events: none;
@@ -92,6 +143,7 @@
   </style>
 </head>
 <body>
+  <canvas id="matrix-canvas"></canvas>
   <div class="center">
     <div class="name" id="name"></div>
     <div class="status" id="status"></div>
@@ -509,6 +561,12 @@
             spawnArtifactBurst(intensity);
           }
 
+          // matrix rain on wild glitches
+          if (frame === 0 && intensity > 0.8) {
+            matrix.start();
+            setTimeout(() => matrix.stop(), 500 + intensity * 1000);
+          }
+
           // whole-name distortion
           if (intensity > 0.3) {
             nameEl.style.transform = `skewX(${rand(-4,4)*(1+intensity*2)}deg) translate(${rand(-3,3)*(1+intensity*3)}px, ${rand(-2,2)*intensity*3}px)`;
@@ -525,12 +583,336 @@
       }
 
       setTimeout(triggerGlitch, rand(1000, 2000));
+
+      // expose for interaction glitch
+      forceGlitch = (intensity) => {
+        const burstCount = Math.floor(rand(4, 10));
+        const frameDuration = rand(30, 60);
+        let frame = 0;
+        const interval = setInterval(() => {
+          if (frame >= burstCount) {
+            clearInterval(interval);
+            clearChars();
+            clearPage();
+            return;
+          }
+          clearChars();
+          glitchChars(intensity);
+          glitchPage(intensity);
+          if (frame === 0) spawnArtifactBurst(intensity);
+          if (intensity > 0.3) {
+            nameEl.style.transform = `skewX(${rand(-4,4)*(1+intensity*2)}deg) translate(${rand(-3,3)*(1+intensity*3)}px, ${rand(-2,2)*intensity*3}px)`;
+          }
+          frame++;
+        }, frameDuration);
+      };
     }
 
+    // --- Matrix rain ---
+    function initMatrix() {
+      const canvas = document.getElementById("matrix-canvas");
+      const ctx = canvas.getContext("2d");
+      let cols, drops;
+      const chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF";
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        cols = Math.floor(canvas.width / 14);
+        drops = new Array(cols).fill(0);
+      }
+      resize();
+      window.addEventListener("resize", resize);
+
+      let animId = null;
+      let active = false;
+
+      function draw() {
+        ctx.fillStyle = "rgba(10, 10, 10, 0.1)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#0f0";
+        ctx.font = "12px JetBrains Mono, monospace";
+
+        for (let i = 0; i < cols; i++) {
+          if (Math.random() < 0.98) {
+            const ch = chars[Math.floor(Math.random() * chars.length)];
+            ctx.fillStyle = `rgba(0, ${150 + Math.floor(Math.random()*105)}, 0, ${0.5 + Math.random()*0.5})`;
+            ctx.fillText(ch, i * 14, drops[i] * 14);
+          }
+          if (drops[i] * 14 > canvas.height && Math.random() > 0.98) {
+            drops[i] = 0;
+          }
+          drops[i]++;
+        }
+
+        if (active) animId = requestAnimationFrame(draw);
+      }
+
+      return {
+        start() {
+          if (active) return;
+          active = true;
+          canvas.style.opacity = "1";
+          drops.fill(0);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          draw();
+        },
+        stop() {
+          active = false;
+          if (animId) cancelAnimationFrame(animId);
+          canvas.style.opacity = "0";
+        }
+      };
+    }
+
+    const matrix = initMatrix();
+
+    // --- Page tear effect ---
+    function initPageTear() {
+      const tearChars = "░▒▓█▄▀▐▌╔╗╚╝║═╬╣╠╩╦01";
+      const colors = ["#0ff", "#f0f", "#0f0", "#f00"];
+      let lastX = 0, lastY = 0;
+      let moveCount = 0;
+
+      function makeTearContent(w, h) {
+        const cols = Math.floor(w / 6);
+        const rows = Math.floor(h / 10);
+        let text = "";
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            text += tearChars[Math.floor(Math.random() * tearChars.length)];
+          }
+          if (r < rows - 1) text += "\n";
+        }
+        return text;
+      }
+
+      document.addEventListener("mousemove", (e) => {
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        const dist = Math.abs(dx) + Math.abs(dy);
+        if (dist < 50) return;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        moveCount++;
+
+        // only tear occasionally — roughly 1 in 4 qualifying moves
+        if (Math.random() > 0.25) return;
+
+        const tear = document.createElement("div");
+        tear.className = "page-tear";
+
+        // random tear shape and size
+        const w = 40 + Math.random() * 120;
+        const h = 20 + Math.random() * 80;
+        tear.style.width = w + "px";
+        tear.style.height = h + "px";
+        tear.style.left = (e.clientX - w/2) + "px";
+        tear.style.top = (e.clientY - h/2) + "px";
+
+        // jagged clip for torn edge look
+        const points = [];
+        const steps = 8 + Math.floor(Math.random() * 6);
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps;
+          const jitter = 5 + Math.random() * 15;
+          if (i === 0 || i === steps) {
+            points.push(`${t*100}% ${50 + (Math.random()-0.5)*20}%`);
+          } else {
+            points.push(`${t*100}% ${jitter}%`);
+          }
+        }
+        for (let i = steps; i >= 0; i--) {
+          const t = i / steps;
+          const jitter = 85 + Math.random() * 15;
+          points.push(`${t*100}% ${jitter}%`);
+        }
+        tear.style.clipPath = `polygon(${points.join(", ")})`;
+
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const bgAlpha = (0.6 + Math.random() * 0.3).toFixed(2);
+
+        const inner = document.createElement("div");
+        inner.className = "page-tear-inner";
+        inner.style.color = color;
+        inner.style.backgroundColor = `rgba(10, 10, 10, ${bgAlpha})`;
+        inner.style.borderLeft = `2px solid ${color}`;
+        inner.style.borderRight = `2px solid ${color}`;
+        inner.textContent = makeTearContent(w, h);
+
+        tear.appendChild(inner);
+        document.body.appendChild(tear);
+
+        const duration = 200 + Math.random() * 600;
+        setTimeout(() => {
+          tear.style.transition = "opacity 0.2s";
+          tear.style.opacity = "0";
+          setTimeout(() => { if (tear.parentNode) tear.parentNode.removeChild(tear); }, 200);
+        }, duration);
+      });
+    }
+
+    initPageTear();
+
+    // --- Cursor proximity distortion ---
+    function initCursorProximity() {
+      const nameEl = document.getElementById("name");
+      const colors = ["#0ff", "#f0f", "#f00", "#0f0", "#ff0"];
+      const radius = 120;
+      let mouseX = -9999, mouseY = -9999;
+      let rafId = null;
+
+      document.addEventListener("mousemove", (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        if (!rafId) rafId = requestAnimationFrame(updateProximity);
+      });
+
+      function updateProximity() {
+        rafId = null;
+        const chars = nameEl.querySelectorAll(".char");
+        for (const ch of chars) {
+          const rect = ch.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dx = mouseX - cx;
+          const dy = mouseY - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < radius) {
+            const force = 1 - (dist / radius);
+            const pushX = -dx * force * 0.4;
+            const pushY = -dy * force * 0.4;
+            const skew = (Math.random() - 0.5) * force * 20;
+            ch.style.transform = `translate(${pushX.toFixed(1)}px, ${pushY.toFixed(1)}px) skewX(${skew.toFixed(1)}deg)`;
+
+            if (force > 0.3) {
+              ch.style.color = colors[Math.floor(Math.random() * colors.length)];
+              ch.style.textShadow = `${(Math.random()-0.5)*force*8}px ${(Math.random()-0.5)*force*4}px ${colors[Math.floor(Math.random()*colors.length)]}`;
+            }
+            if (force > 0.6) {
+              ch.style.opacity = (0.5 + Math.random() * 0.5).toFixed(2);
+            }
+          } else {
+            ch.style.transform = "";
+            ch.style.color = "";
+            ch.style.textShadow = "";
+            ch.style.opacity = "";
+          }
+        }
+      }
+    }
+
+    // --- Glitch on click ---
+    function initInteractionGlitch() {
+      const nameEl = document.getElementById("name");
+      nameEl.style.cursor = "pointer";
+
+      nameEl.addEventListener("click", () => {
+        forceGlitch(0.9 + Math.random() * 0.1);
+        matrix.start();
+        setTimeout(() => matrix.stop(), 800 + Math.random() * 1200);
+      });
+    }
+
+    let forceGlitch = () => {};
+
+    // --- Favicon glitch ---
+    function initFaviconGlitch() {
+      const favicons = [];
+      const size = 32;
+      const designs = [
+        // pixel B
+        (ctx) => {
+          ctx.fillStyle = "#0ff";
+          ctx.fillRect(4, 4, 4, 24);
+          ctx.fillRect(8, 4, 12, 4);
+          ctx.fillRect(8, 14, 12, 4);
+          ctx.fillRect(8, 24, 12, 4);
+          ctx.fillRect(20, 8, 4, 6);
+          ctx.fillRect(20, 18, 4, 6);
+        },
+        // pixel D
+        (ctx) => {
+          ctx.fillStyle = "#f0f";
+          ctx.fillRect(4, 4, 4, 24);
+          ctx.fillRect(8, 4, 12, 4);
+          ctx.fillRect(8, 24, 12, 4);
+          ctx.fillRect(20, 8, 4, 16);
+        },
+        // glitch square
+        (ctx) => {
+          const colors = ["#0ff", "#f0f", "#f00", "#0f0"];
+          for (let i = 0; i < 8; i++) {
+            ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+            ctx.fillRect(Math.random()*24, Math.random()*24, 4+Math.random()*12, 4+Math.random()*12);
+          }
+        },
+        // invader
+        (ctx) => {
+          ctx.fillStyle = "#0f0";
+          const px = [
+            [0,0,1,0,0,0,1,0,0],
+            [0,0,0,1,1,1,0,0,0],
+            [0,0,1,1,1,1,1,0,0],
+            [0,1,1,0,1,0,1,1,0],
+            [1,1,1,1,1,1,1,1,1],
+            [1,0,1,1,1,1,1,0,1],
+            [1,0,1,0,0,0,1,0,1],
+          ];
+          px.forEach((row, y) => row.forEach((v, x) => {
+            if (v) ctx.fillRect(2+x*3, 4+y*3, 3, 3);
+          }));
+        },
+      ];
+
+      for (const draw of designs) {
+        const c = document.createElement("canvas");
+        c.width = size; c.height = size;
+        const ctx = c.getContext("2d");
+        draw(ctx);
+        favicons.push(c.toDataURL());
+      }
+
+      let link = document.querySelector('link[rel="icon"]');
+      if (!link) {
+        link = document.createElement("link");
+        link.rel = "icon";
+        document.head.appendChild(link);
+      }
+
+      function cycle() {
+        link.href = favicons[Math.floor(Math.random() * favicons.length)];
+        setTimeout(cycle, 2000 + Math.random() * 5000);
+      }
+      cycle();
+    }
+
+    initFaviconGlitch();
+
+    // --- Color theme drift ---
+    function initColorDrift() {
+      let hue = 0;
+      const nameEl = document.getElementById("name");
+
+      function drift() {
+        hue = (hue + 0.3) % 360;
+        const lightness = 90 + Math.sin(hue * 0.02) * 2;
+        nameEl.style.color = `hsl(${hue}, 5%, ${lightness}%)`;
+        requestAnimationFrame(drift);
+      }
+      drift();
+    }
+
+    initColorDrift();
+
+    // --- Main init ---
     typeName(() => {
       const nameEl = document.getElementById("name");
       wrapChars(nameEl);
       startGlitch();
+      initInteractionGlitch();
+      initCursorProximity();
       typeMessage();
     });
   </script>
