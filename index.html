@@ -4416,11 +4416,22 @@
 
     function createZomboScene(ctx, w, h) {
       let tick = 0;
-      const cx = w / 2, cy = h / 2 + 8;
-      // wedge colors from the original SVG (low opacity throbber)
-      const wedgeColors = ["#00ff00", "#1a24e6", "#f2fe01", "#e75303", "#e90101", "#1b02fd", "#ff00ff", "#00ffff"];
-      const numWedges = wedgeColors.length;
+      const cx = w / 2, cy = h / 2 + 6;
       let angle = 0;
+
+      // blob positions and colors from the original SVG spinner
+      // each blob is an elliptical shape at 12.2% opacity, offset from center
+      const blobs = [
+        { dx: -8, dy: -10, rx: 12, ry: 10, color: "#00ff00" },
+        { dx: 10, dy: -12, rx: 13, ry: 11, color: "#1a24e6" },
+        { dx: -16, dy: 4,  rx: 12, ry: 11, color: "#f2fe01" },
+        { dx: 4,  dy: 8,   rx: 13, ry: 10, color: "#e75303" },
+        { dx: 8,  dy: 18,  rx: 12, ry: 10, color: "#e90101" },
+        { dx: 12, dy: 4,   rx: 12, ry: 11, color: "#1b02fd" },
+      ];
+
+      // center blob uses radial gradient (white to #ccc)
+      const centerBlob = { dx: 3, dy: 6, rx: 13, ry: 11 };
 
       const messages = [
         "YOU CAN DO ANYTHING",
@@ -4428,15 +4439,15 @@
         "THE ONLY LIMIT",
         "IS YOURSELF",
         "WELCOME TO ZOMBOCOM",
-        "YES THIS IS ZOMBOCOM",
+        "THIS IS ZOMBOCOM",
         "ANYTHING IS POSSIBLE",
         "THE INFINITE IS",
         "POSSIBLE AT ZOMBOCOM",
       ];
       let msgIdx = 0, msgTimer = 0;
 
-      // logo colors for "ZOMBO.COM" letters
-      const logoColors = ["#0000ff", "#ff0000", "#ff9900", "#00ff00", "#9900ff", "#00ffff", "#3366ff", "#ff0000", "#ff9900"];
+      // logo colors matching original SVG: Z=red, O=cyan, M=purple, B=blue, O=green, .=blue, C=orange, O=green, M=blue
+      const logoColors = ["#ff0000", "#00ffff", "#9900ff", "#0000ff", "#00ff00", "#3366ff", "#ff9900", "#00ff00", "#0000ff"];
 
       return function draw(frame) {
         tick++;
@@ -4445,57 +4456,55 @@
         ctx.fillStyle = "#fff";
         ctx.fillRect(0, 0, w, h);
 
-        // green gradient bar at top (like the original)
-        const grad = ctx.createLinearGradient(0, 0, w, 0);
+        // green gradient bar at top
+        const grad = ctx.createLinearGradient(0, 0, 0, 8);
         grad.addColorStop(0, "#33bb77");
         grad.addColorStop(1, "#ffffff");
         ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, w, 6);
+        ctx.fillRect(0, 0, w, 8);
 
-        // spinning throbber — colored wedges at low opacity, rotating 80deg per tick
-        // but we run at ~30fps so we step faster to match the snappy rotation
+        // rotate 80 degrees every ~100ms (every 3 frames at 30fps)
         if (tick % 3 === 0) angle += 80;
-        if (angle > 360) angle -= 360;
+        if (angle >= 360) angle -= 360;
 
-        const radius = 30;
+        // draw spinning blobs
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(angle * Math.PI / 180);
 
-        for (let i = 0; i < numWedges; i++) {
-          const startA = (i / numWedges) * Math.PI * 2;
-          const endA = ((i + 1) / numWedges) * Math.PI * 2;
-          ctx.fillStyle = wedgeColors[i];
-          ctx.globalAlpha = 0.12;
+        // colored blobs at 12.2% opacity
+        ctx.globalAlpha = 0.122;
+        for (const b of blobs) {
+          ctx.fillStyle = b.color;
           ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.arc(0, 0, radius, startA, endA);
-          ctx.closePath();
+          ctx.ellipse(b.dx, b.dy, b.rx, b.ry, 0, 0, Math.PI * 2);
           ctx.fill();
         }
 
+        // center blob with radial gradient
         ctx.globalAlpha = 1;
-        ctx.restore();
-
-        // radial gradient center (white to gray, like the original)
-        const centerR = 8;
-        const cGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, centerR);
-        cGrad.addColorStop(0, "#fff");
-        cGrad.addColorStop(1, "#bbb");
+        const cGrad = ctx.createRadialGradient(
+          centerBlob.dx - 2, centerBlob.dy - 2, 0,
+          centerBlob.dx, centerBlob.dy, centerBlob.rx
+        );
+        cGrad.addColorStop(0, "#ffffff");
+        cGrad.addColorStop(1, "#cccccc");
         ctx.fillStyle = cGrad;
         ctx.beginPath();
-        ctx.arc(cx, cy, centerR, 0, Math.PI * 2);
+        ctx.ellipse(centerBlob.dx, centerBlob.dy, centerBlob.rx, centerBlob.ry, 0, 0, Math.PI * 2);
         ctx.fill();
 
+        ctx.restore();
+
         // colorful "ZOMBO.COM" logo text
-        ctx.font = "bold 9px monospace";
+        ctx.font = "bold 8px monospace";
         const logoText = "ZOMBO.COM";
-        const logoY = 16;
-        let logoX = cx - 28;
+        const logoY = 18;
+        let logoX = cx - 26;
         for (let i = 0; i < logoText.length; i++) {
           ctx.fillStyle = logoColors[i % logoColors.length];
           ctx.fillText(logoText[i], logoX, logoY);
-          logoX += 6.5;
+          logoX += 6;
         }
 
         // cycling message text
@@ -4503,9 +4512,9 @@
         if (msgTimer > 70) { msgTimer = 0; msgIdx = (msgIdx + 1) % messages.length; }
 
         ctx.fillStyle = "#666";
-        ctx.font = "7px monospace";
+        ctx.font = "6px monospace";
         ctx.textAlign = "center";
-        ctx.fillText(messages[msgIdx], cx, h - 6);
+        ctx.fillText(messages[msgIdx], cx, h - 5);
         ctx.textAlign = "start";
       };
     }
