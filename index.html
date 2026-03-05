@@ -489,6 +489,10 @@
       'POLICE QUEST\n  In Pursuit of\n  the Death Angel',
       '10-4 DISPATCH\n  ALL UNITS RESPOND',
       'WALK AROUND THE\n  CAR. INSPECT YOUR\n  VEHICLE.',
+      // Need for Speed
+      'NEED FOR SPEED\n  198 MPH\n  1ST PLACE',
+      'BUSTED!\n  You were doing\n  198 in a 35',
+      'NITROUS ENGAGED\n  HOLD ON!',
       // Zombo.com
       'YOU CAN DO\n  ANYTHING AT\n  ZOMBO.COM',
       'THE ONLY LIMIT\n  IS YOURSELF\n  ZOMBO.COM',
@@ -520,10 +524,42 @@
       'BURNINATING ALL\n  THE PEOPLE IN\n  THEIR THATCHED\n  ROOF COTTAGES!',
       'Come on, fhqwhgads',
       'The system\n  is down.\n  The system\n  is down.',
+      // Asteroids
+      'ASTEROIDS\n  SCORE: 11450\n  SHIP: 3',
+      'HYPERSPACE!\n  *bzzzt*',
+      'THRUST >>>\n  PEW PEW PEW',
+      // Frogger
+      'FROGGER\n  TIME: 30\n  LIVES: 3',
+      'HOP HOP HOP\n  *SPLAT*\n  GAME OVER',
+      // Galaga
+      'GALAGA\n  STAGE 3\n  FIGHTER CAPTURED!',
+      'CHALLENGING\n  STAGE\n  PERFECT BONUS!',
+      // SimCity
+      'SIMCITY\n  POP: 51,203\n  FUNDS: $20,000',
+      'RETICULATING\n  SPLINES...',
+      'YOUR CITIZENS\n  DEMAND A\n  STADIUM',
+      // Sonic
+      'SONIC THE HEDGEHOG\n  RING: 50\n  TIME: 1:23',
+      'GOTTA GO FAST!\n  *spin dash*',
+      'CHAOS EMERALD\n  COLLECTED!',
+      // Mario
+      'SUPER MARIO BROS\n  WORLD 1-1\n  x03',
+      'IT\'S-A ME,\n  MARIO!',
+      'THANK YOU MARIO!\nBUT OUR PRINCESS\nIS IN ANOTHER\n  CASTLE!',
+      // Zelda
+      'IT\'S DANGEROUS\n  TO GO ALONE!\n  TAKE THIS.',
+      'ZELDA\n  -- LIFE --\n  ♥ ♥ ♥',
+      'YOU GOT THE\n  MASTER SWORD!',
+      'SECRET DISCOVERED\n  *chime*',
+      // Donkey Kong
+      'DONKEY KONG\n  L=01  SCORE\n  000000',
+      'HOW HIGH\n  CAN YOU GET?',
+      'HELP!\n  *barrel rolls*\n  JUMP!',
     ];
 
     // --- Mini game scene renderers (canvas-based, animated) ---
     const activeSceneTypes = new Set();
+    const recentScenes = []; // tracks play order for fair rotation
 
     function spawnGameScene() {
       const w = 160, h = 120, px = 4;
@@ -534,12 +570,17 @@
       canvas.style.imageRendering = "pixelated";
       const ctx = canvas.getContext("2d");
 
-      const sceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene, createMissileCommandScene, createOregonTrailScene, createPrinceScene, createLemmingsScene, createWin95Scene, createAmigaBoingScene, createWolfensteinScene, createMinesweeperScene, createPipeDreamScene, createGameOfLifeScene, createDOSBootScene, createCarmenScene, createStrongBadScene, createTrogdorScene, createAIChatScene, createKingsQuestScene, createQuestForGloryScene, createPoliceQuestScene, createMinecraftScene, createZomboScene];
+      const sceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene, createMissileCommandScene, createOregonTrailScene, createPrinceScene, createLemmingsScene, createWin95Scene, createAmigaBoingScene, createWolfensteinScene, createMinesweeperScene, createPipeDreamScene, createGameOfLifeScene, createDOSBootScene, createCarmenScene, createStrongBadScene, createTrogdorScene, createAIChatScene, createKingsQuestScene, createQuestForGloryScene, createPoliceQuestScene, createMinecraftScene, createZomboScene, createNFSScene, createAsteroidsScene, createFroggerScene, createGalagaScene, createSimCityScene, createSonicScene, createMarioScene, createZeldaScene, createDonkeyKongScene];
 
-      // pick a scene that isn't already on screen
+      // pick a scene that isn't already on screen, preferring ones not recently shown
       const available = sceneFactories.filter(f => !activeSceneTypes.has(f.name));
       if (available.length === 0) return canvas; // all active, return blank
-      const factory = available[Math.floor(Math.random() * available.length)];
+      const recentSet = new Set(recentScenes);
+      const unseen = available.filter(f => !recentSet.has(f.name));
+      const pool = unseen.length > 0 ? unseen : available;
+      const factory = pool[Math.floor(Math.random() * pool.length)];
+      recentScenes.push(factory.name);
+      if (recentScenes.length > sceneFactories.length * 0.75) recentScenes.shift();
       activeSceneTypes.add(factory.name);
       canvas._sceneType = factory.name;
 
@@ -4516,6 +4557,1730 @@
         ctx.textAlign = "center";
         ctx.fillText(messages[msgIdx], cx, h - 5);
         ctx.textAlign = "start";
+      };
+    }
+
+    // --- Need for Speed Scene ---
+
+    function createNFSScene(ctx, w, h) {
+      let tick = 0;
+      const roadY = h * 0.45; // horizon line
+      let playerX = 0; // -1 to 1 lane offset
+      let playerSteer = 0;
+      let speed = 0;
+      const maxSpeed = 8;
+
+      // road stripes scroll position
+      let stripeOffset = 0;
+
+      // other cars
+      const traffic = [];
+      for (let i = 0; i < 3; i++) {
+        traffic.push({
+          z: 0.3 + Math.random() * 0.7,
+          lane: (Math.random() - 0.5) * 1.2,
+          color: ["#e00", "#00e", "#0a0", "#ff0", "#f80"][Math.floor(Math.random() * 5)],
+        });
+      }
+
+      // roadside objects (trees/signs)
+      const scenery = [];
+      for (let i = 0; i < 8; i++) {
+        scenery.push({
+          z: Math.random(),
+          side: Math.random() < 0.5 ? -1 : 1,
+          type: Math.random() < 0.6 ? "tree" : "sign",
+        });
+      }
+
+      return function draw(frame) {
+        tick++;
+
+        // accelerate
+        speed = Math.min(maxSpeed, speed + 0.05);
+
+        // AI steering — weave gently
+        playerSteer = Math.sin(tick * 0.02) * 0.4 + Math.sin(tick * 0.05) * 0.2;
+        playerX = Math.max(-1.2, Math.min(1.2, playerX + playerSteer * 0.02));
+
+        stripeOffset = (stripeOffset + speed * 0.01) % 0.2;
+
+        // sky gradient
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, roadY);
+        skyGrad.addColorStop(0, "#4488cc");
+        skyGrad.addColorStop(1, "#aaccee");
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, w, roadY);
+
+        // sun
+        ctx.fillStyle = "#ffe060";
+        ctx.beginPath();
+        ctx.arc(w * 0.75, roadY * 0.3, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // distant mountains
+        ctx.fillStyle = "#6688aa";
+        for (let i = 0; i < 5; i++) {
+          const mx = i * 40 - 10;
+          const mh = 12 + Math.sin(i * 2.3) * 6;
+          ctx.beginPath();
+          ctx.moveTo(mx, roadY);
+          ctx.lineTo(mx + 20, roadY - mh);
+          ctx.lineTo(mx + 40, roadY);
+          ctx.fill();
+        }
+
+        // ground / grass
+        ctx.fillStyle = "#3a7a2a";
+        ctx.fillRect(0, roadY, w, h - roadY);
+
+        // road — pseudo-3D perspective
+        for (let y = roadY; y < h; y++) {
+          const depth = (y - roadY) / (h - roadY); // 0 at horizon, 1 at bottom
+          const roadWidth = 10 + depth * 70;
+          const roadCenter = w / 2 - playerX * depth * 40;
+          const roadLeft = roadCenter - roadWidth / 2;
+
+          // road surface
+          ctx.fillStyle = depth > 0.02 ? "#444" : "#555";
+          ctx.fillRect(roadLeft, y, roadWidth, 1);
+
+          // road edge lines
+          ctx.fillStyle = "#c00";
+          ctx.fillRect(roadLeft, y, 1, 1);
+          ctx.fillRect(roadLeft + roadWidth - 1, y, 1, 1);
+
+          // center dashes
+          const stripeZ = depth + stripeOffset;
+          if (Math.floor(stripeZ * 25) % 2 === 0 && depth > 0.05) {
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(roadCenter - 1, y, 2, 1);
+          }
+        }
+
+        // draw scenery
+        for (const s of scenery) {
+          s.z -= speed * 0.004;
+          if (s.z < 0) { s.z = 0.9 + Math.random() * 0.1; s.side = Math.random() < 0.5 ? -1 : 1; }
+
+          const depth = 1 - s.z;
+          if (depth < 0.05) continue;
+          const screenY = roadY + depth * (h - roadY);
+          const roadWidth = 10 + depth * 70;
+          const roadCenter = w / 2 - playerX * depth * 40;
+          const sx = roadCenter + s.side * (roadWidth / 2 + 8 + depth * 10);
+          const scale = depth * 1.5;
+
+          if (s.type === "tree") {
+            ctx.fillStyle = "#5d3a1a";
+            ctx.fillRect(sx, screenY - 10 * scale, 2 * scale, 10 * scale);
+            ctx.fillStyle = "#2a6a1a";
+            ctx.beginPath();
+            ctx.arc(sx + scale, screenY - 12 * scale, 5 * scale, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillStyle = "#ccc";
+            ctx.fillRect(sx, screenY - 12 * scale, 1.5 * scale, 12 * scale);
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(sx - 2 * scale, screenY - 14 * scale, 6 * scale, 4 * scale);
+          }
+        }
+
+        // draw traffic cars
+        for (const car of traffic) {
+          car.z -= speed * 0.003;
+          if (car.z < 0) { car.z = 0.8 + Math.random() * 0.2; car.lane = (Math.random() - 0.5) * 1.2; }
+
+          const depth = 1 - car.z;
+          if (depth < 0.05) continue;
+          const screenY = roadY + depth * (h - roadY);
+          const roadCenter = w / 2 - playerX * depth * 40;
+          const cx = roadCenter + car.lane * depth * 30;
+          const scale = depth;
+
+          // car body
+          ctx.fillStyle = car.color;
+          ctx.fillRect(cx - 4 * scale, screenY - 5 * scale, 8 * scale, 4 * scale);
+          // roof
+          ctx.fillStyle = "#222";
+          ctx.fillRect(cx - 2 * scale, screenY - 8 * scale, 4 * scale, 3 * scale);
+          // windshield
+          ctx.fillStyle = "#8cf";
+          ctx.fillRect(cx - 1.5 * scale, screenY - 7.5 * scale, 3 * scale, 2 * scale);
+        }
+
+        // player car (at bottom, seen from behind)
+        const pCarX = w / 2;
+        const pCarY = h - 8;
+        // body
+        ctx.fillStyle = "#111";
+        ctx.fillRect(pCarX - 14, pCarY - 10, 28, 12);
+        // paint
+        ctx.fillStyle = "#e22";
+        ctx.fillRect(pCarX - 12, pCarY - 8, 24, 8);
+        // roof/rear window
+        ctx.fillStyle = "#333";
+        ctx.fillRect(pCarX - 7, pCarY - 14, 14, 6);
+        ctx.fillStyle = "#6ac";
+        ctx.fillRect(pCarX - 5, pCarY - 13, 10, 4);
+        // taillights
+        ctx.fillStyle = "#f00";
+        ctx.fillRect(pCarX - 13, pCarY - 4, 3, 2);
+        ctx.fillRect(pCarX + 10, pCarY - 4, 3, 2);
+        // wheels
+        ctx.fillStyle = "#111";
+        ctx.fillRect(pCarX - 15, pCarY - 2, 4, 4);
+        ctx.fillRect(pCarX + 11, pCarY - 2, 4, 4);
+
+        // HUD — speedometer
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(0, 0, w, 10);
+        const mph = Math.floor(speed / maxSpeed * 180 + 40);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 7px monospace";
+        ctx.fillText(mph + " MPH", 4, 8);
+
+        // position indicator
+        ctx.fillStyle = "#ff0";
+        ctx.fillText("1ST", w - 22, 8);
+
+        // lap
+        const lap = Math.floor(tick / 400) % 5 + 1;
+        ctx.fillStyle = "#aaa";
+        ctx.font = "6px monospace";
+        ctx.fillText("LAP " + Math.min(lap, 5) + "/5", w / 2 - 14, 8);
+      };
+    }
+
+    // --- Asteroids Scene ---
+
+    function createAsteroidsScene(ctx, w, h) {
+      let tick = 0;
+      let score = 0;
+      let shipAngle = -Math.PI / 2;
+      let shipX = w / 2, shipY = h / 2;
+      let shipVX = 0, shipVY = 0;
+      const bullets = [];
+      const asteroids = [];
+      const particles = [];
+
+      function spawnAsteroid(x, y, size) {
+        const a = Math.random() * Math.PI * 2;
+        const spd = 0.3 + Math.random() * 0.5;
+        const verts = [];
+        const n = 7 + Math.floor(Math.random() * 4);
+        for (let i = 0; i < n; i++) {
+          const ang = (i / n) * Math.PI * 2;
+          const r = size * (0.6 + Math.random() * 0.4);
+          verts.push({ x: Math.cos(ang) * r, y: Math.sin(ang) * r });
+        }
+        asteroids.push({ x: x, y: y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, size: size, verts: verts });
+      }
+
+      for (let i = 0; i < 5; i++) {
+        spawnAsteroid(Math.random() * w, Math.random() * 30, 12 + Math.random() * 8);
+      }
+
+      return function draw(frame) {
+        tick++;
+
+        // AI controls: rotate and thrust
+        shipAngle += Math.sin(tick * 0.02) * 0.04;
+        if (tick % 80 < 50) {
+          shipVX += Math.cos(shipAngle) * 0.08;
+          shipVY += Math.sin(shipAngle) * 0.08;
+        }
+        shipVX *= 0.99; shipVY *= 0.99;
+        shipX += shipVX; shipY += shipVY;
+        // wrap
+        if (shipX < 0) shipX += w; if (shipX > w) shipX -= w;
+        if (shipY < 0) shipY += h; if (shipY > h) shipY -= h;
+
+        // fire
+        if (tick % 18 === 0) {
+          bullets.push({ x: shipX + Math.cos(shipAngle) * 6, y: shipY + Math.sin(shipAngle) * 6, vx: Math.cos(shipAngle) * 3, vy: Math.sin(shipAngle) * 3, life: 40 });
+        }
+
+        // update bullets
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          const b = bullets[i];
+          b.x += b.vx; b.y += b.vy; b.life--;
+          if (b.x < 0) b.x += w; if (b.x > w) b.x -= w;
+          if (b.y < 0) b.y += h; if (b.y > h) b.y -= h;
+          if (b.life <= 0) { bullets.splice(i, 1); continue; }
+          // hit asteroids
+          for (let j = asteroids.length - 1; j >= 0; j--) {
+            const a = asteroids[j];
+            const dx = b.x - a.x, dy = b.y - a.y;
+            if (dx * dx + dy * dy < a.size * a.size) {
+              for (let p = 0; p < 4; p++) particles.push({ x: a.x, y: a.y, vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2, life: 15 });
+              if (a.size > 7) {
+                spawnAsteroid(a.x, a.y, a.size * 0.55);
+                spawnAsteroid(a.x, a.y, a.size * 0.55);
+              }
+              asteroids.splice(j, 1);
+              bullets.splice(i, 1);
+              score += 100;
+              break;
+            }
+          }
+        }
+
+        // update asteroids
+        for (const a of asteroids) {
+          a.x += a.vx; a.y += a.vy;
+          if (a.x < -20) a.x += w + 40; if (a.x > w + 20) a.x -= w + 40;
+          if (a.y < -20) a.y += h + 40; if (a.y > h + 20) a.y -= h + 40;
+        }
+
+        // respawn asteroids
+        if (asteroids.length < 3) {
+          for (let i = 0; i < 4; i++) spawnAsteroid(Math.random() * w, -10, 12 + Math.random() * 8);
+        }
+
+        // update particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx; p.y += p.vy; p.life--;
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        // draw background
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, w, h);
+
+        // stars
+        ctx.fillStyle = "#555";
+        for (let i = 0; i < 30; i++) {
+          const sx = (i * 73 + 17) % w, sy = (i * 47 + 31) % h;
+          ctx.fillRect(sx, sy, 1, 1);
+        }
+
+        // draw asteroids (wireframe)
+        ctx.strokeStyle = "#aaa";
+        ctx.lineWidth = 1;
+        for (const a of asteroids) {
+          ctx.beginPath();
+          ctx.moveTo(a.x + a.verts[0].x, a.y + a.verts[0].y);
+          for (let i = 1; i < a.verts.length; i++) {
+            ctx.lineTo(a.x + a.verts[i].x, a.y + a.verts[i].y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        }
+
+        // draw bullets
+        ctx.fillStyle = "#fff";
+        for (const b of bullets) ctx.fillRect(b.x, b.y, 2, 2);
+
+        // draw particles
+        for (const p of particles) {
+          ctx.fillStyle = `rgba(255,200,100,${p.life / 15})`;
+          ctx.fillRect(p.x, p.y, 1, 1);
+        }
+
+        // draw ship (triangle outline)
+        const ca = Math.cos(shipAngle), sa = Math.sin(shipAngle);
+        ctx.strokeStyle = "#0f0";
+        ctx.beginPath();
+        ctx.moveTo(shipX + ca * 6, shipY + sa * 6);
+        ctx.lineTo(shipX + Math.cos(shipAngle + 2.4) * 5, shipY + Math.sin(shipAngle + 2.4) * 5);
+        ctx.lineTo(shipX + Math.cos(shipAngle - 2.4) * 5, shipY + Math.sin(shipAngle - 2.4) * 5);
+        ctx.closePath();
+        ctx.stroke();
+
+        // thrust flame
+        if (tick % 80 < 50 && tick % 4 < 2) {
+          ctx.strokeStyle = "#f80";
+          ctx.beginPath();
+          ctx.moveTo(shipX + Math.cos(shipAngle + 2.7) * 4, shipY + Math.sin(shipAngle + 2.7) * 4);
+          ctx.lineTo(shipX - ca * (5 + Math.random() * 3), shipY - sa * (5 + Math.random() * 3));
+          ctx.lineTo(shipX + Math.cos(shipAngle - 2.7) * 4, shipY + Math.sin(shipAngle - 2.7) * 4);
+          ctx.stroke();
+        }
+
+        // HUD
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 7px monospace";
+        ctx.fillText("SCORE: " + score, 4, 8);
+      };
+    }
+
+    // --- Frogger Scene ---
+
+    function createFroggerScene(ctx, w, h) {
+      let tick = 0;
+      let frogX = w / 2, frogY = h - 10;
+      let frogLane = 0;
+      let lives = 3;
+      let hopTimer = 0;
+      const laneH = 10;
+      const safeY = 10;
+
+      // traffic lanes (lower half)
+      const trafficLanes = [
+        { y: h - 20, speed: 0.6, dir: 1, cars: [0, 50, 100], carW: 16, color: "#e33" },
+        { y: h - 30, speed: 0.9, dir: -1, cars: [10, 70, 130], carW: 22, color: "#33e" },
+        { y: h - 40, speed: 0.5, dir: 1, cars: [20, 80], carW: 14, color: "#ea0" },
+        { y: h - 50, speed: 1.1, dir: -1, cars: [0, 60, 110], carW: 18, color: "#e6e" },
+      ];
+      // river lanes (upper half)
+      const riverLanes = [
+        { y: h - 64, speed: 0.4, dir: 1, objs: [0, 55, 110], objW: 24, color: "#841", type: "log" },
+        { y: h - 74, speed: 0.6, dir: -1, objs: [20, 65, 120], objW: 16, color: "#3a4", type: "turtle" },
+        { y: h - 84, speed: 0.35, dir: 1, objs: [10, 80, 140], objW: 28, color: "#841", type: "log" },
+      ];
+
+      const pads = [15, 45, 75, 105, 135];
+      const filled = [false, false, false, false, false];
+
+      return function draw(frame) {
+        tick++;
+        hopTimer++;
+
+        // frog auto-play: hop forward every N ticks
+        if (hopTimer > 30) {
+          hopTimer = 0;
+          frogY -= laneH;
+          frogLane++;
+          // dodge sideways sometimes
+          frogX += (Math.random() - 0.5) * 12;
+          frogX = Math.max(4, Math.min(w - 4, frogX));
+        }
+
+        // check if frog reached top
+        if (frogY <= safeY + 8) {
+          const nearest = pads.reduce((best, px) => Math.abs(px - frogX) < Math.abs(best - frogX) ? px : best, pads[0]);
+          const idx = pads.indexOf(nearest);
+          if (!filled[idx]) filled[idx] = true;
+          frogX = w / 2; frogY = h - 10; frogLane = 0;
+        }
+
+        // reset if frog goes off screen
+        if (frogX < -5 || frogX > w + 5 || frogY < 0) {
+          lives = Math.max(1, lives - 1);
+          frogX = w / 2; frogY = h - 10; frogLane = 0;
+        }
+
+        // all filled? reset
+        if (filled.every(Boolean)) { filled.fill(false); lives = 3; }
+
+        // -- Draw --
+        // water area
+        ctx.fillStyle = "#115";
+        ctx.fillRect(0, 0, w, h - 55);
+        // safe zone at top
+        ctx.fillStyle = "#228";
+        ctx.fillRect(0, safeY, w, 10);
+        // road area
+        ctx.fillStyle = "#333";
+        ctx.fillRect(0, h - 55, w, 45);
+        // grass / safe start
+        ctx.fillStyle = "#181";
+        ctx.fillRect(0, h - 12, w, 12);
+        // median
+        ctx.fillStyle = "#181";
+        ctx.fillRect(0, h - 55, w, 3);
+
+        // road lane markers
+        ctx.fillStyle = "#555";
+        for (let i = 0; i < 4; i++) {
+          const ly = h - 20 - i * 10 - 5;
+          for (let x = 0; x < w; x += 12) ctx.fillRect(x, ly, 5, 1);
+        }
+
+        // draw river objects
+        for (const lane of riverLanes) {
+          for (let i = 0; i < lane.objs.length; i++) {
+            lane.objs[i] += lane.speed * lane.dir;
+            if (lane.objs[i] > w + 30) lane.objs[i] -= w + 60;
+            if (lane.objs[i] < -30) lane.objs[i] += w + 60;
+            ctx.fillStyle = lane.color;
+            ctx.fillRect(lane.objs[i], lane.y, lane.objW, 8);
+            if (lane.type === "turtle" && tick % 60 > 45) {
+              ctx.fillStyle = "#115";
+              ctx.fillRect(lane.objs[i] + 2, lane.y + 2, 4, 4);
+            }
+          }
+        }
+
+        // move frog on river
+        if (frogY < h - 55 && frogY > safeY + 10) {
+          let onLog = false;
+          for (const lane of riverLanes) {
+            if (Math.abs(frogY - lane.y) < 8) {
+              for (const ox of lane.objs) {
+                if (frogX >= ox - 2 && frogX <= ox + lane.objW + 2) {
+                  frogX += lane.speed * lane.dir;
+                  onLog = true;
+                }
+              }
+            }
+          }
+          if (!onLog && hopTimer > 5) {
+            lives = Math.max(1, lives - 1);
+            frogX = w / 2; frogY = h - 10; frogLane = 0;
+          }
+        }
+
+        // draw traffic
+        for (const lane of trafficLanes) {
+          for (let i = 0; i < lane.cars.length; i++) {
+            lane.cars[i] += lane.speed * lane.dir;
+            if (lane.cars[i] > w + 20) lane.cars[i] -= w + 40;
+            if (lane.cars[i] < -20) lane.cars[i] += w + 40;
+            ctx.fillStyle = lane.color;
+            ctx.fillRect(lane.cars[i], lane.y, lane.carW, 8);
+            // headlights
+            ctx.fillStyle = "#ff0";
+            if (lane.dir > 0) ctx.fillRect(lane.cars[i] + lane.carW - 2, lane.y + 1, 2, 2);
+            else ctx.fillRect(lane.cars[i], lane.y + 1, 2, 2);
+          }
+        }
+
+        // draw lily pads at top
+        for (let i = 0; i < pads.length; i++) {
+          ctx.fillStyle = filled[i] ? "#0f0" : "#062";
+          ctx.fillRect(pads[i] - 5, safeY + 1, 10, 8);
+          if (filled[i]) {
+            ctx.fillStyle = "#0a0";
+            ctx.fillRect(pads[i] - 3, safeY + 3, 6, 4);
+          }
+        }
+
+        // draw frog
+        ctx.fillStyle = "#0d0";
+        ctx.fillRect(frogX - 3, frogY - 3, 6, 6);
+        ctx.fillStyle = "#0f0";
+        ctx.fillRect(frogX - 2, frogY - 2, 4, 4);
+        // eyes
+        ctx.fillStyle = "#ff0";
+        ctx.fillRect(frogX - 2, frogY - 3, 1, 1);
+        ctx.fillRect(frogX + 1, frogY - 3, 1, 1);
+
+        // HUD
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(0, 0, w, 10);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 7px monospace";
+        ctx.fillText("LIVES: " + lives, 4, 8);
+        // frog icons for lives
+        ctx.fillStyle = "#0f0";
+        for (let i = 0; i < lives; i++) ctx.fillRect(w - 20 + i * 6, 3, 4, 4);
+      };
+    }
+
+    // --- Galaga Scene ---
+
+    function createGalagaScene(ctx, w, h) {
+      let tick = 0;
+      let score = 0;
+      let stage = 1;
+      const alienCols = 8, alienRows = 3;
+      const aliens = [];
+      const bullets = [];
+      const eBullets = [];
+      const stars = [];
+      const divers = [];
+      let playerX = w / 2;
+      let killCount = 0;
+
+      // init stars
+      for (let i = 0; i < 40; i++) stars.push({ x: Math.random() * w, y: Math.random() * h, s: 0.3 + Math.random() * 0.7 });
+
+      // init alien grid
+      function resetAliens() {
+        aliens.length = 0;
+        for (let r = 0; r < alienRows; r++)
+          for (let c = 0; c < alienCols; c++)
+            aliens.push({ gx: c, gy: r, x: 20 + c * 16, y: 18 + r * 14, alive: true, color: ["#f44", "#4f4", "#44f"][r], wingPhase: 0 });
+        killCount = 0;
+      }
+      resetAliens();
+
+      let formX = 0, formDir = 0.3;
+
+      return function draw(frame) {
+        tick++;
+
+        // scroll stars
+        for (const s of stars) {
+          s.y += s.s;
+          if (s.y > h) { s.y = 0; s.x = Math.random() * w; }
+        }
+
+        // move formation
+        formX += formDir;
+        if (formX > 15 || formX < -15) formDir *= -1;
+        for (const a of aliens) {
+          if (a.alive && !a.diving) {
+            a.x = 20 + a.gx * 16 + formX;
+            a.y = 18 + a.gy * 14;
+          }
+          a.wingPhase = tick;
+        }
+
+        // launch diver
+        if (tick % 70 === 0) {
+          const alive = aliens.filter(a => a.alive && !a.diving);
+          if (alive.length > 0) {
+            const d = alive[Math.floor(Math.random() * alive.length)];
+            d.diving = true;
+            d.diveT = 0;
+            d.startX = d.x; d.startY = d.y;
+            divers.push(d);
+          }
+        }
+
+        // update divers (curved swoop)
+        for (let i = divers.length - 1; i >= 0; i--) {
+          const d = divers[i];
+          d.diveT += 0.02;
+          d.x = d.startX + Math.sin(d.diveT * 4) * 25;
+          d.y = d.startY + d.diveT * 120;
+          if (d.y > h + 10) {
+            d.diving = false;
+            d.x = 20 + d.gx * 16 + formX;
+            d.y = 18 + d.gy * 14;
+            divers.splice(i, 1);
+          }
+          // diver fires
+          if (Math.random() < 0.03) eBullets.push({ x: d.x, y: d.y + 5 });
+        }
+
+        // move player (AI: sway + track divers)
+        playerX += Math.sin(tick * 0.05) * 1.2;
+        if (divers.length > 0) {
+          const tgt = divers[0].x;
+          if (playerX < tgt - 2) playerX += 1;
+          else if (playerX > tgt + 2) playerX -= 1;
+        }
+        playerX = Math.max(6, Math.min(w - 6, playerX));
+
+        // fire
+        if (tick % 10 === 0) bullets.push({ x: playerX, y: h - 16 });
+
+        // update bullets
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          bullets[i].y -= 3;
+          if (bullets[i].y < 0) { bullets.splice(i, 1); continue; }
+          for (const a of aliens) {
+            if (a.alive && Math.abs(bullets[i].x - a.x) < 7 && Math.abs(bullets[i].y - a.y) < 6) {
+              a.alive = false;
+              a.diving = false;
+              score += 150;
+              killCount++;
+              bullets.splice(i, 1);
+              const di = divers.indexOf(a);
+              if (di >= 0) divers.splice(di, 1);
+              break;
+            }
+          }
+        }
+
+        // update enemy bullets
+        for (let i = eBullets.length - 1; i >= 0; i--) {
+          eBullets[i].y += 2;
+          if (eBullets[i].y > h) eBullets.splice(i, 1);
+        }
+
+        // respawn wave
+        if (killCount >= alienCols * alienRows) { stage++; resetAliens(); }
+
+        // -- Draw --
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, w, h);
+
+        // stars
+        for (const s of stars) {
+          ctx.fillStyle = `rgba(255,255,255,${0.3 + s.s * 0.5})`;
+          ctx.fillRect(s.x, s.y, 1, 1);
+        }
+
+        // draw aliens
+        for (const a of aliens) {
+          if (!a.alive) continue;
+          const wing = Math.sin(a.wingPhase * 0.15) * 2;
+          ctx.fillStyle = a.color;
+          // body
+          ctx.fillRect(a.x - 3, a.y - 3, 6, 6);
+          // wings
+          ctx.fillRect(a.x - 5 - wing, a.y - 1, 3, 3);
+          ctx.fillRect(a.x + 3 + wing, a.y - 1, 3, 3);
+          // eyes
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(a.x - 2, a.y - 2, 1, 1);
+          ctx.fillRect(a.x + 1, a.y - 2, 1, 1);
+        }
+
+        // draw bullets
+        ctx.fillStyle = "#ff0";
+        for (const b of bullets) ctx.fillRect(b.x, b.y, 1, 4);
+        ctx.fillStyle = "#f66";
+        for (const b of eBullets) ctx.fillRect(b.x, b.y, 1, 3);
+
+        // draw player ship
+        ctx.fillStyle = "#0cf";
+        ctx.fillRect(playerX - 4, h - 14, 8, 6);
+        ctx.fillRect(playerX - 1, h - 17, 2, 3);
+        ctx.fillStyle = "#0af";
+        ctx.fillRect(playerX - 6, h - 10, 3, 3);
+        ctx.fillRect(playerX + 3, h - 10, 3, 3);
+
+        // HUD
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(0, 0, w, 10);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 7px monospace";
+        ctx.fillText("SCORE:" + score, 4, 8);
+        ctx.fillStyle = "#ff0";
+        ctx.fillText("STG " + stage, w - 30, 8);
+      };
+    }
+
+    // --- SimCity Scene ---
+
+    function createSimCityScene(ctx, w, h) {
+      let tick = 0;
+      let population = 8420;
+      const gridW = 7, gridH = 5;
+      const cellW = 18, cellH = 12;
+      const offsetX = 12, offsetY = 20;
+      const zones = [];
+
+      // init zones
+      for (let r = 0; r < gridH; r++)
+        for (let c = 0; c < gridW; c++) {
+          const type = Math.random() < 0.45 ? "R" : Math.random() < 0.6 ? "C" : Math.random() < 0.85 ? "I" : "P";
+          zones.push({ r: r, c: c, type: type, height: 1 + Math.floor(Math.random() * 3), maxH: 4 + Math.floor(Math.random() * 6) });
+        }
+
+      return function draw(frame) {
+        tick++;
+        population += Math.floor(Math.random() * 3);
+
+        // grow buildings slowly
+        if (tick % 60 === 0) {
+          const z = zones[Math.floor(Math.random() * zones.length)];
+          if (z.type !== "P" && z.height < z.maxH) z.height++;
+        }
+
+        // sky gradient
+        ctx.fillStyle = "#3a7";
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "#4b8";
+        ctx.fillRect(0, 0, w, h / 2);
+
+        // draw grid isometric
+        for (let r = gridH - 1; r >= 0; r--) {
+          for (let c = 0; c < gridW; c++) {
+            const z = zones[r * gridW + c];
+            // isometric position
+            const isoX = offsetX + c * cellW + (r % 2) * 4;
+            const isoY = offsetY + r * cellH;
+
+            // road grid
+            ctx.fillStyle = "#666";
+            ctx.fillRect(isoX - 1, isoY + cellH - 1, cellW + 2, 1);
+            ctx.fillRect(isoX - 1, isoY - 1, 1, cellH + 1);
+
+            if (z.type === "P") {
+              // park: green with trees
+              ctx.fillStyle = "#2a5";
+              ctx.fillRect(isoX, isoY, cellW, cellH - 1);
+              ctx.fillStyle = "#0d0";
+              ctx.fillRect(isoX + 3, isoY + 2, 2, 2);
+              ctx.fillRect(isoX + 8, isoY + 4, 2, 2);
+              ctx.fillRect(isoX + 13, isoY + 2, 2, 2);
+              ctx.fillStyle = "#841";
+              ctx.fillRect(isoX + 3, isoY + 4, 1, 2);
+              ctx.fillRect(isoX + 8, isoY + 6, 1, 2);
+              ctx.fillRect(isoX + 13, isoY + 4, 1, 2);
+              continue;
+            }
+
+            // zone color
+            const zoneColors = { R: "#3b3", C: "#36b", I: "#ba3" };
+            const buildColors = { R: "#5e5", C: "#58d", I: "#dc5" };
+            ctx.fillStyle = zoneColors[z.type];
+            ctx.fillRect(isoX, isoY, cellW, cellH - 1);
+
+            // building
+            const bw = 8 + (z.c % 3) * 2;
+            const bh = z.height * 3;
+            const bx = isoX + (cellW - bw) / 2;
+            const by = isoY + cellH - 1 - bh;
+
+            // shadow
+            ctx.fillStyle = "rgba(0,0,0,0.2)";
+            ctx.fillRect(bx + 2, by + 2, bw, bh);
+
+            // building face
+            ctx.fillStyle = buildColors[z.type];
+            ctx.fillRect(bx, by, bw, bh);
+
+            // roof
+            ctx.fillStyle = "#888";
+            ctx.fillRect(bx, by, bw, 1);
+
+            // windows
+            ctx.fillStyle = (tick % 4 < 2 && Math.random() > 0.3) ? "#ff0" : "#333";
+            for (let wy = by + 2; wy < by + bh - 1; wy += 3) {
+              for (let wx = bx + 1; wx < bx + bw - 1; wx += 3) {
+                ctx.fillStyle = Math.random() > 0.3 ? "#ff0" : "#445";
+                ctx.fillRect(wx, wy, 1, 1);
+              }
+            }
+          }
+        }
+
+        // HUD
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(0, 0, w, 14);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 7px monospace";
+        const popStr = population.toLocaleString();
+        ctx.fillText("POP: " + popStr, 4, 10);
+        ctx.fillStyle = "#0f0";
+        ctx.fillText("$" + Math.floor(population * 0.8).toLocaleString(), w - 50, 10);
+
+        // zone legend
+        ctx.fillStyle = "#3b3"; ctx.fillRect(w - 20, 3, 4, 4);
+        ctx.fillStyle = "#36b"; ctx.fillRect(w - 14, 3, 4, 4);
+        ctx.fillStyle = "#ba3"; ctx.fillRect(w - 8, 3, 4, 4);
+      };
+    }
+
+    // --- Sonic Scene ---
+
+    function createSonicScene(ctx, w, h) {
+      let tick = 0;
+      const ground = h - 20;
+      let sonicX = 30, sonicY = ground - 12;
+      let scrollX = 0;
+      let rings = [];
+      let ringCount = 0;
+      let speed = 0;
+      let jumping = false, jumpVel = 0;
+      let rolling = false;
+
+      // spawn rings
+      for (let i = 0; i < 12; i++) {
+        rings.push({ x: 60 + i * 40 + Math.random() * 20, y: ground - 20 - Math.random() * 30, collected: false });
+      }
+
+      let legFrame = 0;
+
+      return function draw(frame) {
+        tick++;
+
+        // speed ramps up and down
+        speed = 2 + Math.sin(tick * 0.01) * 1.2;
+        rolling = speed > 2.8;
+        scrollX += speed;
+
+        // jump occasionally
+        if (!jumping && tick % 90 < 3) {
+          jumping = true;
+          jumpVel = -3.5;
+        }
+        if (jumping) {
+          sonicY += jumpVel;
+          jumpVel += 0.2;
+          if (sonicY >= ground - 12) { sonicY = ground - 12; jumping = false; }
+        }
+
+        legFrame += speed * 0.5;
+
+        // sky gradient
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, ground);
+        skyGrad.addColorStop(0, "#2080e0");
+        skyGrad.addColorStop(1, "#60c8ff");
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, w, ground);
+
+        // hills in background
+        ctx.fillStyle = "#20a040";
+        for (let i = 0; i < 6; i++) {
+          const hx = ((i * 50 - scrollX * 0.15) % (w + 60)) - 30;
+          const hh = 15 + Math.sin(i * 1.7) * 8;
+          ctx.beginPath();
+          ctx.arc(hx, ground, hh, Math.PI, 0);
+          ctx.fill();
+        }
+
+        // checkerboard ground
+        for (let gy = 0; gy < 20; gy += 4) {
+          for (let gx = 0; gx < w + 8; gx += 8) {
+            const off = Math.floor(scrollX / 8) * 8;
+            const wx = gx - (scrollX % 8);
+            const checkerX = Math.floor((gx + off) / 8);
+            const checkerY = Math.floor(gy / 4);
+            ctx.fillStyle = (checkerX + checkerY) % 2 === 0 ? "#20a040" : "#18802c";
+            ctx.fillRect(wx, ground + gy, 8, 4);
+          }
+        }
+
+        // loop/hill shape in midground
+        const loopX = ((200 - scrollX * 0.5) % 320) - 80;
+        ctx.strokeStyle = "#18802c";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(loopX + 40, ground - 20, 25, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.lineWidth = 1;
+
+        // draw rings
+        for (const ring of rings) {
+          const rx = ring.x - (scrollX % (12 * 40 + 240)) + 60;
+          if (ring.collected) continue;
+          const screenRx = rx;
+          if (screenRx < -10 || screenRx > w + 10) continue;
+
+          // ring sparkle
+          const sparkle = Math.sin(tick * 0.15 + ring.x) * 0.5 + 0.5;
+          ctx.fillStyle = `rgb(${220 + Math.floor(sparkle * 35)}, ${180 + Math.floor(sparkle * 40)}, 0)`;
+          ctx.fillRect(screenRx - 2, ring.y - 2, 5, 5);
+          ctx.fillStyle = "#ff0";
+          ctx.fillRect(screenRx - 1, ring.y - 1, 3, 3);
+          ctx.fillStyle = "#ffe060";
+          ctx.fillRect(screenRx, ring.y, 1, 1);
+
+          // collect
+          if (Math.abs(screenRx - sonicX) < 8 && Math.abs(ring.y - sonicY) < 10) {
+            ring.collected = true;
+            ringCount++;
+          }
+        }
+
+        // respawn rings
+        if (tick % 200 === 0) {
+          for (const ring of rings) ring.collected = false;
+        }
+
+        // speed blur lines when fast
+        if (speed > 2.5) {
+          ctx.strokeStyle = "rgba(255,255,255,0.3)";
+          for (let i = 0; i < 4; i++) {
+            const ly = sonicY - 4 + Math.random() * 12;
+            ctx.beginPath();
+            ctx.moveTo(sonicX - 10 - Math.random() * 15, ly);
+            ctx.lineTo(sonicX - 18 - Math.random() * 20, ly);
+            ctx.stroke();
+          }
+        }
+
+        // draw Sonic
+        if (rolling) {
+          // ball form
+          ctx.fillStyle = "#1870e0";
+          ctx.beginPath();
+          ctx.arc(sonicX, sonicY, 6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#1050b0";
+          const spAngle = tick * 0.5;
+          ctx.fillRect(sonicX + Math.cos(spAngle) * 3 - 1, sonicY + Math.sin(spAngle) * 3 - 1, 2, 2);
+        } else {
+          // body
+          ctx.fillStyle = "#1870e0";
+          ctx.fillRect(sonicX - 4, sonicY - 8, 8, 10);
+          // head
+          ctx.fillStyle = "#1870e0";
+          ctx.fillRect(sonicX - 3, sonicY - 12, 7, 5);
+          // spikes
+          ctx.fillStyle = "#1050b0";
+          ctx.fillRect(sonicX - 6, sonicY - 11, 3, 2);
+          ctx.fillRect(sonicX - 7, sonicY - 8, 3, 2);
+          ctx.fillRect(sonicX - 5, sonicY - 5, 3, 2);
+          // eye
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(sonicX + 2, sonicY - 11, 3, 3);
+          ctx.fillStyle = "#000";
+          ctx.fillRect(sonicX + 3, sonicY - 10, 2, 2);
+          // belly
+          ctx.fillStyle = "#e0b080";
+          ctx.fillRect(sonicX - 2, sonicY - 3, 4, 4);
+          // shoes
+          ctx.fillStyle = "#e02020";
+          const legOff = Math.sin(legFrame) * 3;
+          ctx.fillRect(sonicX - 3, sonicY + 2, 4, 3);
+          ctx.fillRect(sonicX + Math.floor(legOff), sonicY + 2, 4, 3);
+        }
+
+        // HUD
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(0, 0, w, 10);
+        ctx.fillStyle = "#ff0";
+        ctx.font = "bold 7px monospace";
+        ctx.fillText("RINGS:" + ringCount, 4, 8);
+        ctx.fillStyle = "#fff";
+        ctx.font = "6px monospace";
+        const sc = tick * 10;
+        ctx.fillText("SCORE:" + sc, w - 52, 8);
+      };
+    }
+
+    // --- Mario Scene ---
+
+    function createMarioScene(ctx, w, h) {
+      let tick = 0;
+      const ground = h - 16;
+      let scrollX = 0;
+      let marioX = 35, marioY = ground - 12;
+      let jumping = false, jumpVel = 0;
+      let legFrame = 0;
+      let coins = 0, score = 0;
+
+      // blocks
+      const blocks = [
+        { x: 60, y: ground - 36, type: "brick" },
+        { x: 68, y: ground - 36, type: "?" },
+        { x: 76, y: ground - 36, type: "brick" },
+        { x: 84, y: ground - 36, type: "?" },
+        { x: 92, y: ground - 36, type: "brick" },
+        { x: 140, y: ground - 50, type: "?" },
+        { x: 180, y: ground - 36, type: "brick" },
+        { x: 188, y: ground - 36, type: "brick" },
+        { x: 196, y: ground - 36, type: "?" },
+        { x: 204, y: ground - 36, type: "brick" },
+      ];
+
+      // pipes
+      const pipes = [
+        { x: 120, h: 20 },
+        { x: 220, h: 28 },
+      ];
+
+      // goombas
+      const goombas = [
+        { x: 100, alive: true },
+        { x: 170, alive: true },
+        { x: 250, alive: true },
+      ];
+
+      // coin pickups
+      const coinItems = [
+        { x: 69, y: ground - 48, got: false },
+        { x: 85, y: ground - 48, got: false },
+        { x: 141, y: ground - 62, got: false },
+        { x: 197, y: ground - 48, got: false },
+      ];
+
+      return function draw(frame) {
+        tick++;
+        scrollX += 1;
+        legFrame += 0.3;
+
+        // jump AI
+        if (!jumping && tick % 70 < 2) {
+          jumping = true;
+          jumpVel = -3.2;
+        }
+        if (jumping) {
+          marioY += jumpVel;
+          jumpVel += 0.18;
+          if (marioY >= ground - 12) { marioY = ground - 12; jumping = false; }
+        }
+
+        // sky
+        ctx.fillStyle = "#6898f8";
+        ctx.fillRect(0, 0, w, h);
+
+        // clouds
+        ctx.fillStyle = "#fff";
+        for (let i = 0; i < 4; i++) {
+          const cx = ((i * 55 + 20 - scrollX * 0.2) % (w + 40)) - 10;
+          ctx.fillRect(cx, 10 + i * 6, 14, 5);
+          ctx.fillRect(cx + 2, 7 + i * 6, 10, 3);
+        }
+
+        // background hills
+        ctx.fillStyle = "#50b030";
+        for (let i = 0; i < 3; i++) {
+          const hx = ((i * 80 + 10 - scrollX * 0.3) % (w + 80)) - 20;
+          ctx.beginPath();
+          ctx.arc(hx + 20, ground, 22, Math.PI, 0);
+          ctx.fill();
+        }
+
+        // ground
+        ctx.fillStyle = "#c84c0c";
+        ctx.fillRect(0, ground, w, h - ground);
+        ctx.fillStyle = "#50b830";
+        ctx.fillRect(0, ground, w, 3);
+
+        // ground bricks
+        for (let gx = 0; gx < w; gx += 8) {
+          const bx = gx - (Math.floor(scrollX) % 8);
+          ctx.strokeStyle = "#a04000";
+          ctx.strokeRect(bx, ground + 3, 8, 6);
+          ctx.strokeRect(bx + 4, ground + 9, 8, 5);
+        }
+
+        const offX = scrollX % 300;
+
+        // draw blocks
+        for (const b of blocks) {
+          const bx = b.x - offX;
+          if (bx < -10 || bx > w + 10) continue;
+          if (b.type === "brick") {
+            ctx.fillStyle = "#c06020";
+            ctx.fillRect(bx, b.y, 8, 8);
+            ctx.strokeStyle = "#804010";
+            ctx.strokeRect(bx, b.y, 8, 8);
+            ctx.strokeRect(bx, b.y, 4, 4);
+          } else {
+            ctx.fillStyle = "#f8b800";
+            ctx.fillRect(bx, b.y, 8, 8);
+            ctx.strokeStyle = "#c07800";
+            ctx.strokeRect(bx, b.y, 8, 8);
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 6px monospace";
+            ctx.fillText("?", bx + 1, b.y + 7);
+          }
+        }
+
+        // draw pipes
+        for (const p of pipes) {
+          const px = p.x - offX;
+          if (px < -20 || px > w + 20) continue;
+          ctx.fillStyle = "#30a020";
+          ctx.fillRect(px, ground - p.h, 16, p.h);
+          ctx.fillStyle = "#40c030";
+          ctx.fillRect(px, ground - p.h, 16, 5);
+          ctx.fillRect(px - 2, ground - p.h - 2, 20, 6);
+          ctx.strokeStyle = "#208010";
+          ctx.strokeRect(px - 2, ground - p.h - 2, 20, 6);
+        }
+
+        // draw goombas
+        for (const g of goombas) {
+          if (!g.alive) continue;
+          const gx = g.x - offX;
+          if (gx < -10 || gx > w + 10) continue;
+          g.x += Math.sin(tick * 0.05 + g.x) * 0.3;
+          // body
+          ctx.fillStyle = "#a05020";
+          ctx.fillRect(gx - 4, ground - 8, 8, 8);
+          // head
+          ctx.fillStyle = "#c06830";
+          ctx.fillRect(gx - 5, ground - 12, 10, 5);
+          // eyes
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(gx - 3, ground - 11, 2, 2);
+          ctx.fillRect(gx + 1, ground - 11, 2, 2);
+          ctx.fillStyle = "#000";
+          ctx.fillRect(gx - 2, ground - 10, 1, 1);
+          ctx.fillRect(gx + 2, ground - 10, 1, 1);
+          // feet
+          ctx.fillStyle = "#000";
+          const footOff = Math.sin(tick * 0.1) > 0 ? 1 : -1;
+          ctx.fillRect(gx - 4 + footOff, ground - 1, 3, 1);
+          ctx.fillRect(gx + 1 - footOff, ground - 1, 3, 1);
+        }
+
+        // coins
+        for (const c of coinItems) {
+          if (c.got) continue;
+          const cx = c.x - offX;
+          if (cx < -5 || cx > w + 5) continue;
+          const wobble = Math.sin(tick * 0.1) * 1.5;
+          ctx.fillStyle = "#f8d030";
+          ctx.fillRect(cx, c.y + wobble, 4, 6);
+          ctx.fillStyle = "#f8f080";
+          ctx.fillRect(cx + 1, c.y + 1 + wobble, 2, 4);
+
+          // collect
+          if (Math.abs(cx - marioX) < 8 && Math.abs(c.y - marioY) < 14) {
+            c.got = true;
+            coins++;
+            score += 200;
+          }
+        }
+        // respawn
+        if (tick % 300 === 0) {
+          for (const c of coinItems) c.got = false;
+          for (const g of goombas) g.alive = true;
+        }
+
+        // draw Mario
+        // hat
+        ctx.fillStyle = "#e02020";
+        ctx.fillRect(marioX - 3, marioY - 12, 8, 3);
+        ctx.fillRect(marioX - 5, marioY - 10, 11, 2);
+        // face
+        ctx.fillStyle = "#f8b070";
+        ctx.fillRect(marioX - 3, marioY - 8, 7, 5);
+        // eyes
+        ctx.fillStyle = "#000";
+        ctx.fillRect(marioX - 1, marioY - 7, 2, 2);
+        // mustache
+        ctx.fillStyle = "#602010";
+        ctx.fillRect(marioX - 2, marioY - 4, 6, 1);
+        // overalls
+        ctx.fillStyle = "#2040e0";
+        ctx.fillRect(marioX - 3, marioY - 3, 7, 6);
+        // shirt
+        ctx.fillStyle = "#e02020";
+        ctx.fillRect(marioX - 4, marioY - 3, 2, 5);
+        ctx.fillRect(marioX + 3, marioY - 3, 2, 5);
+        // buttons
+        ctx.fillStyle = "#f8d030";
+        ctx.fillRect(marioX - 1, marioY - 1, 1, 1);
+        ctx.fillRect(marioX + 1, marioY - 1, 1, 1);
+        // legs/shoes
+        const legOff = Math.floor(Math.sin(legFrame) * 2);
+        ctx.fillStyle = "#2040e0";
+        ctx.fillRect(marioX - 3, marioY + 3, 3, 3);
+        ctx.fillRect(marioX + 1, marioY + 3, 3, 3);
+        ctx.fillStyle = "#804020";
+        ctx.fillRect(marioX - 4 + legOff, marioY + 6, 4, 2);
+        ctx.fillRect(marioX + 1 - legOff, marioY + 6, 4, 2);
+
+        // HUD
+        ctx.fillStyle = "rgba(0,0,0,0.4)";
+        ctx.fillRect(0, 0, w, 12);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 6px monospace";
+        ctx.fillText("MARIO", 3, 8);
+        ctx.fillStyle = "#ff0";
+        ctx.font = "5px monospace";
+        score += 1;
+        ctx.fillText(String(score).padStart(6, "0"), 3, 11);
+        // coin counter
+        ctx.fillStyle = "#f8d030";
+        ctx.fillRect(w / 2 - 10, 2, 3, 4);
+        ctx.fillStyle = "#fff";
+        ctx.font = "5px monospace";
+        ctx.fillText("x" + coins, w / 2 - 5, 8);
+        // world
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 5px monospace";
+        ctx.fillText("WORLD", w - 30, 5);
+        ctx.fillText("1-1", w - 25, 11);
+      };
+    }
+
+    // --- Zelda Scene ---
+
+    function createZeldaScene(ctx, w, h) {
+      let tick = 0;
+      let linkX = w / 2, linkY = h / 2;
+      let linkDir = 0; // 0=down,1=up,2=left,3=right
+      let linkFrame = 0;
+      let swordTimer = 0;
+      let health = 3;
+      let walkTarget = { x: w / 2, y: h / 2 };
+      let walkTimer = 0;
+
+      // obstacles: bushes and rocks
+      const bushes = [
+        { x: 20, y: 30 }, { x: 48, y: 50 }, { x: 100, y: 25 },
+        { x: 130, y: 60 }, { x: 30, y: 80 }, { x: 110, y: 90 },
+      ];
+      const rocks = [
+        { x: 70, y: 40 }, { x: 140, y: 80 }, { x: 50, y: 95 },
+      ];
+
+      // dungeon entrance
+      const dungeon = { x: 136, y: 16 };
+
+      // enemies (octoroks)
+      const enemies = [
+        { x: 90, y: 35, dir: 0, shootTimer: 0, projX: -1, projY: -1, projDir: 0, alive: true },
+        { x: 40, y: 70, dir: 2, shootTimer: 30, projX: -1, projY: -1, projDir: 0, alive: true },
+      ];
+
+      return function draw(frame) {
+        tick++;
+
+        // grass background
+        ctx.fillStyle = "#58a828";
+        ctx.fillRect(0, 0, w, h);
+
+        // grass detail pattern
+        for (let gy = 0; gy < h; gy += 8) {
+          for (let gx = 0; gx < w; gx += 8) {
+            if ((gx + gy) % 16 === 0) {
+              ctx.fillStyle = "#4c9820";
+              ctx.fillRect(gx + 2, gy + 2, 2, 2);
+            }
+          }
+        }
+
+        // path/dirt area
+        ctx.fillStyle = "#c0a060";
+        ctx.fillRect(w / 2 - 8, 0, 16, h);
+        ctx.fillRect(0, h / 2 - 6, w, 12);
+
+        // dungeon entrance
+        ctx.fillStyle = "#404040";
+        ctx.fillRect(dungeon.x, dungeon.y, 14, 12);
+        ctx.fillStyle = "#000";
+        ctx.fillRect(dungeon.x + 2, dungeon.y + 2, 10, 10);
+        ctx.fillStyle = "#303030";
+        ctx.fillRect(dungeon.x - 2, dungeon.y, 2, 12);
+        ctx.fillRect(dungeon.x + 14, dungeon.y, 2, 12);
+        ctx.fillRect(dungeon.x - 2, dungeon.y - 2, 18, 3);
+
+        // draw bushes
+        for (const b of bushes) {
+          ctx.fillStyle = "#306818";
+          ctx.fillRect(b.x, b.y, 8, 8);
+          ctx.fillStyle = "#409020";
+          ctx.fillRect(b.x + 1, b.y + 1, 6, 6);
+          ctx.fillStyle = "#306818";
+          ctx.fillRect(b.x + 3, b.y + 3, 2, 2);
+        }
+
+        // draw rocks
+        for (const r of rocks) {
+          ctx.fillStyle = "#808080";
+          ctx.fillRect(r.x, r.y, 8, 8);
+          ctx.fillStyle = "#a0a0a0";
+          ctx.fillRect(r.x + 1, r.y + 1, 6, 4);
+          ctx.fillStyle = "#606060";
+          ctx.fillRect(r.x + 1, r.y + 5, 6, 2);
+        }
+
+        // AI Link movement
+        walkTimer++;
+        if (walkTimer > 60) {
+          walkTimer = 0;
+          walkTarget = { x: 20 + Math.random() * (w - 40), y: 20 + Math.random() * (h - 40) };
+        }
+        const dx = walkTarget.x - linkX;
+        const dy = walkTarget.y - linkY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 2) {
+          const spd = 0.8;
+          linkX += (dx / dist) * spd;
+          linkY += (dy / dist) * spd;
+          linkFrame += 0.15;
+          // set direction
+          if (Math.abs(dx) > Math.abs(dy)) {
+            linkDir = dx > 0 ? 3 : 2;
+          } else {
+            linkDir = dy > 0 ? 0 : 1;
+          }
+        }
+
+        // sword slash every ~90 ticks
+        if (tick % 90 < 8) {
+          swordTimer = 8 - (tick % 90);
+        }
+
+        // enemies
+        for (const e of enemies) {
+          if (!e.alive) continue;
+          // move slowly
+          e.shootTimer++;
+          if (e.shootTimer % 120 < 60) {
+            if (e.dir === 0) e.y += 0.3;
+            else if (e.dir === 1) e.y -= 0.3;
+            else if (e.dir === 2) e.x -= 0.3;
+            else e.x += 0.3;
+          } else if (e.shootTimer % 120 === 60) {
+            e.dir = (e.dir + 1) % 4;
+          }
+
+          // shoot projectile
+          if (e.shootTimer % 80 === 0) {
+            e.projX = e.x + 3;
+            e.projY = e.y + 3;
+            // aim at Link
+            const pdx = linkX - e.x;
+            const pdy = linkY - e.y;
+            if (Math.abs(pdx) > Math.abs(pdy)) {
+              e.projDir = pdx > 0 ? 3 : 2;
+            } else {
+              e.projDir = pdy > 0 ? 0 : 1;
+            }
+          }
+
+          // move projectile
+          if (e.projX >= 0) {
+            const pspd = 1.5;
+            if (e.projDir === 0) e.projY += pspd;
+            else if (e.projDir === 1) e.projY -= pspd;
+            else if (e.projDir === 2) e.projX -= pspd;
+            else e.projX += pspd;
+            // off screen
+            if (e.projX < 0 || e.projX > w || e.projY < 0 || e.projY > h) {
+              e.projX = -1;
+            }
+            // draw projectile
+            if (e.projX >= 0) {
+              ctx.fillStyle = "#f0e040";
+              ctx.fillRect(e.projX - 1, e.projY - 1, 3, 3);
+            }
+          }
+
+          // draw enemy (octorok)
+          ctx.fillStyle = "#d04020";
+          ctx.fillRect(e.x, e.y, 8, 8);
+          ctx.fillStyle = "#f06040";
+          ctx.fillRect(e.x + 1, e.y + 1, 6, 6);
+          // eyes
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(e.x + 2, e.y + 2, 2, 2);
+          ctx.fillRect(e.x + 5, e.y + 2, 2, 2);
+          ctx.fillStyle = "#000";
+          ctx.fillRect(e.x + 2, e.y + 3, 1, 1);
+          ctx.fillRect(e.x + 6, e.y + 3, 1, 1);
+
+          // sword kill check
+          if (swordTimer > 0) {
+            let sx = linkX, sy = linkY;
+            if (linkDir === 0) sy += 8;
+            else if (linkDir === 1) sy -= 10;
+            else if (linkDir === 2) sx -= 10;
+            else sx += 8;
+            if (Math.abs(sx - e.x - 4) < 10 && Math.abs(sy - e.y - 4) < 10) {
+              e.alive = false;
+            }
+          }
+        }
+
+        // respawn enemies
+        if (tick % 300 === 0) {
+          for (const e of enemies) { e.alive = true; e.x = 30 + Math.random() * 100; e.y = 30 + Math.random() * 60; }
+        }
+
+        // draw Link
+        // body
+        ctx.fillStyle = "#30a030";
+        ctx.fillRect(linkX - 3, linkY - 3, 7, 8);
+        // head
+        ctx.fillStyle = "#30a030";
+        ctx.fillRect(linkX - 3, linkY - 7, 7, 5);
+        // face
+        ctx.fillStyle = "#f0c080";
+        if (linkDir === 0) {
+          ctx.fillRect(linkX - 2, linkY - 5, 5, 4);
+          ctx.fillStyle = "#000";
+          ctx.fillRect(linkX - 1, linkY - 4, 1, 1);
+          ctx.fillRect(linkX + 2, linkY - 4, 1, 1);
+        } else if (linkDir === 1) {
+          ctx.fillRect(linkX - 2, linkY - 6, 5, 3);
+        } else {
+          ctx.fillRect(linkX - 2, linkY - 6, 5, 4);
+          ctx.fillStyle = "#000";
+          ctx.fillRect(linkDir === 2 ? linkX - 1 : linkX + 2, linkY - 5, 1, 1);
+        }
+        // hat
+        ctx.fillStyle = "#30a030";
+        if (linkDir === 2) {
+          ctx.fillRect(linkX - 6, linkY - 8, 4, 3);
+        } else if (linkDir === 3) {
+          ctx.fillRect(linkX + 3, linkY - 8, 4, 3);
+        } else {
+          ctx.fillRect(linkX - 1, linkY - 9, 3, 2);
+        }
+        // legs
+        ctx.fillStyle = "#806030";
+        const lOff = Math.floor(Math.sin(linkFrame) * 1.5);
+        ctx.fillRect(linkX - 2, linkY + 5, 2, 3);
+        ctx.fillRect(linkX + 1 + lOff, linkY + 5, 2, 3);
+
+        // sword
+        if (swordTimer > 0) {
+          ctx.fillStyle = "#c0c0e0";
+          if (linkDir === 0) ctx.fillRect(linkX - 1, linkY + 6, 2, 8);
+          else if (linkDir === 1) ctx.fillRect(linkX - 1, linkY - 15, 2, 8);
+          else if (linkDir === 2) ctx.fillRect(linkX - 12, linkY - 2, 8, 2);
+          else ctx.fillRect(linkX + 5, linkY - 2, 8, 2);
+          // hilt
+          ctx.fillStyle = "#a06030";
+          if (linkDir === 0) ctx.fillRect(linkX - 2, linkY + 5, 4, 2);
+          else if (linkDir === 1) ctx.fillRect(linkX - 2, linkY - 8, 4, 2);
+          else if (linkDir === 2) ctx.fillRect(linkX - 5, linkY - 3, 2, 4);
+          else ctx.fillRect(linkX + 4, linkY - 3, 2, 4);
+        }
+
+        // HUD bar
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(0, 0, w, 12);
+        // hearts
+        for (let i = 0; i < 3; i++) {
+          ctx.fillStyle = i < health ? "#e02020" : "#444";
+          ctx.fillRect(4 + i * 10, 2, 7, 7);
+          // heart shape
+          ctx.fillStyle = i < health ? "#f04040" : "#555";
+          ctx.fillRect(5 + i * 10, 3, 2, 2);
+          ctx.fillRect(8 + i * 10, 3, 2, 2);
+          ctx.fillRect(6 + i * 10, 5, 3, 2);
+          ctx.fillRect(7 + i * 10, 7, 1, 1);
+        }
+        ctx.fillStyle = "#fff";
+        ctx.font = "5px monospace";
+        ctx.fillText("-LIFE-", w - 30, 8);
+      };
+    }
+
+    // --- Donkey Kong Scene ---
+
+    function createDonkeyKongScene(ctx, w, h) {
+      let tick = 0;
+      let marioX = 15, marioY = h - 14;
+      let marioDir = 1; // 1=right
+      let climbing = false;
+      let marioVelY = 0;
+      let onPlatform = 0; // which platform index
+      let legFrame = 0;
+
+      // platforms (sloped girders)
+      const platforms = [
+        { x1: 0, y1: h - 10, x2: w, y2: h - 8 },
+        { x1: w - 5, y1: h - 30, x2: 5, y2: h - 26 },
+        { x1: 0, y1: h - 48, x2: w - 5, y2: h - 44 },
+        { x1: w - 5, y1: h - 66, x2: 5, y2: h - 62 },
+        { x1: 0, y1: h - 82, x2: w * 0.6, y2: h - 80 },
+      ];
+
+      // ladders
+      const ladders = [
+        { x: w - 20, yTop: h - 30, yBot: h - 10 },
+        { x: 20, yTop: h - 48, yBot: h - 28 },
+        { x: w - 25, yTop: h - 66, yBot: h - 46 },
+        { x: 25, yTop: h - 82, yBot: h - 64 },
+      ];
+
+      // barrels
+      const barrels = [];
+      let barrelTimer = 0;
+
+      // DK position
+      const dkX = 10, dkY = h - 100;
+
+      // Pauline
+      const paulineX = w * 0.4, paulineY = h - 98;
+
+      // AI state
+      let targetLadder = 0;
+      let phase = "walk"; // walk, climb, jump
+
+      function getPlatformY(platIdx, xPos) {
+        const p = platforms[platIdx];
+        if (!p) return h - 10;
+        const t = (xPos - p.x1) / (p.x2 - p.x1);
+        return p.y1 + t * (p.y2 - p.y1);
+      }
+
+      return function draw(frame) {
+        tick++;
+        barrelTimer++;
+
+        // background
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, w, h);
+
+        // draw platforms (girders)
+        for (const p of platforms) {
+          ctx.fillStyle = "#c04040";
+          for (let seg = 0; seg < 20; seg++) {
+            const t = seg / 20;
+            const sx = p.x1 + t * (p.x2 - p.x1);
+            const sy = p.y1 + t * (p.y2 - p.y1);
+            ctx.fillRect(sx, sy, (w / 20) + 1, 3);
+            // girder detail
+            ctx.fillStyle = "#a03030";
+            ctx.fillRect(sx, sy + 2, (w / 20) + 1, 1);
+            ctx.fillStyle = "#c04040";
+          }
+        }
+
+        // draw ladders
+        for (const l of ladders) {
+          ctx.fillStyle = "#60c0e0";
+          ctx.fillRect(l.x, l.yTop, 2, l.yBot - l.yTop);
+          ctx.fillRect(l.x + 6, l.yTop, 2, l.yBot - l.yTop);
+          // rungs
+          for (let ry = l.yTop; ry < l.yBot; ry += 5) {
+            ctx.fillRect(l.x, ry, 8, 1);
+          }
+        }
+
+        // spawn barrels
+        if (barrelTimer % 80 === 0) {
+          barrels.push({ x: dkX + 20, y: dkY + 16, plat: 4, velX: 1.2, rolling: true });
+        }
+
+        // update barrels
+        for (let i = barrels.length - 1; i >= 0; i--) {
+          const b = barrels[i];
+          if (!b.rolling) continue;
+          b.x += b.velX;
+          const py = getPlatformY(b.plat, b.x);
+          b.y = py - 4;
+
+          // check if barrel reaches end of platform
+          const p = platforms[b.plat];
+          if (p) {
+            const endX = b.velX > 0 ? Math.max(p.x1, p.x2) : Math.min(p.x1, p.x2);
+            if ((b.velX > 0 && b.x > endX - 5) || (b.velX < 0 && b.x < endX + 5)) {
+              // drop to next platform
+              if (b.plat > 0) {
+                b.plat--;
+                b.velX = -b.velX;
+                b.x = b.velX > 0 ? Math.min(platforms[b.plat].x1, platforms[b.plat].x2) + 5 : Math.max(platforms[b.plat].x1, platforms[b.plat].x2) - 5;
+              } else {
+                barrels.splice(i, 1);
+                continue;
+              }
+            }
+          }
+
+          // draw barrel
+          ctx.fillStyle = "#a06020";
+          ctx.fillRect(b.x - 3, b.y - 3, 6, 6);
+          ctx.fillStyle = "#c08030";
+          ctx.fillRect(b.x - 2, b.y - 2, 4, 4);
+          ctx.strokeStyle = "#704010";
+          ctx.strokeRect(b.x - 3, b.y - 3, 6, 6);
+        }
+
+        // AI Mario movement
+        if (phase === "walk") {
+          const ladder = ladders[targetLadder];
+          if (ladder) {
+            const targetX = ladder.x + 3;
+            if (Math.abs(marioX - targetX) > 2) {
+              marioX += marioX < targetX ? 0.8 : -0.8;
+              marioDir = marioX < targetX ? 1 : -1;
+              legFrame += 0.2;
+            } else {
+              phase = "climb";
+              climbing = true;
+            }
+          }
+          marioY = getPlatformY(onPlatform, marioX) - 8;
+        } else if (phase === "climb") {
+          const ladder = ladders[targetLadder];
+          if (ladder) {
+            marioY -= 0.6;
+            legFrame += 0.1;
+            if (marioY <= ladder.yTop - 4) {
+              climbing = false;
+              onPlatform++;
+              targetLadder++;
+              phase = "walk";
+              if (targetLadder >= ladders.length) {
+                // reset
+                targetLadder = 0;
+                onPlatform = 0;
+                marioX = 15;
+                marioY = h - 14;
+              }
+            }
+          }
+        }
+
+        // jump over barrels occasionally
+        if (!climbing && tick % 45 < 2) {
+          for (const b of barrels) {
+            if (Math.abs(b.x - marioX) < 15 && Math.abs(b.y - marioY) < 12) {
+              marioVelY = -2.5;
+            }
+          }
+        }
+        if (marioVelY !== 0) {
+          marioY += marioVelY;
+          marioVelY += 0.15;
+          const platY = getPlatformY(onPlatform, marioX) - 8;
+          if (marioY >= platY) {
+            marioY = platY;
+            marioVelY = 0;
+          }
+        }
+
+        // draw DK
+        ctx.fillStyle = "#a06020";
+        ctx.fillRect(dkX, dkY, 18, 16);
+        ctx.fillStyle = "#c08030";
+        ctx.fillRect(dkX + 2, dkY + 2, 14, 10);
+        // face
+        ctx.fillStyle = "#d0a050";
+        ctx.fillRect(dkX + 4, dkY + 3, 10, 6);
+        // eyes
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(dkX + 6, dkY + 4, 2, 2);
+        ctx.fillRect(dkX + 10, dkY + 4, 2, 2);
+        ctx.fillStyle = "#000";
+        ctx.fillRect(dkX + 7, dkY + 5, 1, 1);
+        ctx.fillRect(dkX + 11, dkY + 5, 1, 1);
+        // mouth
+        ctx.fillStyle = "#000";
+        ctx.fillRect(dkX + 7, dkY + 7, 4, 1);
+        // arms
+        ctx.fillStyle = "#a06020";
+        ctx.fillRect(dkX - 3, dkY + 6, 4, 4);
+        ctx.fillRect(dkX + 17, dkY + 6, 4, 4);
+        // barrel pile
+        ctx.fillStyle = "#a06020";
+        ctx.fillRect(dkX - 2, dkY + 16, 8, 6);
+        ctx.fillStyle = "#c08030";
+        ctx.fillRect(dkX, dkY + 16, 4, 6);
+
+        // draw Pauline
+        ctx.fillStyle = "#ff70a0";
+        ctx.fillRect(paulineX, paulineY, 5, 8);
+        ctx.fillStyle = "#f0c080";
+        ctx.fillRect(paulineX, paulineY - 4, 5, 5);
+        ctx.fillStyle = "#ff70a0";
+        ctx.fillRect(paulineX + 1, paulineY - 6, 3, 3);
+        // "HELP!"
+        if (tick % 120 < 60) {
+          ctx.fillStyle = "#fff";
+          ctx.font = "5px monospace";
+          ctx.fillText("HELP!", paulineX - 6, paulineY - 8);
+        }
+
+        // draw Mario
+        if (climbing) {
+          // climbing pose
+          ctx.fillStyle = "#e02020";
+          ctx.fillRect(marioX - 2, marioY - 6, 5, 3);
+          ctx.fillStyle = "#f0c080";
+          ctx.fillRect(marioX - 2, marioY - 4, 5, 3);
+          ctx.fillStyle = "#2040e0";
+          ctx.fillRect(marioX - 2, marioY - 1, 5, 5);
+          const armOff = Math.sin(legFrame * 2) * 3;
+          ctx.fillStyle = "#e02020";
+          ctx.fillRect(marioX - 4, marioY - 3 + armOff, 2, 2);
+          ctx.fillRect(marioX + 4, marioY - 3 - armOff, 2, 2);
+        } else {
+          // hat
+          ctx.fillStyle = "#e02020";
+          ctx.fillRect(marioX - 3 + marioDir, marioY - 8, 6, 2);
+          // head
+          ctx.fillStyle = "#f0c080";
+          ctx.fillRect(marioX - 2, marioY - 6, 5, 4);
+          // body
+          ctx.fillStyle = "#2040e0";
+          ctx.fillRect(marioX - 2, marioY - 2, 5, 5);
+          ctx.fillStyle = "#e02020";
+          ctx.fillRect(marioX - 3, marioY - 2, 2, 4);
+          ctx.fillRect(marioX + 3, marioY - 2, 2, 4);
+          // legs
+          ctx.fillStyle = "#2040e0";
+          const lo = Math.floor(Math.sin(legFrame) * 2);
+          ctx.fillRect(marioX - 2 + lo, marioY + 3, 2, 3);
+          ctx.fillRect(marioX + 1 - lo, marioY + 3, 2, 3);
+        }
+
+        // HUD
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillRect(0, 0, w, 10);
+        ctx.fillStyle = "#00e0ff";
+        ctx.font = "bold 6px monospace";
+        ctx.fillText("L=" + (onPlatform + 1), 4, 8);
+        ctx.fillStyle = "#fff";
+        const dkScore = tick * 5;
+        ctx.fillText(String(dkScore).padStart(6, "0"), w / 2 - 16, 8);
+        ctx.fillStyle = "#e02020";
+        ctx.font = "5px monospace";
+        ctx.fillText("1UP", w - 18, 8);
       };
     }
 
