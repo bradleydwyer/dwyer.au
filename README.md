@@ -1,6 +1,6 @@
 # dwyer.au
 
-Personal homepage for Brad Dwyer — a maximalist, chaotic tribute to computing and gaming history wrapped in a retro-terminal/glitch aesthetic. The page is essentially alive: it constantly glitches, spawns animated pixel-art game scenes, cycles through loading messages, and runs a full HBO-style intro on first load.
+Personal homepage for bread dryer — a maximalist, chaotic tribute to computing and gaming history wrapped in a retro-terminal/glitch aesthetic. The page is essentially alive: it constantly glitches, spawns animated pixel-art game scenes, cycles through loading messages, and runs a full HBO-style intro on first load.
 
 Everything — CSS, all 48 game renderers, glitch system, HBO intro, warning overlay, matrix rain, cursor proximity, favicon cycling, color drift, name rotation, typing engine — is contained in one `index.html` with no external JS dependencies beyond a Google Fonts CSS link.
 
@@ -37,99 +37,99 @@ Full-screen overlay with an animated SVG warning triangle (stroked on over 1s), 
 All scenes render on a 160×120 pixel canvas displayed at 240×180 with `image-rendering: pixelated`. Each runs for 300–600 frames before expiring with a glitch-kill animation.
 
 ### Arcade Classics
-| Scene | Reference | Description |
-|-------|-----------|-------------|
-| Pac-Man | Pac-Man (1980) | Pac-Man eating dots, ghosts chasing, score |
-| Pong | Pong (1972) | Two AI paddles, bouncing ball, score tracking |
-| Breakout | Breakout / Arkanoid | 5 rows of colored bricks, AI paddle, ball physics |
-| Space Invaders | Space Invaders (1978) | 3×8 alien grid, formation movement, player ship, bullets |
-| Asteroids | Asteroids (1979) | Wireframe ship, rotating asteroids that split, bullets, particles |
-| Frogger | Frogger (1981) | Traffic lanes, river with logs/turtles, hopping frog, lily pads |
-| Galaga | Galaga (1981) | Alien formations with wing-flap animation, curved dive-bombing, stage counter |
-| Missile Command | Missile Command (1980) | Cities, falling missiles, AI defense battery with expanding blast radii |
-| Donkey Kong | Donkey Kong (1981) | Sloped girder platforms, ladders, DK throwing barrels, Mario climbing, Pauline |
+| Scene           | Reference              | Description                                                                    |
+| --------------- | ---------------------- | ------------------------------------------------------------------------------ |
+| Pac-Man         | Pac-Man (1980)         | Pac-Man eating dots, ghosts chasing, score                                     |
+| Pong            | Pong (1972)            | Two AI paddles, bouncing ball, score tracking                                  |
+| Breakout        | Breakout / Arkanoid    | 5 rows of colored bricks, AI paddle, ball physics                              |
+| Space Invaders  | Space Invaders (1978)  | 3×8 alien grid, formation movement, player ship, bullets                       |
+| Asteroids       | Asteroids (1979)       | Wireframe ship, rotating asteroids that split, bullets, particles              |
+| Frogger         | Frogger (1981)         | Traffic lanes, river with logs/turtles, hopping frog, lily pads                |
+| Galaga          | Galaga (1981)          | Alien formations with wing-flap animation, curved dive-bombing, stage counter  |
+| Missile Command | Missile Command (1980) | Cities, falling missiles, AI defense battery with expanding blast radii        |
+| Donkey Kong     | Donkey Kong (1981)     | Sloped girder platforms, ladders, DK throwing barrels, Mario climbing, Pauline |
 
 ### Console / Platformers
-| Scene | Reference | Description |
-|-------|-----------|-------------|
-| Sonic | Sonic the Hedgehog (1991) | Side-scroller, checkerboard ground, rings, speed blur, rolling ball form |
-| Mario | Super Mario Bros. (1985) | Brick/? blocks, pipes, goombas, coins, clouds, "WORLD 1-1" HUD |
-| Zelda | The Legend of Zelda (1986) | Top-down overworld, Link with sword slash, octoroks, hearts, dungeon entrance |
-| Commander Keen | Commander Keen Ep. 4 (1991) | Platforms, Keen with ray gun, alien slugs, lollipop collectibles |
+| Scene          | Reference                   | Description                                                                   |
+| -------------- | --------------------------- | ----------------------------------------------------------------------------- |
+| Sonic          | Sonic the Hedgehog (1991)   | Side-scroller, checkerboard ground, rings, speed blur, rolling ball form      |
+| Mario          | Super Mario Bros. (1985)    | Brick/? blocks, pipes, goombas, coins, clouds, "WORLD 1-1" HUD                |
+| Zelda          | The Legend of Zelda (1986)  | Top-down overworld, Link with sword slash, octoroks, hearts, dungeon entrance |
+| Commander Keen | Commander Keen Ep. 4 (1991) | Platforms, Keen with ray gun, alien slugs, lollipop collectibles              |
 
 ### PC / DOS Games
-| Scene | Reference | Description |
-|-------|-----------|-------------|
-| Doom | Doom (1993) | Raycaster 3D corridor, 4 level types, enemies, weapons with muzzle flash, Doom Guy face HUD |
-| Wolfenstein 3D | Wolfenstein 3D (1992) | Raycaster blue/grey stone, Nazi banners, guard enemies, pistol |
-| Prince of Persia | Prince of Persia (1989) | Stone dungeon, platforms, spike traps, torch flames, sword combat with guard |
-| Oregon Trail | The Oregon Trail (1985) | Scrolling wagon, typed event messages (dysentery, etc.), status bar |
-| Gorillas | GORILLAS.BAS (QBasic) | City skyline, two gorillas throwing banana projectiles, parabolic arcs, explosions |
-| Minesweeper | Windows Minesweeper | 12×9 grid, authentic Win95 styling, AI reveals cells, numbered colors, flags |
-| Pipe Dream | Pipe Dream (LucasArts) | Grid of pipe segments, green ooze flowing through path |
-| Game of Life | Conway's Game of Life | B3/S23 rules, toroidal wrap, colored by neighbor count, generation counter |
+| Scene            | Reference               | Description                                                                                 |
+| ---------------- | ----------------------- | ------------------------------------------------------------------------------------------- |
+| Doom             | Doom (1993)             | Raycaster 3D corridor, 4 level types, enemies, weapons with muzzle flash, Doom Guy face HUD |
+| Wolfenstein 3D   | Wolfenstein 3D (1992)   | Raycaster blue/grey stone, Nazi banners, guard enemies, pistol                              |
+| Prince of Persia | Prince of Persia (1989) | Stone dungeon, platforms, spike traps, torch flames, sword combat with guard                |
+| Oregon Trail     | The Oregon Trail (1985) | Scrolling wagon, typed event messages (dysentery, etc.), status bar                         |
+| Gorillas         | GORILLAS.BAS (QBasic)   | City skyline, two gorillas throwing banana projectiles, parabolic arcs, explosions          |
+| Minesweeper      | Windows Minesweeper     | 12×9 grid, authentic Win95 styling, AI reveals cells, numbered colors, flags                |
+| Pipe Dream       | Pipe Dream (LucasArts)  | Grid of pipe segments, green ooze flowing through path                                      |
+| Game of Life     | Conway's Game of Life   | B3/S23 rules, toroidal wrap, colored by neighbor count, generation counter                  |
 
 ### Adventure Games (Sierra)
-| Scene | Reference | Description |
-|-------|-----------|-------------|
-| Space Quest | Space Quest (Sierra) | Night scene, Roger Wilco walking, "SIERRA ON-LINE" building, parser text box |
-| King's Quest | King's Quest (Sierra) | EGA castle scene, Sir Graham walking, parser commands, score |
-| Quest for Glory | Quest for Glory (Sierra) | Night town gate "SPIELBURG", torches, hero stats popup, scrolling messages |
-| Police Quest | Police Quest (Sierra) | City night, police car with siren lights, Officer Sonny Bonds, radio dispatch messages |
+| Scene           | Reference                              | Description                                                                                  |
+| --------------- | -------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Space Quest     | Space Quest (Sierra)                   | Night scene, Roger Wilco walking, "SIERRA ON-LINE" building, parser text box                 |
+| King's Quest    | King's Quest (Sierra)                  | EGA castle scene, Sir Graham walking, parser commands, score                                 |
+| Quest for Glory | Quest for Glory (Sierra)               | Night town gate "SPIELBURG", torches, hero stats popup, scrolling messages                   |
+| Police Quest    | Police Quest (Sierra)                  | City night, police car with siren lights, Officer Sonny Bonds, radio dispatch messages       |
 | Carmen Sandiego | Where in the World Is Carmen Sandiego? | 3-phase: briefing with Carmen sprite, city landmarks with clues, world map with plane travel |
 
 ### Simulation / Building
-| Scene | Reference | Description |
-|-------|-----------|-------------|
-| SimCity | SimCity (1989) | Isometric grid of R/C/I zones, growing buildings with windows, roads, population counter |
-| Minecraft | Minecraft (2011) | Day/night cycle, isometric terrain, Steve mining blocks, Creeper, hearts/XP/hotbar HUD |
+| Scene     | Reference        | Description                                                                              |
+| --------- | ---------------- | ---------------------------------------------------------------------------------------- |
+| SimCity   | SimCity (1989)   | Isometric grid of R/C/I zones, growing buildings with windows, roads, population counter |
+| Minecraft | Minecraft (2011) | Day/night cycle, isometric terrain, Steve mining blocks, Creeper, hearts/XP/hotbar HUD   |
 
 ### OS / Computing
-| Scene | Reference | Description |
-|-------|-----------|-------------|
-| BSOD | Windows Blue Screen | Authentic blue screen, IRQL_NOT_LESS_OR_EQUAL, crash dump progress |
-| Spinning Pinwheel | macOS Beach Ball | Finder "Not Responding" window, rainbow spinning disc, Force Quit hint |
-| Windows 95 | Windows 95 Boot | DOS boot → logo with clouds/progress bar → teal desktop with Start button and icons |
-| Amiga Boing Ball | Amiga Demo (1984) | Red/white checkerboard sphere bouncing with 3D rotation, grid background |
-| DOS Boot | MS-DOS | Boot sequence with HIMEM, MSCDEX, then DIR listing of classic game directories |
+| Scene             | Reference           | Description                                                                         |
+| ----------------- | ------------------- | ----------------------------------------------------------------------------------- |
+| BSOD              | Windows Blue Screen | Authentic blue screen, IRQL_NOT_LESS_OR_EQUAL, crash dump progress                  |
+| Spinning Pinwheel | macOS Beach Ball    | Finder "Not Responding" window, rainbow spinning disc, Force Quit hint              |
+| Windows 95        | Windows 95 Boot     | DOS boot → logo with clouds/progress bar → teal desktop with Start button and icons |
+| Amiga Boing Ball  | Amiga Demo (1984)   | Red/white checkerboard sphere bouncing with 3D rotation, grid background            |
+| DOS Boot          | MS-DOS              | Boot sequence with HIMEM, MSCDEX, then DIR listing of classic game directories      |
 
 ### Puzzle / Casual
-| Scene | Reference | Description |
-|-------|-----------|-------------|
-| Tetris | Tetris (1984) | Full working Tetris with all 7 tetrominoes, row clearing, score |
-| Wordle | NYT Wordle | Full Wordle grid, AI guesses with correct green/yellow/gray coloring logic |
-| Snake | Snake | Green snake eating red food, growing body, score |
+| Scene  | Reference     | Description                                                                |
+| ------ | ------------- | -------------------------------------------------------------------------- |
+| Tetris | Tetris (1984) | Full working Tetris with all 7 tetrominoes, row clearing, score            |
+| Wordle | NYT Wordle    | Full Wordle grid, AI guesses with correct green/yellow/gray coloring logic |
+| Snake  | Snake         | Green snake eating red food, growing body, score                           |
 
 ### Shooters / Action
-| Scene | Reference | Description |
-|-------|-----------|-------------|
-| Flappy Bird | Flappy Bird (2013) | Pipe gaps, gravity-based bird, score |
-| Angry Birds | Angry Birds (2009) | Slingshot, projectile physics, wood/plank structure, green pigs, debris |
-| Need for Speed | Need for Speed | Perspective road, traffic cars, roadside trees, player car, MPH/lap HUD |
+| Scene          | Reference          | Description                                                             |
+| -------------- | ------------------ | ----------------------------------------------------------------------- |
+| Flappy Bird    | Flappy Bird (2013) | Pipe gaps, gravity-based bird, score                                    |
+| Angry Birds    | Angry Birds (2009) | Slingshot, projectile physics, wood/plank structure, green pigs, debris |
+| Need for Speed | Need for Speed     | Perspective road, traffic cars, roadside trees, player car, MPH/lap HUD |
 
 ### Internet Culture / Humor
-| Scene | Reference | Description |
-|-------|-----------|-------------|
-| AI Chat | ChatGPT/Claude/Gemini | Cycles through AI models with sardonic conversations parodying AI assistants |
-| Zombo.com | Zombo.com | White background, rotating colored blobs, rainbow "ZOMBO.COM" text, cycling messages |
-| Strong Bad Email | Homestar Runner | Compy 386 monitor, email typing, Strong Bad pixel art with boxing gloves |
-| Trogdor | Homestar Runner | Trogdor burninating cottages, beefy arm, consummate V's, fleeing peasants |
+| Scene            | Reference             | Description                                                                          |
+| ---------------- | --------------------- | ------------------------------------------------------------------------------------ |
+| AI Chat          | ChatGPT/Claude/Gemini | Cycles through AI models with sardonic conversations parodying AI assistants         |
+| Zombo.com        | Zombo.com             | White background, rotating colored blobs, rainbow "ZOMBO.COM" text, cycling messages |
+| Strong Bad Email | Homestar Runner       | Compy 386 monitor, email typing, Strong Bad pixel art with boxing gloves             |
+| Trogdor          | Homestar Runner       | Trogdor burninating cottages, beefy arm, consummate V's, fleeing peasants            |
 
 ### Demoscene
-| Scene | Reference | Description |
-|-------|-----------|-------------|
+| Scene  | Reference               | Description                                                                            |
+| ------ | ----------------------- | -------------------------------------------------------------------------------------- |
 | Plasma | Demoscene plasma effect | Per-pixel sine-wave plasma, scrolling "GREETINGS FROM THE DEMOSCENE" text, copper bars |
 
 ### WarGames
-| Scene | Reference | Description |
-|-------|-----------|-------------|
-| WOPR Terminal | WarGames (1983) | Green terminal typing "SHALL WE PLAY A GAME?", blinking cursor |
-| WOPR Map | WarGames (1983) | Wireframe world map, missile arcs, expanding explosions, DEFCON 1 HUD |
+| Scene          | Reference         | Description                                                                       |
+| -------------- | ----------------- | --------------------------------------------------------------------------------- |
+| WOPR Terminal  | WarGames (1983)   | Green terminal typing "SHALL WE PLAY A GAME?", blinking cursor                    |
+| WOPR Map       | WarGames (1983)   | Wireframe world map, missile arcs, expanding explosions, DEFCON 1 HUD             |
 | Street Fighter | Street Fighter II | Two stick-fighters, punches/kicks/hadoukens, HP bars, round counter, K.O. overlay |
 
 ### Lemmings
-| Scene | Reference | Description |
-|-------|-----------|-------------|
+| Scene    | Reference       | Description                                                                                 |
+| -------- | --------------- | ------------------------------------------------------------------------------------------- |
 | Lemmings | Lemmings (1991) | Spawning lemmings, walking/falling/digging/umbrella mechanics, entrance/exit, saved counter |
 
 ## Code Snippets (~130 floating text artifacts)
@@ -168,7 +168,7 @@ The `recentScenes` queue tracks which scenes have been shown. New scenes prefer 
 
 ## Other Features
 
-- **Name rotation:** Every 25–35 seconds, cycles between "Brad Dwyer", "brad@dwyer.au", and "dwyer.au" with a glitch-scramble transition
+- **Name rotation:** Every 25–35 seconds, cycles between "bread dryer", "bread@dwyer.au", and "dwyer.au" with a glitch-scramble transition
 - **Favicon cycling:** Changes every 2–7 seconds between pixel "B", pixel "D", random glitch noise, and a Space Invader — all dynamically generated via canvas
 - **Matrix rain:** Triggered on intense glitch events or clicking the name — katakana + ASCII characters with leading bright char and fading green trails
 
