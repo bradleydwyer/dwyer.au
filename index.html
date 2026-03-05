@@ -489,6 +489,10 @@
       'POLICE QUEST\n  In Pursuit of\n  the Death Angel',
       '10-4 DISPATCH\n  ALL UNITS RESPOND',
       'WALK AROUND THE\n  CAR. INSPECT YOUR\n  VEHICLE.',
+      // Zombo.com
+      'YOU CAN DO\n  ANYTHING AT\n  ZOMBO.COM',
+      'THE ONLY LIMIT\n  IS YOURSELF\n  ZOMBO.COM',
+      'WELCOME TO\n  ZOMBOCOM\n  THIS IS ZOMBOCOM',
       // Minecraft
       'MINECRAFT\n  Steve joined\n  the game',
       'Ssssss... BOOM!\n  Creeper blew up',
@@ -530,7 +534,7 @@
       canvas.style.imageRendering = "pixelated";
       const ctx = canvas.getContext("2d");
 
-      const sceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene, createMissileCommandScene, createOregonTrailScene, createPrinceScene, createLemmingsScene, createWin95Scene, createAmigaBoingScene, createWolfensteinScene, createMinesweeperScene, createPipeDreamScene, createGameOfLifeScene, createDOSBootScene, createCarmenScene, createStrongBadScene, createTrogdorScene, createAIChatScene, createKingsQuestScene, createQuestForGloryScene, createPoliceQuestScene, createMinecraftScene];
+      const sceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene, createMissileCommandScene, createOregonTrailScene, createPrinceScene, createLemmingsScene, createWin95Scene, createAmigaBoingScene, createWolfensteinScene, createMinesweeperScene, createPipeDreamScene, createGameOfLifeScene, createDOSBootScene, createCarmenScene, createStrongBadScene, createTrogdorScene, createAIChatScene, createKingsQuestScene, createQuestForGloryScene, createPoliceQuestScene, createMinecraftScene, createZomboScene];
 
       // pick a scene that isn't already on screen
       const available = sceneFactories.filter(f => !activeSceneTypes.has(f.name));
@@ -4408,6 +4412,96 @@
       };
     }
 
+    // --- Zombo.com Scene ---
+
+    function createZomboScene(ctx, w, h) {
+      let tick = 0;
+      const cx = w / 2, cy = h / 2;
+      const ringColors = ["#ff0000", "#ff8800", "#ffff00", "#00ff00", "#00ccff", "#8800ff", "#ff00ff", "#ff4444"];
+      const numRings = 12;
+
+      const messages = [
+        "YOU CAN DO",
+        "ANYTHING AT",
+        "ZOMBO.COM",
+        "THE ONLY LIMIT",
+        "IS YOURSELF",
+        "WELCOME TO",
+        "ZOMBO.COM",
+        "YES, THIS IS",
+        "ZOMBO.COM",
+      ];
+      let msgIdx = 0, msgTimer = 0;
+
+      return function draw(frame) {
+        tick++;
+
+        // dark background
+        ctx.fillStyle = "#1a0a2e";
+        ctx.fillRect(0, 0, w, h);
+
+        // spinning concentric rings/circles
+        for (let i = numRings; i >= 0; i--) {
+          const baseRadius = 8 + i * 6;
+          const pulse = Math.sin(tick * 0.03 + i * 0.5) * 3;
+          const radius = baseRadius + pulse;
+          const rotation = tick * (0.02 + i * 0.005) * (i % 2 === 0 ? 1 : -1);
+
+          // draw ring as a series of colored segments
+          const segments = 6 + i;
+          for (let s = 0; s < segments; s++) {
+            const angle = (s / segments) * Math.PI * 2 + rotation;
+            const nextAngle = ((s + 1) / segments) * Math.PI * 2 + rotation;
+            const colorIdx = (i + s) % ringColors.length;
+
+            ctx.fillStyle = ringColors[colorIdx];
+            ctx.globalAlpha = 0.4 + 0.4 * (1 - i / numRings);
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, radius, angle, nextAngle);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+
+        ctx.globalAlpha = 1;
+
+        // glowing center circle
+        const centerPulse = 5 + Math.sin(tick * 0.08) * 2;
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(cx, cy, centerPulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ffff00";
+        ctx.beginPath();
+        ctx.arc(cx, cy, centerPulse - 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // cycling text
+        msgTimer++;
+        if (msgTimer > 60) { msgTimer = 0; msgIdx = (msgIdx + 1) % messages.length; }
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 8px monospace";
+        ctx.textAlign = "center";
+        const txtY = h - 12;
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillRect(0, txtY - 8, w, 14);
+        ctx.fillStyle = "#fff";
+        ctx.fillText(messages[msgIdx], cx, txtY);
+        ctx.textAlign = "start";
+
+        // "ZOMBO.COM" header
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(0, 0, w, 10);
+        ctx.fillStyle = "#ff0";
+        ctx.font = "bold 7px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("ZOMBO.COM", cx, 8);
+        ctx.textAlign = "start";
+      };
+    }
+
     // --- AI Chat Scene ---
 
     function createAIChatScene(ctx, w, h) {
@@ -4877,6 +4971,33 @@
 
     let artifactsEnabled = false;
 
+    function glitchKillArtifact(el) {
+      if (el._dying) return;
+      el._dying = true;
+      let deathFrame = 0;
+      const deathFrames = 8 + Math.floor(Math.random() * 6);
+      const deathInterval = setInterval(() => {
+        deathFrame++;
+        const chaos = deathFrame / deathFrames;
+        const jx = (Math.random() - 0.5) * 30 * chaos;
+        const jy = (Math.random() - 0.5) * 20 * chaos;
+        const skew = (Math.random() - 0.5) * 40 * chaos;
+        const scale = 1 - chaos * 0.5 + Math.random() * 0.3;
+        el.style.transform = `translate(${jx}px, ${jy}px) skewX(${skew}deg) scale(${scale})`;
+        el.style.filter = `hue-rotate(${Math.random() * 360}deg) saturate(${2 + chaos * 5}) brightness(${1 + chaos * 2})`;
+        if (Math.random() < chaos * 0.6) el.style.clipPath = `inset(${Math.random()*40}% 0 ${Math.random()*40}% 0)`;
+        else el.style.clipPath = "";
+        if (Math.random() < chaos * 0.4) el.style.opacity = "0";
+        else el.style.opacity = (1 - chaos * 0.5).toFixed(2);
+        if (deathFrame >= deathFrames) {
+          clearInterval(deathInterval);
+          const canvas = el.querySelector("canvas");
+          if (canvas && canvas._sceneType) activeSceneTypes.delete(canvas._sceneType);
+          if (el.parentNode) el.parentNode.removeChild(el);
+        }
+      }, 40);
+    }
+
     function spawnArtifact() {
       if (!artifactsEnabled) return document.createElement('div');
       const el = document.createElement('div');
@@ -4911,6 +5032,8 @@
       } else if (type < 0.6) {
         // mini game scene (animated)
         el.classList.add('artifact-block');
+        el.style.pointerEvents = "auto";
+        el.style.cursor = "pointer";
         const canvas = spawnGameScene();
         el.appendChild(canvas);
         el.style.transform = `rotate(${rand2(-5, 5).toFixed(1)}deg)`;
@@ -4943,33 +5066,7 @@
       // game scenes last 15-30 seconds
       const isGame = type >= 0.3 && type < 0.6;
       const duration = isGame ? rand2(15000, 30000) : rand2(80, 400);
-      setTimeout(() => {
-        // glitch out of existence
-        let deathFrame = 0;
-        const deathFrames = 8 + Math.floor(Math.random() * 6);
-        const deathInterval = setInterval(() => {
-          deathFrame++;
-          const chaos = deathFrame / deathFrames;
-          const jx = (Math.random() - 0.5) * 30 * chaos;
-          const jy = (Math.random() - 0.5) * 20 * chaos;
-          const skew = (Math.random() - 0.5) * 40 * chaos;
-          const scale = 1 - chaos * 0.5 + Math.random() * 0.3;
-          el.style.transform = `translate(${jx}px, ${jy}px) skewX(${skew}deg) scale(${scale})`;
-          el.style.filter = `hue-rotate(${Math.random() * 360}deg) saturate(${2 + chaos * 5}) brightness(${1 + chaos * 2})`;
-          if (Math.random() < chaos * 0.6) el.style.clipPath = `inset(${Math.random()*40}% 0 ${Math.random()*40}% 0)`;
-          else el.style.clipPath = "";
-          if (Math.random() < chaos * 0.4) el.style.opacity = "0";
-          else el.style.opacity = (1 - chaos * 0.5).toFixed(2);
-          if (deathFrame >= deathFrames) {
-            clearInterval(deathInterval);
-            if (isGame) {
-              const canvas = el.querySelector("canvas");
-              if (canvas && canvas._sceneType) activeSceneTypes.delete(canvas._sceneType);
-            }
-            if (el.parentNode) el.parentNode.removeChild(el);
-          }
-        }, 40);
-      }, duration);
+      setTimeout(() => glitchKillArtifact(el), duration);
 
       return el;
     }
@@ -4983,6 +5080,36 @@
         }, i * rand2(20, 80));
       }
     }
+
+    // Click to spawn game scenes; click a game panel to crash it
+    document.addEventListener("click", function(e) {
+      if (!artifactsEnabled) return;
+      // check if clicked on an existing game artifact
+      let target = e.target;
+      while (target && target !== document.body) {
+        if (target.classList && target.classList.contains("artifact") && target.querySelector("canvas")) {
+          glitchKillArtifact(target);
+          return;
+        }
+        target = target.parentNode;
+      }
+      // ignore clicks on the name/status text
+      if (e.target.closest && e.target.closest(".center")) return;
+      // spawn a game scene at click position
+      const el = document.createElement("div");
+      el.className = "artifact artifact-block";
+      el.style.pointerEvents = "auto";
+      el.style.cursor = "pointer";
+      el.style.left = (e.clientX / window.innerWidth * 100) + "vw";
+      el.style.top = (e.clientY / window.innerHeight * 100) + "vh";
+      el.style.transform = `translate(-50%, -50%) rotate(${(Math.random() * 10 - 5).toFixed(1)}deg)`;
+      el.style.opacity = rand2(0.6, 0.95).toFixed(2);
+      const canvas = spawnGameScene();
+      el.appendChild(canvas);
+      document.body.appendChild(el);
+      // auto-expire after 15-30s
+      setTimeout(() => glitchKillArtifact(el), rand2(15000, 30000));
+    });
 
     function wrapChars(nameEl) {
       const text = nameEl.textContent;
@@ -5715,40 +5842,44 @@
     function glitchOutWarning(onDone) {
       const svg = warningOverlay.querySelector("svg");
       const text = warningOverlay.querySelector(".warn-text");
+      const progressEl = warningOverlay.querySelector(".warn-progress");
       const glitchColors = ["#0ff", "#f0f", "#f00", "#0f0", "#ff0", "#f80"];
       const pick = () => glitchColors[Math.floor(Math.random() * glitchColors.length)];
       const r = (a, b) => a + Math.random() * (b - a);
       let frame = 0;
-      const totalFrames = 30;
+      const totalFrames = 90;
       const iv = setInterval(() => {
         frame++;
-        const t = frame / totalFrames;
-        const mult = t * 12;
+        const t = frame / totalFrames; // 0→1 over full duration
+        const intensity = t * t; // quadratic ramp — starts subtle, gets aggressive
+        const mult = intensity * 18;
+        // hide progress bar once glitch starts
+        if (progressEl) progressEl.style.opacity = "0";
         // thrash the SVG
-        svg.style.transform = `translate(${r(-mult, mult)}px, ${r(-mult, mult)}px) skewX(${r(-20*t, 20*t)}deg) scale(${1 + r(-0.1, 0.1) * t})`;
-        svg.style.filter = `hue-rotate(${r(0, 360)}deg) saturate(${1 + t * 4}) brightness(${1 + t * 2})`;
-        if (Math.random() < t * 0.6) {
-          const a = r(0, 40), b = r(60, 100);
+        svg.style.transform = `translate(${r(-mult, mult)}px, ${r(-mult, mult)}px) skewX(${r(-25*intensity, 25*intensity)}deg) scale(${1 + r(-0.15, 0.15) * intensity})`;
+        svg.style.filter = `hue-rotate(${r(0, 360)}deg) saturate(${1 + intensity * 5}) brightness(${1 + intensity * 2.5})`;
+        if (Math.random() < intensity * 0.6) {
+          const a = r(0, 45 * intensity), b = r(100 - 45 * intensity, 100);
           svg.style.clipPath = `inset(${a}% 0 ${100 - b}% 0)`;
         } else {
           svg.style.clipPath = "";
         }
-        if (Math.random() < t * 0.4) svg.style.opacity = r(0, 0.5).toFixed(2);
-        else svg.style.opacity = (1 - t * 0.3).toFixed(2);
+        if (Math.random() < intensity * 0.5) svg.style.opacity = r(0, 0.4).toFixed(2);
+        else svg.style.opacity = (1 - intensity * 0.6).toFixed(2);
         // thrash the text
-        text.style.transform = `translate(${r(-mult, mult)}px, ${r(-mult*0.5, mult*0.5)}px) skewX(${r(-15*t, 15*t)}deg)`;
-        text.style.color = Math.random() < t * 0.5 ? pick() : "#ccc";
-        text.style.textShadow = `${r(-4, 4) * mult}px ${r(-2, 2) * mult}px ${pick()}, ${r(-4, 4) * mult}px ${r(-2, 2) * mult}px ${pick()}`;
-        if (Math.random() < t * 0.5) {
-          const a2 = r(0, 40), b2 = r(60, 100);
-          text.style.clipPath = `inset(${a2}% ${r(0, 20)}% ${100 - b2}% ${r(0, 20)}%)`;
+        text.style.transform = `translate(${r(-mult, mult)}px, ${r(-mult*0.5, mult*0.5)}px) skewX(${r(-20*intensity, 20*intensity)}deg)`;
+        text.style.color = Math.random() < intensity * 0.5 ? pick() : "#ccc";
+        text.style.textShadow = `${r(-5, 5) * mult}px ${r(-3, 3) * mult}px ${pick()}, ${r(-5, 5) * mult}px ${r(-3, 3) * mult}px ${pick()}`;
+        if (Math.random() < intensity * 0.5) {
+          const a2 = r(0, 40 * intensity), b2 = r(100 - 40 * intensity, 100);
+          text.style.clipPath = `inset(${a2}% ${r(0, 20 * intensity)}% ${100 - b2}% ${r(0, 20 * intensity)}%)`;
         } else {
           text.style.clipPath = "";
         }
-        if (Math.random() < t * 0.3) text.style.opacity = r(0, 0.4).toFixed(2);
-        else text.style.opacity = (1 - t * 0.5).toFixed(2);
-        // occasional full-overlay flash
-        if (Math.random() < t * 0.15) {
+        if (Math.random() < intensity * 0.4) text.style.opacity = r(0, 0.3).toFixed(2);
+        else text.style.opacity = (1 - intensity * 0.7).toFixed(2);
+        // background flashes only in the final third
+        if (t > 0.66 && Math.random() < (t - 0.66) * 0.5) {
           warningOverlay.style.backgroundColor = pick();
           setTimeout(() => { warningOverlay.style.backgroundColor = "#000"; }, 30);
         }
