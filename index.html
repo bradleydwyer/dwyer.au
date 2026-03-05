@@ -122,9 +122,109 @@
     @keyframes blink {
       50% { opacity: 0; }
     }
+
+    /* Photosensitivity warning overlay */
+    #warning-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 10000;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 1;
+    }
+    #warning-overlay svg line,
+    #warning-overlay svg circle {
+      fill: none;
+      stroke: #ffd600;
+      stroke-linecap: round;
+    }
+    #warning-overlay .tri-left {
+      stroke-width: 5;
+      stroke-dasharray: 86;
+      stroke-dashoffset: 86;
+      animation: draw-stroke 0.8s ease-in-out 0.2s forwards;
+    }
+    #warning-overlay .tri-right {
+      stroke-width: 5;
+      stroke-dasharray: 86;
+      stroke-dashoffset: 86;
+      animation: draw-stroke 0.8s ease-in-out 0.2s forwards;
+    }
+    #warning-overlay .tri-bottom {
+      stroke-width: 5;
+      stroke-dasharray: 81;
+      stroke-dashoffset: 81;
+      animation: draw-stroke 0.8s ease-in-out 0.2s forwards;
+    }
+    #warning-overlay .warn-line {
+      stroke-width: 6;
+      stroke-dasharray: 24;
+      stroke-dashoffset: 24;
+      animation: draw-stroke 0.35s ease-out 1.1s forwards;
+    }
+    #warning-overlay .warn-dot {
+      fill: #ffd600;
+      stroke: none;
+      opacity: 0;
+      transform-origin: 50px 72px;
+      animation: pop-dot 0.3s ease-out 1.5s forwards;
+    }
+    @keyframes draw-stroke {
+      to { stroke-dashoffset: 0; }
+    }
+    @keyframes pop-dot {
+      0% { opacity: 0; transform: scale(0); }
+      70% { opacity: 1; transform: scale(1.4); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    #warning-overlay .warn-text {
+      color: #ccc;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      text-align: center;
+      max-width: 340px;
+      line-height: 1.5;
+      margin-top: 24px;
+      opacity: 0;
+      animation: fade-in-text 0.6s ease-out 1.9s forwards;
+    }
+    #warning-overlay .warn-progress {
+      width: 340px;
+      max-width: 80vw;
+      height: 2px;
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      opacity: 0;
+      animation: fade-in-text 0.4s ease-out 2.0s forwards;
+    }
+    #warning-overlay .warn-progress-bar {
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.5);
+      transition: width 0.1s linear;
+    }
+    @keyframes fade-in-text {
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body>
+  <div id="warning-overlay">
+    <svg viewBox="0 0 100 100" width="120" height="120">
+      <line class="tri-left" x1="10" y1="85" x2="50" y2="10"/>
+      <line class="tri-right" x1="50" y1="10" x2="90" y2="85"/>
+      <line class="tri-bottom" x1="10" y1="85" x2="90" y2="85"/>
+      <line class="warn-line" x1="50" y1="38" x2="50" y2="62"/>
+      <circle class="warn-dot" cx="50" cy="72" r="3"/>
+    </svg>
+    <p class="warn-text">This site contains flashing lights and rapid visual effects that may affect photosensitive viewers.</p>
+    <div class="warn-progress"><div class="warn-progress-bar"></div></div>
+  </div>
   <canvas id="hbo-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;"></canvas>
   <canvas id="matrix-canvas"></canvas>
   <div class="center">
@@ -5610,8 +5710,67 @@
       render();
     }
 
-    // --- Boot sequence: HBO intro → glitch burst → then start everything ---
-    runHBOIntro(() => {
+    // --- Boot sequence: warning → HBO intro → glitch burst → then start everything ---
+    const warningOverlay = document.getElementById("warning-overlay");
+    function glitchOutWarning(onDone) {
+      const svg = warningOverlay.querySelector("svg");
+      const text = warningOverlay.querySelector(".warn-text");
+      const glitchColors = ["#0ff", "#f0f", "#f00", "#0f0", "#ff0", "#f80"];
+      const pick = () => glitchColors[Math.floor(Math.random() * glitchColors.length)];
+      const r = (a, b) => a + Math.random() * (b - a);
+      let frame = 0;
+      const totalFrames = 30;
+      const iv = setInterval(() => {
+        frame++;
+        const t = frame / totalFrames;
+        const mult = t * 12;
+        // thrash the SVG
+        svg.style.transform = `translate(${r(-mult, mult)}px, ${r(-mult, mult)}px) skewX(${r(-20*t, 20*t)}deg) scale(${1 + r(-0.1, 0.1) * t})`;
+        svg.style.filter = `hue-rotate(${r(0, 360)}deg) saturate(${1 + t * 4}) brightness(${1 + t * 2})`;
+        if (Math.random() < t * 0.6) {
+          const a = r(0, 40), b = r(60, 100);
+          svg.style.clipPath = `inset(${a}% 0 ${100 - b}% 0)`;
+        } else {
+          svg.style.clipPath = "";
+        }
+        if (Math.random() < t * 0.4) svg.style.opacity = r(0, 0.5).toFixed(2);
+        else svg.style.opacity = (1 - t * 0.3).toFixed(2);
+        // thrash the text
+        text.style.transform = `translate(${r(-mult, mult)}px, ${r(-mult*0.5, mult*0.5)}px) skewX(${r(-15*t, 15*t)}deg)`;
+        text.style.color = Math.random() < t * 0.5 ? pick() : "#ccc";
+        text.style.textShadow = `${r(-4, 4) * mult}px ${r(-2, 2) * mult}px ${pick()}, ${r(-4, 4) * mult}px ${r(-2, 2) * mult}px ${pick()}`;
+        if (Math.random() < t * 0.5) {
+          const a2 = r(0, 40), b2 = r(60, 100);
+          text.style.clipPath = `inset(${a2}% ${r(0, 20)}% ${100 - b2}% ${r(0, 20)}%)`;
+        } else {
+          text.style.clipPath = "";
+        }
+        if (Math.random() < t * 0.3) text.style.opacity = r(0, 0.4).toFixed(2);
+        else text.style.opacity = (1 - t * 0.5).toFixed(2);
+        // occasional full-overlay flash
+        if (Math.random() < t * 0.15) {
+          warningOverlay.style.backgroundColor = pick();
+          setTimeout(() => { warningOverlay.style.backgroundColor = "#000"; }, 30);
+        }
+        if (frame >= totalFrames) {
+          clearInterval(iv);
+          warningOverlay.remove();
+          onDone();
+        }
+      }, 35);
+    }
+
+    // Warning: 10s hold with progress bar, click to skip
+    const warnBar = warningOverlay.querySelector(".warn-progress-bar");
+    const warnDuration = 10000;
+    const warnStart = Date.now() + 2000; // progress starts after animations finish
+    let warningDismissed = false;
+
+    function dismissWarning() {
+      if (warningDismissed) return;
+      warningDismissed = true;
+      glitchOutWarning(() => {
+        runHBOIntro(() => {
       const nameEl = document.getElementById("name");
       wrapChars(nameEl);
 
@@ -5629,7 +5788,23 @@
 
       // start name rotation
       initNameRotation();
-    });
+        });
+      });
+    }
+
+    document.addEventListener("click", dismissWarning);
+    document.addEventListener("keydown", dismissWarning);
+
+    const warnTick = setInterval(() => {
+      const elapsed = Date.now() - warnStart;
+      if (elapsed < 0) return; // still in animation phase
+      const pct = Math.max(0, 1 - elapsed / warnDuration);
+      warnBar.style.width = (pct * 100) + "%";
+      if (elapsed >= warnDuration) {
+        clearInterval(warnTick);
+        dismissWarning();
+      }
+    }, 50);
   </script>
 </body>
 </html>
