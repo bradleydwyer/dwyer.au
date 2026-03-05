@@ -7491,10 +7491,10 @@
       const W = canvas.width = window.innerWidth;
       const H = canvas.height = window.innerHeight;
 
-      // Show "Brad Dwyer" on the actual page element behind the canvas
+      // Show only "Brad" behind the static — "Dwyer" types in after reveal
       const nameEl = document.getElementById("name");
-      nameEl.textContent = "Brad Dwyer";
-      nameEl.setAttribute("data-text", "Brad Dwyer");
+      nameEl.textContent = "Brad";
+      nameEl.setAttribute("data-text", "Brad");
 
       let frame = 0;
       const FPS = 30;
@@ -7680,14 +7680,27 @@
       glitchOutWarning(() => {
         runHBOIntro(() => {
           const nameEl = document.getElementById("name");
-          wrapChars(nameEl);
-          startGlitch();
-          initInteractionGlitch();
-          initCursorProximity();
-          glitchStarted = true;
-          setTimeout(() => { artifactsEnabled = true; }, 15000);
-          setTimeout(typeMessage, 800);
-          initNameRotation();
+          // Type out " Dwyer" one character at a time
+          const suffix = " Dwyer";
+          let i = 0;
+          function typeNextChar() {
+            if (i < suffix.length) {
+              nameEl.textContent += suffix[i];
+              nameEl.setAttribute("data-text", nameEl.textContent);
+              i++;
+              setTimeout(typeNextChar, 80);
+            } else {
+              wrapChars(nameEl);
+              startGlitch();
+              initInteractionGlitch();
+              initCursorProximity();
+              glitchStarted = true;
+              setTimeout(() => { artifactsEnabled = true; }, 15000);
+              setTimeout(typeMessage, 800);
+              initNameRotation();
+            }
+          }
+          typeNextChar();
         });
       });
     }
