@@ -736,7 +736,7 @@
     }
 
     // --- Bread / Dryer scenes (toast mode) ---
-    const toastSceneFactories = [drawBreadLoafScene, drawCroissantScene, drawToastScene, drawBaguetteScene, drawDryerFrontLoadScene, drawLaundryRoomScene];
+    const toastSceneFactories = [drawBreadLoafScene, drawCroissantScene, drawToastScene, drawBaguetteScene, drawDryerFrontLoadScene, drawLaundryRoomScene, drawParisBoulangerieScene, drawWheatFieldScene, drawConveyorBakeryScene, drawPancakeFlipScene, drawBreadPongScene, drawPizzaOvenScene, drawSandwichStackerScene, drawSourdoughJarScene, drawBreadRisingScene, drawDonutShopScene, drawWaffleIronScene];
 
     function drawBreadLoafScene(ctx, w, h, px, frame) {
       const tableHeight = Math.floor(h * 0.25);
@@ -969,6 +969,487 @@
       ctx.fillStyle = "#f5f7fb";
       ctx.font = "7px monospace";
       ctx.fillText("SPIN CYCLE", 6, 12);
+    }
+
+    function drawParisBoulangerieScene(ctx, w, h, px, frame) {
+      // night sky
+      ctx.fillStyle = "#0a0820";
+      ctx.fillRect(0, 0, w, h);
+      // stars
+      for (let i = 0; i < 12; i++) {
+        ctx.fillStyle = "rgba(255,255,200,0.6)";
+        ctx.fillRect((i * 37 + 5) % w, (i * 13 + 3) % (h * 0.4), 1, 1);
+      }
+      // Eiffel Tower silhouette
+      const tx = w / 2, tBase = h * 0.75;
+      ctx.fillStyle = "#1a1830";
+      // legs
+      ctx.beginPath();
+      ctx.moveTo(tx - 20, tBase); ctx.lineTo(tx - 6, tBase - 40);
+      ctx.lineTo(tx - 4, tBase - 40); ctx.lineTo(tx - 14, tBase);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(tx + 20, tBase); ctx.lineTo(tx + 6, tBase - 40);
+      ctx.lineTo(tx + 4, tBase - 40); ctx.lineTo(tx + 14, tBase);
+      ctx.fill();
+      // middle
+      ctx.fillRect(tx - 5, tBase - 55, 10, 15);
+      // top
+      ctx.beginPath();
+      ctx.moveTo(tx - 4, tBase - 55); ctx.lineTo(tx, tBase - 75);
+      ctx.lineTo(tx + 4, tBase - 55); ctx.fill();
+      // antenna
+      ctx.fillRect(tx, tBase - 80, 1, 6);
+      // platform lines
+      ctx.fillStyle = "#2a2848";
+      ctx.fillRect(tx - 18, tBase - 15, 36, 2);
+      ctx.fillRect(tx - 8, tBase - 42, 16, 2);
+      // ground
+      ctx.fillStyle = "#1a1428";
+      ctx.fillRect(0, tBase, w, h - tBase);
+      // café awning
+      ctx.fillStyle = "#cc3333";
+      ctx.fillRect(8, tBase - 16, 30, 3);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(8, tBase - 13, 30, 1);
+      ctx.fillStyle = "#cc3333";
+      ctx.fillRect(8, tBase - 12, 30, 2);
+      // café window
+      ctx.fillStyle = "#ffd866";
+      ctx.fillRect(12, tBase - 10, 10, 8);
+      ctx.fillRect(25, tBase - 10, 10, 8);
+      // falling baguettes
+      for (let i = 0; i < 5; i++) {
+        const bx = ((i * 31 + frame * 0.8) % (w + 20)) - 10;
+        const by = ((i * 47 + frame * 1.5) % (h + 20)) - 10;
+        ctx.fillStyle = "#e1b15c";
+        ctx.save();
+        ctx.translate(bx, by);
+        ctx.rotate(frame * 0.05 + i);
+        ctx.fillRect(-12, -3, 24, 6);
+        ctx.restore();
+      }
+      ctx.fillStyle = "#f5e0b8";
+      ctx.font = "7px monospace";
+      ctx.fillText("BOULANGERIE PARIS", 4, 12);
+    }
+
+    function drawWheatFieldScene(ctx, w, h, px, frame) {
+      // sky gradient
+      ctx.fillStyle = "#d4943a";
+      ctx.fillRect(0, 0, w, h * 0.45);
+      ctx.fillStyle = "#e8b856";
+      ctx.fillRect(0, h * 0.3, w, h * 0.15);
+      // sun
+      ctx.fillStyle = "#ffe4a0";
+      ctx.beginPath(); ctx.arc(w * 0.75, h * 0.2, 14, 0, Math.PI * 2); ctx.fill();
+      // ground
+      ctx.fillStyle = "#8b6914";
+      ctx.fillRect(0, h * 0.45, w, h * 0.55);
+      // wheat stalks
+      const phase = frame * 0.08;
+      for (let i = 0; i < 40; i++) {
+        const x = i * 4 + 2;
+        const sway = Math.sin(phase + i * 0.4) * 3;
+        const stalkH = 25 + (i % 5) * 4;
+        const baseY = h * 0.45 + 5;
+        ctx.strokeStyle = "#c89b30";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, baseY);
+        ctx.quadraticCurveTo(x + sway * 0.5, baseY - stalkH * 0.5, x + sway, baseY - stalkH);
+        ctx.stroke();
+        // wheat head
+        ctx.fillStyle = "#ddb844";
+        const headX = x + sway, headY = baseY - stalkH;
+        for (let j = 0; j < 4; j++) {
+          ctx.fillRect(headX - 2, headY - j * 3, 4, 2);
+        }
+      }
+      ctx.fillStyle = "#f5e0b8";
+      ctx.font = "7px monospace";
+      ctx.fillText("GOLDEN HARVEST", 4, 12);
+    }
+
+    function drawConveyorBakeryScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#1a1208";
+      ctx.fillRect(0, 0, w, h);
+      // conveyor belt
+      const beltY = h * 0.6;
+      ctx.fillStyle = "#444";
+      ctx.fillRect(0, beltY, w, 8);
+      ctx.fillStyle = "#666";
+      for (let i = 0; i < w; i += 10) {
+        const x = (i - (frame * 2) % 10 + 10) % (w + 10) - 5;
+        ctx.fillRect(x, beltY + 1, 6, 6);
+      }
+      // loaves on belt
+      for (let i = 0; i < 4; i++) {
+        const lx = ((i * 40 + frame * 2) % (w + 30)) - 15;
+        ctx.fillStyle = "#eab762";
+        ctx.fillRect(lx, beltY - 10, 20, 10);
+        ctx.fillStyle = "#d4a044";
+        // scoring marks
+        ctx.fillRect(lx + 4, beltY - 9, 1, 6);
+        ctx.fillRect(lx + 9, beltY - 9, 1, 6);
+        ctx.fillRect(lx + 14, beltY - 9, 1, 6);
+      }
+      // oven at right
+      ctx.fillStyle = "#8b3a0f";
+      ctx.fillRect(w - 35, beltY - 30, 35, 38);
+      ctx.fillStyle = "#a04410";
+      ctx.fillRect(w - 32, beltY - 27, 29, 20);
+      // oven glow
+      ctx.fillStyle = "#ff6622";
+      ctx.fillRect(w - 30, beltY - 25, 25, 16);
+      ctx.fillStyle = "#ff9944";
+      ctx.fillRect(w - 28, beltY - 22, 21, 10);
+      // flames
+      for (let i = 0; i < 5; i++) {
+        const fx = w - 28 + i * 5;
+        const fh = 4 + Math.sin(frame * 0.3 + i) * 3;
+        ctx.fillStyle = "#ffcc44";
+        ctx.fillRect(fx, beltY - 22 - fh, 3, fh);
+      }
+      ctx.fillStyle = "#f5e0b8";
+      ctx.font = "7px monospace";
+      ctx.fillText("BAKERY LINE", 4, 12);
+    }
+
+    function drawPancakeFlipScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#1a1410";
+      ctx.fillRect(0, 0, w, h);
+      // stove
+      ctx.fillStyle = "#333";
+      ctx.fillRect(20, h * 0.7, w - 40, 20);
+      ctx.fillStyle = "#444";
+      ctx.fillRect(25, h * 0.68, w - 50, 6);
+      // pan
+      const panX = w / 2;
+      const panY = h * 0.65;
+      ctx.fillStyle = "#555";
+      ctx.fillRect(panX - 25, panY, 50, 6);
+      ctx.fillStyle = "#666";
+      ctx.fillRect(panX + 25, panY + 1, 20, 3); // handle
+      // pancake — flipping animation
+      const flipCycle = frame % 120;
+      let pcY = panY - 6;
+      let pcScaleY = 1;
+      if (flipCycle > 60 && flipCycle < 90) {
+        const t = (flipCycle - 60) / 30;
+        pcY = panY - 6 - Math.sin(t * Math.PI) * 35;
+        pcScaleY = Math.cos(t * Math.PI);
+      }
+      ctx.fillStyle = "#d4a044";
+      ctx.save();
+      ctx.translate(panX, pcY);
+      ctx.scale(1, Math.abs(pcScaleY) + 0.1);
+      ctx.fillRect(-12, -4, 24, 4);
+      ctx.fillStyle = "#eab762";
+      ctx.fillRect(-10, -3, 20, 2);
+      ctx.restore();
+      // butter pat on top (only when not mid-flip)
+      if (flipCycle <= 60 || flipCycle >= 90) {
+        ctx.fillStyle = "#ffe88a";
+        ctx.fillRect(panX - 4, pcY - 6, 8, 3);
+      }
+      ctx.fillStyle = "#f5e0b8";
+      ctx.font = "7px monospace";
+      ctx.fillText("FLIP IT!", 6, 12);
+    }
+
+    function drawBreadPongScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#0a0806";
+      ctx.fillRect(0, 0, w, h);
+      // center line
+      ctx.fillStyle = "#332a1a";
+      for (let y = 0; y < h; y += 8) ctx.fillRect(w / 2 - 1, y, 2, 4);
+      // baguette paddles
+      const p1y = h / 2 + Math.sin(frame * 0.06) * 25;
+      const p2y = h / 2 + Math.sin(frame * 0.06 + 1.5) * 25;
+      ctx.fillStyle = "#e1b15c";
+      ctx.fillRect(8, p1y - 15, 6, 30); // left baguette
+      ctx.fillStyle = "#d4a044";
+      ctx.fillRect(9, p1y - 14, 1, 28);
+      ctx.fillRect(12, p1y - 14, 1, 28);
+      ctx.fillStyle = "#e1b15c";
+      ctx.fillRect(w - 14, p2y - 15, 6, 30); // right baguette
+      ctx.fillStyle = "#d4a044";
+      ctx.fillRect(w - 13, p2y - 14, 1, 28);
+      ctx.fillRect(w - 10, p2y - 14, 1, 28);
+      // bread roll ball
+      const ballX = w / 2 + Math.sin(frame * 0.08) * (w / 2 - 25);
+      const ballY = h / 2 + Math.cos(frame * 0.11) * (h / 2 - 15);
+      ctx.fillStyle = "#eab762";
+      ctx.beginPath(); ctx.arc(ballX, ballY, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#d4a044";
+      ctx.beginPath(); ctx.arc(ballX, ballY, 2.5, 0, Math.PI * 2); ctx.fill();
+      // score
+      ctx.fillStyle = "#e8d5b0";
+      ctx.font = "10px monospace";
+      ctx.fillText("3", w / 2 - 20, 16);
+      ctx.fillText("5", w / 2 + 14, 16);
+      ctx.font = "6px monospace";
+      ctx.fillText("BREAD PONG", 4, h - 6);
+    }
+
+    function drawPizzaOvenScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#1a0e08";
+      ctx.fillRect(0, 0, w, h);
+      // brick oven
+      ctx.fillStyle = "#8b4513";
+      ctx.beginPath();
+      ctx.arc(w / 2, h * 0.5, 40, Math.PI, 0);
+      ctx.fillRect(w / 2 - 40, h * 0.5, 80, 30);
+      ctx.fill();
+      // oven opening
+      ctx.fillStyle = "#2a1008";
+      ctx.beginPath();
+      ctx.arc(w / 2, h * 0.55, 25, Math.PI, 0);
+      ctx.fillRect(w / 2 - 25, h * 0.55, 50, 15);
+      ctx.fill();
+      // fire inside
+      ctx.fillStyle = "#ff6622";
+      ctx.fillRect(w / 2 - 22, h * 0.55, 44, 12);
+      for (let i = 0; i < 7; i++) {
+        const fx = w / 2 - 18 + i * 6;
+        const fh = 6 + Math.sin(frame * 0.25 + i * 1.3) * 5;
+        ctx.fillStyle = i % 2 === 0 ? "#ffaa22" : "#ff6622";
+        ctx.fillRect(fx, h * 0.55 - fh, 4, fh);
+      }
+      // pizza sliding in/out
+      const slide = Math.sin(frame * 0.03) * 30;
+      const pizzaX = w / 2 + slide;
+      const pizzaY = h * 0.58;
+      // peel handle
+      ctx.fillStyle = "#8b6914";
+      ctx.fillRect(pizzaX + 10, pizzaY - 1, 30, 3);
+      // pizza
+      ctx.fillStyle = "#e8c44a";
+      ctx.beginPath(); ctx.arc(pizzaX, pizzaY, 10, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#cc3322";
+      ctx.beginPath(); ctx.arc(pizzaX, pizzaY, 8, 0, Math.PI * 2); ctx.fill();
+      // cheese
+      ctx.fillStyle = "#eebb44";
+      ctx.beginPath(); ctx.arc(pizzaX, pizzaY, 7, 0, Math.PI * 2); ctx.fill();
+      // pepperoni
+      ctx.fillStyle = "#aa2211";
+      ctx.beginPath(); ctx.arc(pizzaX - 3, pizzaY - 2, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(pizzaX + 3, pizzaY + 1, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(pizzaX - 1, pizzaY + 3, 2, 0, Math.PI * 2); ctx.fill();
+      // floor
+      ctx.fillStyle = "#3a2010";
+      ctx.fillRect(0, h * 0.8, w, h * 0.2);
+      ctx.fillStyle = "#f5e0b8";
+      ctx.font = "7px monospace";
+      ctx.fillText("PIZZA OVEN", 6, 12);
+    }
+
+    function drawSandwichStackerScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#0f0e0a";
+      ctx.fillRect(0, 0, w, h);
+      // plate
+      ctx.fillStyle = "#e8e8e8";
+      ctx.fillRect(w / 2 - 30, h * 0.78, 60, 6);
+      ctx.fillStyle = "#d0d0d0";
+      ctx.fillRect(w / 2 - 28, h * 0.8, 56, 4);
+      // sandwich layers
+      const layers = [
+        { color: "#d4a044", h: 6, label: "bread" },
+        { color: "#44aa44", h: 3, label: "lettuce" },
+        { color: "#cc3322", h: 3, label: "tomato" },
+        { color: "#eebb44", h: 3, label: "cheese" },
+        { color: "#aa6633", h: 4, label: "meat" },
+        { color: "#44aa44", h: 3, label: "lettuce" },
+        { color: "#d4a044", h: 6, label: "bread" },
+      ];
+      const dropCycle = 60;
+      const visibleLayers = Math.min(layers.length, Math.floor(frame / dropCycle) + 1);
+      let stackY = h * 0.78;
+      for (let i = 0; i < visibleLayers; i++) {
+        const l = layers[i];
+        stackY -= l.h;
+        let ly = stackY;
+        // animate the latest layer dropping in
+        if (i === visibleLayers - 1) {
+          const t = (frame % dropCycle) / dropCycle;
+          const dropDist = 40 * (1 - t * t);
+          ly = stackY - dropDist;
+          if (t < 0.3) ly = stackY - 40 + (40 * t / 0.3);
+        }
+        ctx.fillStyle = l.color;
+        ctx.fillRect(w / 2 - 20, ly, 40, l.h);
+        if (l.label === "bread") {
+          ctx.fillStyle = "#c08134";
+          ctx.fillRect(w / 2 - 20, ly, 40, 2);
+          ctx.fillRect(w / 2 - 20, ly + l.h - 2, 40, 2);
+        }
+      }
+      ctx.fillStyle = "#f5e0b8";
+      ctx.font = "7px monospace";
+      ctx.fillText("STACK IT UP", 6, 12);
+    }
+
+    function drawSourdoughJarScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#10100c";
+      ctx.fillRect(0, 0, w, h);
+      // counter
+      ctx.fillStyle = "#2a2218";
+      ctx.fillRect(0, h * 0.75, w, h * 0.25);
+      // jar
+      const jx = w / 2, jw = 36, jh = 44;
+      const jy = h * 0.75 - jh;
+      ctx.fillStyle = "rgba(200,220,230,0.15)";
+      ctx.fillRect(jx - jw / 2, jy, jw, jh);
+      // jar rim
+      ctx.fillStyle = "rgba(200,220,230,0.25)";
+      ctx.fillRect(jx - jw / 2 - 2, jy - 3, jw + 4, 5);
+      // starter fill
+      const fillH = jh * 0.6;
+      ctx.fillStyle = "#c8b080";
+      ctx.fillRect(jx - jw / 2 + 2, jy + jh - fillH, jw - 4, fillH - 2);
+      // bubbles
+      for (let i = 0; i < 8; i++) {
+        const bx = jx - jw / 2 + 4 + (i * 5) % (jw - 8);
+        const by = jy + jh - fillH + 5 + ((i * 7 + frame * 0.5) % (fillH - 10));
+        const br = 1.5 + (i % 3);
+        ctx.fillStyle = "rgba(180,160,100,0.5)";
+        ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
+      }
+      // rising bubbles at surface
+      for (let i = 0; i < 3; i++) {
+        const surfaceY = jy + jh - fillH;
+        const bx = jx - 8 + i * 8;
+        const pop = Math.sin(frame * 0.1 + i * 2) * 0.5 + 0.5;
+        if (pop > 0.3) {
+          ctx.fillStyle = "rgba(200,180,120,0.4)";
+          ctx.beginPath(); ctx.arc(bx, surfaceY - pop * 6, 2 + pop * 2, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      // day counter
+      const day = Math.floor(frame / 30) + 1;
+      ctx.fillStyle = "#e8d5b0";
+      ctx.font = "7px monospace";
+      ctx.fillText("SOURDOUGH", 6, 12);
+      ctx.fillText("DAY " + Math.min(day, 47), 6, h - 8);
+    }
+
+    function drawBreadRisingScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#12100a";
+      ctx.fillRect(0, 0, w, h);
+      // counter
+      ctx.fillStyle = "#2a2218";
+      ctx.fillRect(0, h * 0.72, w, h * 0.28);
+      // bowl
+      const bx = w / 2, bw = 50, bh = 28;
+      const by = h * 0.72 - bh + 8;
+      ctx.fillStyle = "#8b6914";
+      ctx.beginPath();
+      ctx.arc(bx, by + bh * 0.3, bw / 2, 0, Math.PI);
+      ctx.fill();
+      ctx.fillStyle = "#a07820";
+      ctx.fillRect(bx - bw / 2, by + bh * 0.3, bw, 3);
+      // dough blob — grows over time
+      const rise = Math.min(1, frame / 200);
+      const doughH = 12 + rise * 18;
+      const doughW = 20 + rise * 10;
+      const doughY = by + bh * 0.3 - doughH + 4;
+      ctx.fillStyle = "#e8d0a0";
+      ctx.beginPath();
+      ctx.arc(bx, doughY + doughH * 0.4, doughW / 2, Math.PI, 0);
+      ctx.fillRect(bx - doughW / 2, doughY + doughH * 0.4, doughW, doughH * 0.6);
+      ctx.fill();
+      // towel on top
+      ctx.fillStyle = "#ddd";
+      ctx.fillRect(bx - bw / 2 - 4, by - 2, bw + 8, 4);
+      ctx.fillStyle = "#cc3333";
+      ctx.fillRect(bx - bw / 2 - 4, by, bw + 8, 1);
+      // progress
+      ctx.fillStyle = "#e8d5b0";
+      ctx.font = "7px monospace";
+      ctx.fillText("RISING...", 6, 12);
+      ctx.fillText(Math.min(100, Math.floor(rise * 100)) + "%", w - 30, 12);
+    }
+
+    function drawDonutShopScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#180c18";
+      ctx.fillRect(0, 0, w, h);
+      // display case
+      ctx.fillStyle = "#2a1a20";
+      ctx.fillRect(10, h * 0.35, w - 20, h * 0.5);
+      ctx.fillStyle = "rgba(200,200,220,0.08)";
+      ctx.fillRect(12, h * 0.37, w - 24, h * 0.46);
+      // shelves
+      ctx.fillStyle = "#3a2a30";
+      ctx.fillRect(10, h * 0.55, w - 20, 2);
+      // donuts — two rows
+      const donutColors = ["#dd55aa", "#88ccff", "#ffcc44", "#cc6633", "#66dd66", "#ff8844"];
+      for (let row = 0; row < 2; row++) {
+        const y = row === 0 ? h * 0.46 : h * 0.66;
+        for (let i = 0; i < 5; i++) {
+          const x = 25 + i * 22;
+          const ci = (row * 5 + i) % donutColors.length;
+          // donut body
+          ctx.fillStyle = "#c08134";
+          ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.fill();
+          // frosting
+          ctx.fillStyle = donutColors[ci];
+          ctx.beginPath(); ctx.arc(x, y - 1, 7, Math.PI, 0); ctx.fill();
+          // hole
+          ctx.fillStyle = "#180c18";
+          ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI * 2); ctx.fill();
+          // glaze drip
+          const dripH = 2 + Math.sin(frame * 0.08 + i + row) * 2;
+          if (dripH > 1) {
+            ctx.fillStyle = donutColors[ci];
+            ctx.fillRect(x + 3, y, 2, dripH);
+          }
+        }
+      }
+      ctx.fillStyle = "#f5e0b8";
+      ctx.font = "7px monospace";
+      ctx.fillText("DONUT SHOP", 6, 12);
+    }
+
+    function drawWaffleIronScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#121008";
+      ctx.fillRect(0, 0, w, h);
+      // counter
+      ctx.fillStyle = "#2a2218";
+      ctx.fillRect(0, h * 0.78, w, h * 0.22);
+      // waffle iron body
+      const ix = w / 2, iy = h * 0.5;
+      ctx.fillStyle = "#444";
+      ctx.fillRect(ix - 28, iy, 56, 20);
+      // top lid — slightly open
+      const openAngle = 8 + Math.sin(frame * 0.04) * 3;
+      ctx.fillStyle = "#555";
+      ctx.fillRect(ix - 28, iy - openAngle, 56, 8);
+      // waffle grid pattern inside
+      ctx.fillStyle = "#eab762";
+      ctx.fillRect(ix - 22, iy + 3, 44, 14);
+      ctx.fillStyle = "#d4a044";
+      for (let gx = 0; gx < 5; gx++) {
+        for (let gy = 0; gy < 2; gy++) {
+          ctx.fillRect(ix - 20 + gx * 9, iy + 4 + gy * 7, 7, 5);
+        }
+      }
+      // steam puffs
+      for (let i = 0; i < 4; i++) {
+        const sx = ix - 15 + i * 10;
+        const sy = iy - openAngle - 5;
+        const puffY = sy - ((frame * 0.5 + i * 8) % 25);
+        const opacity = Math.max(0, 1 - ((frame * 0.5 + i * 8) % 25) / 25);
+        ctx.fillStyle = `rgba(255,255,255,${opacity * 0.4})`;
+        ctx.beginPath(); ctx.arc(sx, puffY, 3 + (1 - opacity) * 3, 0, Math.PI * 2); ctx.fill();
+      }
+      // indicator light
+      const blink = Math.sin(frame * 0.15) > 0;
+      ctx.fillStyle = blink ? "#44ff44" : "#224422";
+      ctx.beginPath(); ctx.arc(ix + 22, iy + 10, 2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#f5e0b8";
+      ctx.font = "7px monospace";
+      ctx.fillText("WAFFLE TIME", 6, 12);
     }
 
     function drawPacmanScene(ctx, w, h, px, frame) {
