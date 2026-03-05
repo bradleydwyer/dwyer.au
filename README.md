@@ -2,7 +2,7 @@
 
 Personal homepage for Brad Dwyer — a maximalist, chaotic tribute to computing and gaming history wrapped in a retro-terminal/glitch aesthetic. The page is essentially alive: it constantly glitches, spawns animated pixel-art game scenes, cycles through loading messages, and runs a full HBO-style intro on first load.
 
-Everything — CSS, all 48 game renderers, glitch system, HBO intro, warning overlay, matrix rain, cursor proximity, favicon cycling, color drift, name rotation, typing engine — is contained in one `index.html` with no external JS dependencies beyond a Google Fonts CSS link.
+Everything — CSS, all 48 game renderers (plus 17 bread-themed toast mode scenes), glitch system, HBO intro, warning overlay, matrix rain, cursor proximity, favicon cycling, color drift, name rotation, typing engine — is contained in one `index.html` with no external JS dependencies beyond a Google Fonts CSS link.
 
 ## Visual Design
 
@@ -172,8 +172,87 @@ The `recentScenes` queue tracks which scenes have been shown. New scenes prefer 
 - **Favicon cycling:** Changes every 2–7 seconds between pixel "B", pixel "D", random glitch noise, and a Space Invader — all dynamically generated via canvas
 - **Matrix rain:** Triggered on intense glitch events or clicking the name — katakana + ASCII characters with leading bright char and fading green trails
 
+## Toast Mode 🍞
+
+A hidden Easter egg that transforms the entire site into a warm, bread-themed experience for 2 minutes. Inspired by the common misspelling of "Brad Dwyer" as "bread dryer".
+
+### Activation
+- **Press T** on the keyboard
+- **Type "bread"** as a secret code
+- **Click "yes"** on the "is it toast time?" prompt that appears 30–90 seconds after page load
+
+### What Changes
+
+**Visual overhaul:**
+- All glitch colors shift from cyan/magenta/green to warm golds, ambers, and browns
+- CRT scanlines turn amber
+- Background shifts to warm dark brown
+- Burnt toast vignette (dark radial gradient at screen edges)
+- Warm golden glow pulses behind the name text like an oven light
+
+**Name & text:**
+- Name glitch-transitions to "bread dryer"
+- Name rotation cycles: "bread dryer" → "bread@dwyer.au" → "dwyer.au"
+- Status messages swap to bread puns: "On a roll", "The yeast I could do", "Loafing around", "Knead to know basis", "Proof of concept", etc. (23 messages)
+- Browser tab title cycles through bread puns every 3 seconds
+- Dough rise animation — name text inflates then settles, like rising dough
+
+**Animations & particles:**
+- Toast pop entrance — whole page bounces up like bread from a toaster
+- Steam wisps (~≈∿∼) rise from the name text in warm gold
+- Fermentation bubbles — translucent golden circles rise from the bottom
+- Butter drips — golden streaks melt down the left and right screen edges
+- Flour dust — tiny white specks drift around the screen
+- Breadcrumb cursor trail — mouse leaves crumb particles (·•∘°) that fade
+
+**Matrix rain:**
+- Characters become bread emoji: 🍞🥖🥐🍩🥯🧈🌾🔥☕🍰🧁🥧🫓🥨
+- Colors shift to warm amber/brown tones
+- Font switches to 20px serif for crisp emoji rendering
+
+**Code snippets (30 bread-themed):**
+- `git push --force-rise`, `sudo rm -rf /crumbs`, `npm install sourdough`
+- `while(true) { proof(); }`, `// TODO: let dough rest`, `pip install gluten`
+- `fn knead(&mut self) -> Dough`, `make bread — make: bread is up to date.`
+- `TOASTER STATUS: [████████] 100% *DING!*`, and more
+
+**Toast notifications:**
+- Meta toast-notification popups appear periodically: "🍞 Your toast is ready!", "🍞 Gluten matrix stable", "🍞 Crust integrity: 100%", etc.
+
+**Favicon:**
+- Cycles between pixel art toast slice, bread loaf, croissant, and toaster
+
+**Sound:**
+- Toaster ding on activation (Web Audio API synthesized tone)
+
+**Persistence:**
+- Toast counter stored in localStorage, displayed as "toasted N×" in bottom-right corner
+
+### Toast Mode Game Scenes (17 total)
+
+| Scene | Description |
+|-------|-------------|
+| Bread Loaf | Fresh loaf on a table with rising steam wisps |
+| Croissant | Golden croissant on a white plate |
+| Toast | Toaster with two slices popping up, steam rising |
+| Baguette | Endless baguette conveyor on a bakery shelf |
+| Tumble Dryer | Front-load dryer with 🍞🥐🥖 tumbling inside |
+| Laundry Room | Two side-by-side dryers with bread emoji spinning |
+| Paris Boulangerie | Eiffel Tower silhouette with falling baguettes and a café awning |
+| Wheat Field | Golden wheat stalks swaying in the wind at sunset |
+| Conveyor Bakery | Factory line of scored loaves heading into a fiery oven |
+| Pancake Flip | Pan flipping a pancake in the air with butter pat |
+| Bread Pong | Pong with baguette paddles and a bread roll ball |
+| Pizza Oven | Brick oven with flickering flames, pizza sliding in/out on a peel |
+| Sandwich Stacker | Ingredients dropping and stacking: bread, lettuce, tomato, cheese, meat |
+| Sourdough Jar | Bubbling sourdough starter with rising bubbles and "DAY 47" counter |
+| Bread Rising | Dough expanding in a bowl under a towel with progress percentage |
+| Donut Shop | Display case of frosted donuts with glaze drips |
+| Waffle Iron | Steaming waffle grid with blinking indicator light |
+
 ## Hidden Features
 
+- **Press T** or **type "bread"** to activate toast mode
 - **Click a game scene** to glitch-kill it immediately
 - **Click empty space** to spawn a new game scene at that position
 - **Click the name** to force a maximum-intensity glitch + matrix rain burst
