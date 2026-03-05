@@ -166,8 +166,15 @@ Typed out one character at a time (70ms/char), paused (2.5s), deleted (40ms/char
 
 The `recentScenes` queue tracks which scenes have been shown. New scenes prefer types not in the recent history (last 75% of all scene types). Only falls back to the full pool once nearly all scenes have played. This prevents the same scenes repeating while keeping random order.
 
-## Hidden Features
+## Other Features
 
 - **Name rotation:** Every 25–35 seconds, cycles between "Brad Dwyer", "brad@dwyer.au", and "dwyer.au" with a glitch-scramble transition
 - **Favicon cycling:** Changes every 2–7 seconds between pixel "B", pixel "D", random glitch noise, and a Space Invader — all dynamically generated via canvas
 - **Matrix rain:** Triggered on intense glitch events or clicking the name — katakana + ASCII characters with leading bright char and fading green trails
+
+## Hidden Features
+
+- **Click a game scene** to glitch-kill it immediately
+- **Click empty space** to spawn a new game scene at that position
+- **Click the name** to force a maximum-intensity glitch + matrix rain burst
+- **Hover over the name** to push letters away from the cursor
