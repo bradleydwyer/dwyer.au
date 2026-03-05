@@ -158,7 +158,6 @@ Randomly displayed as ephemeral floating overlays. Categories:
 Typed out one character at a time (70ms/char), paused (2.5s), deleted (40ms/char), next message.
 
 - **Under construction:** "Website arriving soon", "Under construction", "Work in progress", "Launching soon", "New site who dis"
-- **Personal:** "4.3 PRs", "3 axes", "4 sentences"
 - **Classic loading jokes:** "Reticulating splines" (SimCity), "Adjusting bell curves", "Calculating llama expectoration trajectory", "Compressing fish files", "Initializing rhinoceros breeding timetable", "Pixelating nude patch", "Sequencing particles"
 - **AI jokes:** "That's a great question!", "Hallucinating confidently", "Replacing developers", "Your job is safe (for now)", "Generating sycophantic praise"
 - **Homestar Runner:** "Burninating the countryside", "Checking sbemail", "Consummate V's!"
