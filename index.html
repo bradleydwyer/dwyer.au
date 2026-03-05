@@ -4416,88 +4416,96 @@
 
     function createZomboScene(ctx, w, h) {
       let tick = 0;
-      const cx = w / 2, cy = h / 2;
-      const ringColors = ["#ff0000", "#ff8800", "#ffff00", "#00ff00", "#00ccff", "#8800ff", "#ff00ff", "#ff4444"];
-      const numRings = 12;
+      const cx = w / 2, cy = h / 2 + 8;
+      // wedge colors from the original SVG (low opacity throbber)
+      const wedgeColors = ["#00ff00", "#1a24e6", "#f2fe01", "#e75303", "#e90101", "#1b02fd", "#ff00ff", "#00ffff"];
+      const numWedges = wedgeColors.length;
+      let angle = 0;
 
       const messages = [
-        "YOU CAN DO",
-        "ANYTHING AT",
-        "ZOMBO.COM",
+        "YOU CAN DO ANYTHING",
+        "AT ZOMBO.COM",
         "THE ONLY LIMIT",
         "IS YOURSELF",
-        "WELCOME TO",
-        "ZOMBO.COM",
-        "YES, THIS IS",
-        "ZOMBO.COM",
+        "WELCOME TO ZOMBOCOM",
+        "YES THIS IS ZOMBOCOM",
+        "ANYTHING IS POSSIBLE",
+        "THE INFINITE IS",
+        "POSSIBLE AT ZOMBOCOM",
       ];
       let msgIdx = 0, msgTimer = 0;
+
+      // logo colors for "ZOMBO.COM" letters
+      const logoColors = ["#0000ff", "#ff0000", "#ff9900", "#00ff00", "#9900ff", "#00ffff", "#3366ff", "#ff0000", "#ff9900"];
 
       return function draw(frame) {
         tick++;
 
-        // dark background
-        ctx.fillStyle = "#1a0a2e";
+        // white background
+        ctx.fillStyle = "#fff";
         ctx.fillRect(0, 0, w, h);
 
-        // spinning concentric rings/circles
-        for (let i = numRings; i >= 0; i--) {
-          const baseRadius = 8 + i * 6;
-          const pulse = Math.sin(tick * 0.03 + i * 0.5) * 3;
-          const radius = baseRadius + pulse;
-          const rotation = tick * (0.02 + i * 0.005) * (i % 2 === 0 ? 1 : -1);
+        // green gradient bar at top (like the original)
+        const grad = ctx.createLinearGradient(0, 0, w, 0);
+        grad.addColorStop(0, "#33bb77");
+        grad.addColorStop(1, "#ffffff");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, 6);
 
-          // draw ring as a series of colored segments
-          const segments = 6 + i;
-          for (let s = 0; s < segments; s++) {
-            const angle = (s / segments) * Math.PI * 2 + rotation;
-            const nextAngle = ((s + 1) / segments) * Math.PI * 2 + rotation;
-            const colorIdx = (i + s) % ringColors.length;
+        // spinning throbber — colored wedges at low opacity, rotating 80deg per tick
+        // but we run at ~30fps so we step faster to match the snappy rotation
+        if (tick % 3 === 0) angle += 80;
+        if (angle > 360) angle -= 360;
 
-            ctx.fillStyle = ringColors[colorIdx];
-            ctx.globalAlpha = 0.4 + 0.4 * (1 - i / numRings);
-            ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.arc(cx, cy, radius, angle, nextAngle);
-            ctx.closePath();
-            ctx.fill();
-          }
+        const radius = 30;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle * Math.PI / 180);
+
+        for (let i = 0; i < numWedges; i++) {
+          const startA = (i / numWedges) * Math.PI * 2;
+          const endA = ((i + 1) / numWedges) * Math.PI * 2;
+          ctx.fillStyle = wedgeColors[i];
+          ctx.globalAlpha = 0.12;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.arc(0, 0, radius, startA, endA);
+          ctx.closePath();
+          ctx.fill();
         }
 
         ctx.globalAlpha = 1;
+        ctx.restore();
 
-        // glowing center circle
-        const centerPulse = 5 + Math.sin(tick * 0.08) * 2;
-        ctx.fillStyle = "#fff";
+        // radial gradient center (white to gray, like the original)
+        const centerR = 8;
+        const cGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, centerR);
+        cGrad.addColorStop(0, "#fff");
+        cGrad.addColorStop(1, "#bbb");
+        ctx.fillStyle = cGrad;
         ctx.beginPath();
-        ctx.arc(cx, cy, centerPulse, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#ffff00";
-        ctx.beginPath();
-        ctx.arc(cx, cy, centerPulse - 1.5, 0, Math.PI * 2);
+        ctx.arc(cx, cy, centerR, 0, Math.PI * 2);
         ctx.fill();
 
-        // cycling text
+        // colorful "ZOMBO.COM" logo text
+        ctx.font = "bold 9px monospace";
+        const logoText = "ZOMBO.COM";
+        const logoY = 16;
+        let logoX = cx - 28;
+        for (let i = 0; i < logoText.length; i++) {
+          ctx.fillStyle = logoColors[i % logoColors.length];
+          ctx.fillText(logoText[i], logoX, logoY);
+          logoX += 6.5;
+        }
+
+        // cycling message text
         msgTimer++;
-        if (msgTimer > 60) { msgTimer = 0; msgIdx = (msgIdx + 1) % messages.length; }
+        if (msgTimer > 70) { msgTimer = 0; msgIdx = (msgIdx + 1) % messages.length; }
 
-        ctx.fillStyle = "#fff";
-        ctx.font = "bold 8px monospace";
+        ctx.fillStyle = "#666";
+        ctx.font = "7px monospace";
         ctx.textAlign = "center";
-        const txtY = h - 12;
-        ctx.fillStyle = "rgba(0,0,0,0.7)";
-        ctx.fillRect(0, txtY - 8, w, 14);
-        ctx.fillStyle = "#fff";
-        ctx.fillText(messages[msgIdx], cx, txtY);
-        ctx.textAlign = "start";
-
-        // "ZOMBO.COM" header
-        ctx.fillStyle = "rgba(0,0,0,0.5)";
-        ctx.fillRect(0, 0, w, 10);
-        ctx.fillStyle = "#ff0";
-        ctx.font = "bold 7px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText("ZOMBO.COM", cx, 8);
+        ctx.fillText(messages[msgIdx], cx, h - 6);
         ctx.textAlign = "start";
       };
     }
@@ -5897,30 +5905,46 @@
     const warnStart = Date.now() + 2000; // progress starts after animations finish
     let warningDismissed = false;
 
+    function startHBOSequence() {
+      glitchOutWarning(() => {
+        runHBOIntro(() => {
+          const nameEl = document.getElementById("name");
+          wrapChars(nameEl);
+          startGlitch();
+          initInteractionGlitch();
+          initCursorProximity();
+          glitchStarted = true;
+          setTimeout(() => { artifactsEnabled = true; }, 15000);
+          setTimeout(typeMessage, 800);
+          initNameRotation();
+        });
+      });
+    }
+
     function dismissWarning() {
       if (warningDismissed) return;
       warningDismissed = true;
-      glitchOutWarning(() => {
-        runHBOIntro(() => {
-      const nameEl = document.getElementById("name");
-      wrapChars(nameEl);
-
-      // start text effects but NO matrix or artifacts yet
-      startGlitch();
-      initInteractionGlitch();
-      initCursorProximity();
-      glitchStarted = true;
-
-      // delay artifacts/games and matrix for 15 seconds after intro
-      setTimeout(() => { artifactsEnabled = true; }, 15000);
-
-      // start status messages
-      setTimeout(typeMessage, 800);
-
-      // start name rotation
-      initNameRotation();
-        });
-      });
+      clearInterval(warnTick);
+      document.removeEventListener("click", dismissWarning);
+      document.removeEventListener("keydown", dismissWarning);
+      // animate progress bar to zero with ease-out curve, then glitch
+      let drainStart = null;
+      const drainDuration = 400;
+      const startWidth = parseFloat(warnBar.style.width) || 100;
+      function drainStep(ts) {
+        if (!drainStart) drainStart = ts;
+        const t = Math.min(1, (ts - drainStart) / drainDuration);
+        // ease-out: 1 - (1-t)^3
+        const eased = 1 - Math.pow(1 - t, 3);
+        warnBar.style.width = (startWidth * (1 - eased)) + "%";
+        if (t < 1) {
+          requestAnimationFrame(drainStep);
+        } else {
+          warnBar.style.width = "0%";
+          startHBOSequence();
+        }
+      }
+      requestAnimationFrame(drainStep);
     }
 
     document.addEventListener("click", dismissWarning);
@@ -5928,12 +5952,15 @@
 
     const warnTick = setInterval(() => {
       const elapsed = Date.now() - warnStart;
-      if (elapsed < 0) return; // still in animation phase
+      if (elapsed < 0) return;
       const pct = Math.max(0, 1 - elapsed / warnDuration);
       warnBar.style.width = (pct * 100) + "%";
       if (elapsed >= warnDuration) {
         clearInterval(warnTick);
-        dismissWarning();
+        if (!warningDismissed) {
+          warningDismissed = true;
+          startHBOSequence();
+        }
       }
     }, 50);
   </script>
