@@ -42,6 +42,14 @@
       animation: blink 1s step-end infinite;
     }
 
+    .name.no-cursor::after {
+      content: "";
+    }
+
+    .inline-cursor {
+      animation: blink 1s step-end infinite;
+    }
+
     .name .char {
       display: inline-block;
       position: relative;
@@ -211,6 +219,57 @@
     @keyframes fade-in-text {
       to { opacity: 1; }
     }
+    /* Toast time prompt */
+    #toast-prompt {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9998;
+      background: rgba(20, 16, 8, 0.92);
+      border: 1px solid #d4a04433;
+      padding: 0.8rem 1.4rem;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.85rem;
+      color: #e8d5b0;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      opacity: 0;
+      transition: opacity 0.4s, transform 0.4s;
+      pointer-events: none;
+    }
+    #toast-prompt.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #toast-prompt.hiding {
+      opacity: 0;
+      transform: translateX(-50%) translateY(20px);
+    }
+    #toast-prompt button {
+      background: #d4a044;
+      color: #1a1208;
+      border: none;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    #toast-prompt button:hover {
+      background: #eab762;
+    }
+    #toast-prompt .toast-timer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 2px;
+      background: #d4a044;
+      transition: width 0.1s linear;
+    }
   </style>
 </head>
 <body>
@@ -224,6 +283,11 @@
     </svg>
     <p class="warn-text">This site contains flashing lights and rapid visual effects that may affect photosensitive viewers.</p>
     <div class="warn-progress"><div class="warn-progress-bar"></div></div>
+  </div>
+  <div id="toast-prompt">
+    <span>is it toast time?</span>
+    <button id="toast-yes">yes</button>
+    <div class="toast-timer"></div>
   </div>
   <canvas id="hbo-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;"></canvas>
   <canvas id="matrix-canvas"></canvas>
@@ -294,6 +358,32 @@
       "Consummate V's!",
     ];
 
+    const toastMessages = [
+      "On a roll",
+      "The yeast I could do",
+      "Loafing around",
+      "Baked in",
+      "Well bread",
+      "Rising to the occasion",
+      "That's how I roll",
+      "Upper crust",
+      "Best thing since sliced bread",
+      "Knead to know basis",
+      "Proof of concept",
+      "Going against the grain",
+      "Butter late than never",
+      "In the oven",
+      "Toast of the town",
+      "Sourdough starter culture",
+      "Crumbs everywhere",
+      "Getting toasty",
+      "Rye not?",
+      "Use your loaf",
+      "Half baked idea",
+      "Breadwinner",
+      "Pumpernickel protocol",
+    ];
+
     for (let i = messages.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [messages[i], messages[j]] = [messages[j], messages[i]];
@@ -307,8 +397,11 @@
     const DELETE_SPEED = 40;
     const PAUSE_BEFORE = 500;
 
+    function getMessages() { return toastMode ? toastMessages : messages; }
+
     function typeMessage() {
-      const text = messages[msgIndex];
+      const msgs = getMessages();
+      const text = msgs[msgIndex % msgs.length];
       let i = 0;
 
       function typeChar() {
@@ -334,7 +427,8 @@
           el.textContent = text.slice(0, i);
           setTimeout(deleteChar, DELETE_SPEED);
         } else {
-          msgIndex = (msgIndex + 1) % messages.length;
+          const msgs = getMessages();
+          msgIndex = (msgIndex + 1) % msgs.length;
           setTimeout(typeMessage, PAUSE_BEFORE);
         }
       }
@@ -554,6 +648,39 @@
       'HELP!\n  *barrel rolls*\n  JUMP!',
     ];
 
+    const toastCodeSnippets = [
+      'git push --force-rise',
+      'sudo rm -rf /crumbs',
+      'npm install sourdough',
+      'pip install gluten',
+      'while(true) {\n  proof();\n}',
+      '// TODO: let dough rest',
+      'import bread\nbread.rise()',
+      'fn knead(&mut self)\n  -> Dough',
+      'SELECT * FROM\n  bakery WHERE\n  fresh = true',
+      'BAKE 350°F\n  FOR 45 MIN',
+      'const yeast =\n  require("active\n  -dry")',
+      'if (dough.risen) {\n  preheatOven();\n}',
+      'git stash pop\n  // like a toaster',
+      'curl -X POST\n  /api/toast\n  -d "golden"',
+      '} catch (e) {\n  // burnt toast\n}',
+      'console.log(\n  "still rising...")',
+      'docker compose\n  up --bake',
+      'class Sourdough\n  extends Bread {\n  ferment() {}\n}',
+      'ERROR: oven not\n  preheated\n  at bake:42',
+      'make bread\n  make: bread is\n  up to date.',
+      'FRESH FROM\n  THE OVEN',
+      'RISE AND SHINE\n  DOUGH TIME',
+      'WARNING:\n  GLUTEN DETECTED\n  PROCEED? [Y/n]',
+      'CRUST INTEGRITY\n  CHECK... PASS',
+      'FERMENTATION\n  COMPLETE\n  BUBBLES: 9000+',
+      'TOASTER STATUS:\n  [████████] 100%\n  *DING!*',
+      'KNEADING...\n  [██░░░░░░] 25%',
+      'PROOF TIME\n  REMAINING:\n  2h 30m',
+      'BREAD.SYS\n  loaded\n  C:\\BAKERY>',
+      'LOADING YEAST\n  MODULE...\n  ACTIVATED',
+    ];
+
     // --- Mini game scene renderers (canvas-based, animated) ---
     const activeSceneTypes = new Set();
     const recentScenes = []; // tracks play order for fair rotation
@@ -567,7 +694,8 @@
       canvas.style.imageRendering = "pixelated";
       const ctx = canvas.getContext("2d");
 
-      const sceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene, createMissileCommandScene, createOregonTrailScene, createPrinceScene, createLemmingsScene, createWin95Scene, createAmigaBoingScene, createWolfensteinScene, createMinesweeperScene, createPipeDreamScene, createGameOfLifeScene, createDOSBootScene, createCarmenScene, createStrongBadScene, createTrogdorScene, createAIChatScene, createKingsQuestScene, createQuestForGloryScene, createPoliceQuestScene, createMinecraftScene, createZomboScene, createNFSScene, createAsteroidsScene, createFroggerScene, createGalagaScene, createSimCityScene, createSonicScene, createMarioScene, createZeldaScene, createDonkeyKongScene];
+      const normalSceneFactories = [drawPacmanScene, createPongScene, drawSnakeScene, createTetrisScene, createBreakoutScene, drawWargamesScene, createWoprMapScene, createFighterScene, drawAdventureScene, drawKeenScene, createDoomScene, drawBSODScene, drawPinwheelScene, createInvadersScene, createWordleScene, createFlappyScene, createAngryBirdsScene, createGorillasScene, createPlasmaScene, createMissileCommandScene, createOregonTrailScene, createPrinceScene, createLemmingsScene, createWin95Scene, createAmigaBoingScene, createWolfensteinScene, createMinesweeperScene, createPipeDreamScene, createGameOfLifeScene, createDOSBootScene, createCarmenScene, createStrongBadScene, createTrogdorScene, createAIChatScene, createKingsQuestScene, createQuestForGloryScene, createPoliceQuestScene, createMinecraftScene, createZomboScene, createNFSScene, createAsteroidsScene, createFroggerScene, createGalagaScene, createSimCityScene, createSonicScene, createMarioScene, createZeldaScene, createDonkeyKongScene];
+      const sceneFactories = toastMode ? toastSceneFactories : normalSceneFactories;
 
       // pick a scene that isn't already on screen, preferring ones not recently shown
       const available = sceneFactories.filter(f => !activeSceneTypes.has(f.name));
@@ -605,6 +733,242 @@
 
       animate();
       return canvas;
+    }
+
+    // --- Bread / Dryer scenes (toast mode) ---
+    const toastSceneFactories = [drawBreadLoafScene, drawCroissantScene, drawToastScene, drawBaguetteScene, drawDryerFrontLoadScene, drawLaundryRoomScene];
+
+    function drawBreadLoafScene(ctx, w, h, px, frame) {
+      const tableHeight = Math.floor(h * 0.25);
+      ctx.fillStyle = "#1a1208";
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "#3b2614";
+      ctx.fillRect(0, h - tableHeight, w, tableHeight);
+      const loafWidth = 80, loafHeight = 40;
+      const loafX = (w - loafWidth) / 2;
+      const loafY = h - tableHeight - loafHeight + 6;
+      ctx.fillStyle = "#d79b43";
+      ctx.fillRect(loafX + 4, loafY + 6, loafWidth - 8, loafHeight - 10);
+      ctx.fillStyle = "#eab762";
+      ctx.fillRect(loafX, loafY, loafWidth, loafHeight - 8);
+      ctx.fillStyle = "rgba(255,255,255,0.15)";
+      ctx.fillRect(loafX + 4, loafY + 4, loafWidth - 10, 6);
+      ctx.fillStyle = "#c08134";
+      ctx.fillRect(loafX + loafWidth - 20, loafY + 2, 4, loafHeight - 10);
+      ctx.fillRect(loafX + loafWidth - 28, loafY + 4, 4, loafHeight - 10);
+      const steamBaseX = loafX + loafWidth / 2, steamBaseY = loafY;
+      const phase = frame * 0.15;
+      ctx.strokeStyle = "rgba(255,255,255,0.6)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i < 3; i++) {
+        const offset = (i - 1) * 6;
+        const height = 18 + 4 * Math.sin(phase + i);
+        ctx.moveTo(steamBaseX + offset, steamBaseY);
+        ctx.bezierCurveTo(steamBaseX + offset - 4, steamBaseY - height * 0.4, steamBaseX + offset + 4, steamBaseY - height * 0.8, steamBaseX + offset, steamBaseY - height);
+      }
+      ctx.stroke();
+      ctx.fillStyle = "#f5e0b8";
+      ctx.font = "8px monospace";
+      ctx.fillText("FRESH BREAD", 6, 12);
+    }
+
+    function drawCroissantScene(ctx, w, h, px, frame) {
+      const tableHeight = Math.floor(h * 0.3);
+      ctx.fillStyle = "#0b0b18";
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = "#402215";
+      ctx.fillRect(0, h - tableHeight, w, tableHeight);
+      const plateRadius = 32, plateX = w / 2, plateY = h - tableHeight + plateRadius;
+      ctx.fillStyle = "#f5f5f5";
+      ctx.beginPath(); ctx.arc(plateX, plateY, plateRadius, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#e0e0e0";
+      ctx.beginPath(); ctx.arc(plateX, plateY, plateRadius - 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#e6a445";
+      const segments = 7, baseRadius = 14, innerRadius = 7, angleOffset = -Math.PI / 2;
+      for (let i = 0; i < segments; i++) {
+        const t = i / (segments - 1);
+        const angle = angleOffset + (t - 0.5) * Math.PI * 1.2;
+        const xOuter = plateX + Math.cos(angle) * (baseRadius + 6 * t);
+        const yOuter = plateY + Math.sin(angle) * (baseRadius + 2 * t);
+        const xInner = plateX + Math.cos(angle) * innerRadius;
+        const yInner = plateY + Math.sin(angle) * (innerRadius + 1);
+        ctx.beginPath(); ctx.moveTo(xInner, yInner); ctx.lineTo(xOuter + 3, yOuter); ctx.lineTo(xOuter - 3, yOuter); ctx.closePath(); ctx.fill();
+      }
+      ctx.fillStyle = "#f4c366";
+      ctx.beginPath();
+      ctx.arc(plateX, plateY, baseRadius + 4, angleOffset - 0.7, angleOffset + 0.7);
+      ctx.arc(plateX, plateY, innerRadius, angleOffset + 0.7, angleOffset - 0.7, true);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,0.15)";
+      ctx.fillRect(plateX - 20, plateY - plateRadius - 8, 40, 6);
+      ctx.fillStyle = "#f5e0b8";
+      ctx.font = "7px monospace";
+      ctx.fillText("MORNING PASTRY", 4, 12);
+    }
+
+    function drawToastScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#101820";
+      ctx.fillRect(0, 0, w, h);
+      const toasterWidth = 60, toasterHeight = 40;
+      const toasterX = (w - toasterWidth) / 2, toasterY = h - toasterHeight - 10;
+      ctx.fillStyle = "#c0c8d8";
+      ctx.fillRect(toasterX, toasterY, toasterWidth, toasterHeight);
+      ctx.fillStyle = "#e0e6f0";
+      ctx.fillRect(toasterX + 4, toasterY + 4, toasterWidth - 8, toasterHeight - 10);
+      ctx.fillStyle = "#a0a8b8";
+      ctx.fillRect(toasterX + toasterWidth - 8, toasterY + toasterHeight - 16, 4, 14);
+      const slotWidth = 18, slotHeight = 18;
+      const slotY = toasterY - slotHeight + 4;
+      const bounce = Math.max(0, Math.sin(frame * 0.2)) * 8;
+      function drawSlice(cx) {
+        const y = slotY - bounce;
+        ctx.fillStyle = "#f2d5a2";
+        ctx.fillRect(cx, y, slotWidth, slotHeight);
+        ctx.fillStyle = "#d49c54";
+        ctx.fillRect(cx, y, slotWidth, 4);
+        ctx.fillRect(cx, y + slotHeight - 3, slotWidth, 3);
+        ctx.fillRect(cx, y + 3, 2, slotHeight - 6);
+        ctx.fillRect(cx + slotWidth - 2, y + 3, 2, slotHeight - 6);
+      }
+      drawSlice(toasterX + 10);
+      drawSlice(toasterX + toasterWidth - 10 - slotWidth);
+      ctx.fillStyle = "rgba(255,255,255,0.6)";
+      for (let i = 0; i < 3; i++) {
+        const sx = toasterX + 16 + i * 8;
+        const sy = slotY - bounce;
+        const height = 14 + 3 * Math.sin(frame * 0.25 + i);
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.bezierCurveTo(sx - 3, sy - height * 0.4, sx + 3, sy - height * 0.8, sx, sy - height);
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#f5e0b8";
+      ctx.font = "7px monospace";
+      ctx.fillText("TOAST TIME", 6, 12);
+    }
+
+    function drawBaguetteScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#120f0c";
+      ctx.fillRect(0, 0, w, h);
+      const shelfY = Math.floor(h * 0.7);
+      ctx.fillStyle = "#3a2613";
+      ctx.fillRect(0, shelfY, w, h - shelfY);
+      ctx.fillStyle = "#e1b15c";
+      const baseY = shelfY - 20;
+      const speed = 0.5;
+      const offset = (frame * speed) % (w + 60);
+      for (let i = -60; i < w + 60; i += 40) {
+        const x = i - offset;
+        const width = 50, height = 14;
+        ctx.fillRect(x, baseY, width, height);
+        ctx.beginPath();
+        ctx.arc(x + 8, baseY, 8, Math.PI, 0);
+        ctx.arc(x + width - 8, baseY, 8, Math.PI, 0);
+        ctx.fill();
+        ctx.fillStyle = "#d29b4b";
+        for (let j = 0; j < 4; j++) {
+          const cutX = x + 8 + j * 9;
+          ctx.beginPath(); ctx.moveTo(cutX - 4, baseY + 2); ctx.lineTo(cutX + 4, baseY + 2); ctx.lineTo(cutX + 6, baseY + height - 2); ctx.lineTo(cutX - 2, baseY + height - 2); ctx.closePath(); ctx.fill();
+        }
+        ctx.fillStyle = "#e1b15c";
+      }
+      ctx.fillStyle = "#f5e0b8";
+      ctx.font = "7px monospace";
+      ctx.fillText("BOULANGERIE", 6, 12);
+    }
+
+    function drawDryerFrontLoadScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#0a1018";
+      ctx.fillRect(0, 0, w, h);
+      const floorY = Math.floor(h * 0.75);
+      ctx.fillStyle = "#1c2530";
+      ctx.fillRect(0, floorY, w, h - floorY);
+      const dryerW = 70, dryerH = 70;
+      const dryerX = (w - dryerW) / 2, dryerY = floorY - dryerH;
+      ctx.fillStyle = "#d6dbe4";
+      ctx.fillRect(dryerX, dryerY, dryerW, dryerH);
+      ctx.fillStyle = "#eef2f8";
+      ctx.fillRect(dryerX + 4, dryerY + 4, dryerW - 8, dryerH - 16);
+      const drumR = 22, drumX = dryerX + dryerW / 2, drumY = dryerY + dryerH / 2 + 2;
+      ctx.fillStyle = "#202a35";
+      ctx.beginPath(); ctx.arc(drumX, drumY, drumR, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#4f6275";
+      ctx.beginPath(); ctx.arc(drumX, drumY, drumR - 4, 0, Math.PI * 2); ctx.fill();
+      const angle = frame * 0.15;
+      const items = [{ r: drumR - 7, emoji: "🍞" }, { r: drumR - 10, emoji: "🥐" }, { r: drumR - 12, emoji: "🥖" }];
+      ctx.font = "8px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      items.forEach((c, i) => {
+        const a = angle + (i * Math.PI * 2) / items.length;
+        const cx = drumX + Math.cos(a) * c.r;
+        const cy = drumY + Math.sin(a) * c.r;
+        ctx.fillText(c.emoji, cx, cy);
+      });
+      ctx.textAlign = "start";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = "#c0c7d2";
+      ctx.fillRect(drumX + drumR + 4, drumY - 6, 4, 12);
+      ctx.fillStyle = "#b2b7c2";
+      ctx.fillRect(dryerX + 6, dryerY + 6, dryerW - 12, 8);
+      ctx.fillStyle = "#8891a0";
+      ctx.fillRect(dryerX + 10, dryerY + 7, 16, 6);
+      ctx.fillStyle = "#dfe3ec";
+      ctx.beginPath(); ctx.arc(dryerX + dryerW - 14, dryerY + 10, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#f5f7fb";
+      ctx.font = "7px monospace";
+      ctx.fillText("TUMBLE DRY", 6, 12);
+    }
+
+    function drawLaundryRoomScene(ctx, w, h, px, frame) {
+      ctx.fillStyle = "#10151f";
+      ctx.fillRect(0, 0, w, h);
+      const floorY = Math.floor(h * 0.78);
+      ctx.fillStyle = "#232a36";
+      ctx.fillRect(0, floorY, w, h - floorY);
+      ctx.fillStyle = "#d8dee8";
+      ctx.fillRect(6, floorY - 52, 40, 50);
+      ctx.fillRect(w - 46, floorY - 52, 40, 50);
+      ctx.fillStyle = "#f0f3fa";
+      ctx.fillRect(8, floorY - 50, 36, 12);
+      ctx.fillRect(w - 44, floorY - 50, 36, 12);
+      ctx.fillStyle = "#212836";
+      ctx.beginPath();
+      ctx.arc(26, floorY - 20, 12, 0, Math.PI * 2);
+      ctx.arc(w - 26, floorY - 20, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#445068";
+      ctx.beginPath();
+      ctx.arc(26, floorY - 20, 9, 0, Math.PI * 2);
+      ctx.arc(w - 26, floorY - 20, 9, 0, Math.PI * 2);
+      ctx.fill();
+      const spin = frame * 0.18;
+      const drumR = 7;
+      const breadEmoji = ["🍞", "🥐", "🥖"];
+      ctx.font = "5px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      [26, w - 26].forEach((cx, idx) => {
+        breadEmoji.forEach((e, i) => {
+          const a = spin + (i * Math.PI * 2) / breadEmoji.length + idx * 0.6;
+          const x = cx + Math.cos(a) * (drumR - 1);
+          const y = floorY - 20 + Math.sin(a) * (drumR - 1);
+          ctx.fillText(e, x, y);
+        });
+      });
+      ctx.textAlign = "start";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = "#d0d6e0";
+      ctx.fillRect(w / 2 - 10, floorY - 60, 20, 18);
+      ctx.fillStyle = "#f7f3e2";
+      ctx.beginPath();
+      ctx.moveTo(w / 2 - 8, floorY - 60); ctx.lineTo(w / 2 + 8, floorY - 60);
+      ctx.lineTo(w / 2 + 3, floorY - 38); ctx.lineTo(w / 2 - 3, floorY - 38);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "#f5f7fb";
+      ctx.font = "7px monospace";
+      ctx.fillText("SPIN CYCLE", 6, 12);
     }
 
     function drawPacmanScene(ctx, w, h, px, frame) {
@@ -6742,13 +7106,20 @@
       };
     }
 
-    const glitchColors2 = ['#0ff', '#f0f', '#f00', '#0f0', '#ff0', '#f80', '#0ff', '#fff'];
+    const _glitchColors2 = ['#0ff', '#f0f', '#f00', '#0f0', '#ff0', '#f80', '#0ff', '#fff'];
+    function getGlitchColors2() { return toastMode ? toastColors : _glitchColors2; }
 
     function rand2(min, max) {
       return min + Math.random() * (max - min);
     }
 
     let artifactsEnabled = false;
+    let toastMode = false;
+    const toastColors = ['#d4a044', '#eab762', '#c08134', '#f4c366', '#a06820', '#e8d5b0', '#ff9944', '#ffcc66'];
+    function getGlitchColor(normalColors) {
+      const pool = toastMode ? toastColors : normalColors;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
 
     function glitchKillArtifact(el) {
       if (el._dying) return;
@@ -6799,14 +7170,16 @@
 
       el.style.left = x + 'vw';
       el.style.top = y + 'vh';
-      el.style.color = glitchColors2[Math.floor(Math.random() * glitchColors2.length)];
+      const gc2 = getGlitchColors2();
+      el.style.color = gc2[Math.floor(Math.random() * gc2.length)];
 
       const type = Math.random();
 
       if (type < 0.3) {
         // code snippet
         el.classList.add('artifact-code');
-        el.textContent = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
+        const snippets = toastMode ? toastCodeSnippets : codeSnippets;
+        el.textContent = snippets[Math.floor(Math.random() * snippets.length)];
         el.style.transform = `rotate(${rand2(-8, 8).toFixed(1)}deg) scale(${rand2(0.8, 1.5).toFixed(2)})`;
       } else if (type < 0.6) {
         // mini game scene (animated)
@@ -6906,14 +7279,15 @@
       const body = document.body;
       const chars = nameEl.querySelectorAll(".char");
 
-      const glitchColors = ["#0ff", "#f0f", "#f00", "#0f0", "#ff0", "#f80"];
+      const _mainGlitchColors = ["#0ff", "#f0f", "#f00", "#0f0", "#ff0", "#f80"];
 
       function rand(min, max) {
         return min + Math.random() * (max - min);
       }
 
       function pickColor() {
-        return glitchColors[Math.floor(Math.random() * glitchColors.length)];
+        const c = toastMode ? toastColors : _mainGlitchColors;
+        return c[Math.floor(Math.random() * c.length)];
       }
 
       function randomClip() {
@@ -7051,7 +7425,7 @@
           // matrix rain on wild glitches
           if (frame === 0 && intensity > 0.8 && artifactsEnabled) {
             matrix.start();
-            setTimeout(() => matrix.stop(), 500 + intensity * 1000);
+            setTimeout(() => matrix.stop(), 2000 + intensity * 4000);
           }
 
           // whole-name distortion
@@ -7099,8 +7473,12 @@
     function initMatrix() {
       const canvas = document.getElementById("matrix-canvas");
       const ctx = canvas.getContext("2d");
-      const chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF<>/{}();=+*&|^~";
-      const cellW = 14, cellH = 16;
+      const normalChars = Array.from("アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF<>/{}();=+*&|^~");
+      const breadChars = ["🍞","🥖","🥐","🍩","🥯","🧈","🌾","🔥","☕","🍰","🧁","🥧","🫓","🥨"];
+      function getChars() { return toastMode ? breadChars : normalChars; }
+      const normalCellW = 14, normalCellH = 16;
+      function getCellW() { return toastMode ? 22 : normalCellW; }
+      function getCellH() { return toastMode ? 26 : normalCellH; }
       let streams = [];
       let animId = null;
       let active = false;
@@ -7114,7 +7492,8 @@
       window.addEventListener("resize", resize);
 
       function spawnStream() {
-        const x = Math.floor(Math.random() * (canvas.width / cellW)) * cellW;
+        const cw = getCellW();
+        const x = Math.floor(Math.random() * (canvas.width / cw)) * cw;
         const speed = 1 + Math.random() * 4;
         const length = 5 + Math.floor(Math.random() * 25);
         const brightness = 0.5 + Math.random() * 0.5;
@@ -7124,7 +7503,7 @@
           speed,
           length,
           brightness,
-          chars: Array.from({length}, () => chars[Math.floor(Math.random() * chars.length)]),
+          chars: Array.from({length}, () => { const c = getChars(); return c[Math.floor(Math.random() * c.length)]; }),
           age: 0,
         };
       }
@@ -7132,12 +7511,13 @@
       function draw() {
         ctx.fillStyle = "rgba(10, 10, 10, 0.12)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.font = "13px JetBrains Mono, monospace";
+        const cw = getCellW(), ch = getCellH();
+        ctx.font = toastMode ? "20px serif" : "13px JetBrains Mono, monospace";
 
         // spawn new streams sporadically (only while spawning)
         if (spawning) {
-          const maxStreams = Math.floor(canvas.width / cellW * 0.15);
-          if (streams.length < maxStreams && Math.random() < 0.3) {
+          const maxStreams = Math.floor(canvas.width / cw * 0.6);
+          if (streams.length < maxStreams && Math.random() < 0.5) {
             streams.push(spawnStream());
           }
         }
@@ -7150,15 +7530,23 @@
           // occasionally mutate characters
           if (Math.random() < 0.1) {
             const idx = Math.floor(Math.random() * s.chars.length);
-            s.chars[idx] = chars[Math.floor(Math.random() * chars.length)];
+            const c = getChars(); s.chars[idx] = c[Math.floor(Math.random() * c.length)];
           }
 
           for (let i = 0; i < s.length; i++) {
-            const charY = s.y - i * cellH;
-            if (charY < -cellH || charY > canvas.height) continue;
+            const charY = s.y - i * ch;
+            if (charY < -ch || charY > canvas.height) continue;
 
             const fade = 1 - (i / s.length);
-            if (i === 0) {
+            if (toastMode) {
+              if (i === 0) {
+                ctx.fillStyle = `rgba(255, 220, 140, ${s.brightness})`;
+              } else {
+                const r = Math.floor(140 + fade * 80);
+                const g = Math.floor(80 + fade * 60);
+                ctx.fillStyle = `rgba(${r}, ${g}, 20, ${fade * s.brightness * 0.8})`;
+              }
+            } else if (i === 0) {
               // leading character is bright white-green
               ctx.fillStyle = `rgba(180, 255, 180, ${s.brightness})`;
             } else {
@@ -7169,7 +7557,7 @@
           }
 
           // keep stream alive while tail is still on screen
-          const tailY = s.y - s.length * cellH;
+          const tailY = s.y - s.length * ch;
           if (tailY < canvas.height) {
             alive.push(s);
           }
@@ -7188,7 +7576,7 @@
           canvas.style.transition = "";
           streams = [];
           // seed a few initial streams
-          for (let i = 0; i < 5 + Math.floor(Math.random() * 8); i++) {
+          for (let i = 0; i < 20 + Math.floor(Math.random() * 30); i++) {
             const s = spawnStream();
             s.y = Math.random() * canvas.height;
             streams.push(s);
@@ -7216,7 +7604,8 @@
     // --- Cursor proximity distortion ---
     function initCursorProximity() {
       const nameEl = document.getElementById("name");
-      const colors = ["#0ff", "#f0f", "#f00", "#0f0", "#ff0"];
+      const _proxColors = ["#0ff", "#f0f", "#f00", "#0f0", "#ff0"];
+      function getProxColors() { return toastMode ? toastColors : _proxColors; }
       const radius = 120;
       let mouseX = -9999, mouseY = -9999;
       let rafId = null;
@@ -7246,8 +7635,9 @@
             ch.style.transform = `translate(${pushX.toFixed(1)}px, ${pushY.toFixed(1)}px) skewX(${skew.toFixed(1)}deg)`;
 
             if (force > 0.3) {
-              ch.style.color = colors[Math.floor(Math.random() * colors.length)];
-              ch.style.textShadow = `${(Math.random()-0.5)*force*8}px ${(Math.random()-0.5)*force*4}px ${colors[Math.floor(Math.random()*colors.length)]}`;
+              const pc = getProxColors();
+              ch.style.color = pc[Math.floor(Math.random() * pc.length)];
+              ch.style.textShadow = `${(Math.random()-0.5)*force*8}px ${(Math.random()-0.5)*force*4}px ${pc[Math.floor(Math.random()*pc.length)]}`;
             }
             if (force > 0.6) {
               ch.style.opacity = (0.5 + Math.random() * 0.5).toFixed(2);
@@ -7271,7 +7661,7 @@
         forceGlitch(0.9 + Math.random() * 0.1);
         if (artifactsEnabled) {
           matrix.start();
-          setTimeout(() => matrix.stop(), 800 + Math.random() * 1200);
+          setTimeout(() => matrix.stop(), 3000 + Math.random() * 4000);
         }
       });
     }
@@ -7280,9 +7670,8 @@
 
     // --- Favicon glitch ---
     function initFaviconGlitch() {
-      const favicons = [];
       const size = 32;
-      const designs = [
+      const normalDesigns = [
         // pixel B
         (ctx) => {
           ctx.fillStyle = "#0ff";
@@ -7326,14 +7715,68 @@
           }));
         },
       ];
+      const toastDesigns = [
+        // toast slice
+        (ctx) => {
+          ctx.fillStyle = "#d4a044";
+          ctx.fillRect(6, 4, 20, 24);
+          ctx.fillStyle = "#eab762";
+          ctx.fillRect(8, 6, 16, 20);
+          ctx.fillStyle = "#c08134";
+          ctx.fillRect(6, 4, 20, 3);
+          ctx.fillRect(6, 25, 20, 3);
+          ctx.fillRect(6, 4, 3, 24);
+          ctx.fillRect(23, 4, 3, 24);
+        },
+        // bread loaf
+        (ctx) => {
+          ctx.fillStyle = "#c08134";
+          ctx.fillRect(4, 10, 24, 16);
+          ctx.fillStyle = "#eab762";
+          ctx.fillRect(4, 8, 24, 10);
+          ctx.fillStyle = "#d4a044";
+          ctx.fillRect(8, 12, 3, 8);
+          ctx.fillRect(16, 12, 3, 8);
+        },
+        // croissant
+        (ctx) => {
+          ctx.fillStyle = "#e6a445";
+          ctx.beginPath();
+          ctx.arc(16, 16, 10, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#f4c366";
+          ctx.beginPath();
+          ctx.arc(16, 14, 7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#d49530";
+          ctx.fillRect(8, 18, 16, 3);
+        },
+        // toaster
+        (ctx) => {
+          ctx.fillStyle = "#c0c8d8";
+          ctx.fillRect(6, 10, 20, 16);
+          ctx.fillStyle = "#e0e6f0";
+          ctx.fillRect(8, 12, 16, 10);
+          ctx.fillStyle = "#d4a044";
+          ctx.fillRect(11, 4, 4, 10);
+          ctx.fillRect(17, 6, 4, 8);
+        },
+      ];
 
-      for (const draw of designs) {
-        const c = document.createElement("canvas");
-        c.width = size; c.height = size;
-        const ctx = c.getContext("2d");
-        draw(ctx);
-        favicons.push(c.toDataURL());
+      function buildFavicons(designs) {
+        const favs = [];
+        for (const draw of designs) {
+          const c = document.createElement("canvas");
+          c.width = size; c.height = size;
+          const ctx = c.getContext("2d");
+          draw(ctx);
+          favs.push(c.toDataURL());
+        }
+        return favs;
       }
+
+      const normalFavicons = buildFavicons(normalDesigns);
+      const toastFavicons = buildFavicons(toastDesigns);
 
       let link = document.querySelector('link[rel="icon"]');
       if (!link) {
@@ -7343,7 +7786,8 @@
       }
 
       function cycle() {
-        link.href = favicons[Math.floor(Math.random() * favicons.length)];
+        const favs = toastMode ? toastFavicons : normalFavicons;
+        link.href = favs[Math.floor(Math.random() * favs.length)];
         setTimeout(cycle, 2000 + Math.random() * 5000);
       }
       cycle();
@@ -7383,10 +7827,13 @@
     // --- Name/Email rotation with glitch decode ---
     function initNameRotation() {
       const nameEl = document.getElementById("name");
-      const texts = ["Brad Dwyer", "brad@dwyer.au", "dwyer.au"];
+      const normalTexts = ["Brad Dwyer", "brad@dwyer.au", "dwyer.au"];
+      const toastTexts = ["bread dryer", "bread@dwyer.au", "dwyer.au"];
+      function getTexts() { return toastMode ? toastTexts : normalTexts; }
       let currentIdx = 0;
       const glitchChars = "アイウエオカキクケコサシスセソ0123456789ABCDEF@#$%&*<>/{}();=+^~!?░▒▓█▀▄■□◊◄►";
-      const colors = ["#0ff", "#f0f", "#f00", "#0f0", "#ff0", "#f80", "#fff"];
+      const _rotColors = ["#0ff", "#f0f", "#f00", "#0f0", "#ff0", "#f80", "#fff"];
+      function getRotColors() { return toastMode ? toastColors : _rotColors; }
       let transitioning = false;
 
       function scrambleTo(targetText) {
@@ -7435,16 +7882,17 @@
               if (i < targetText.length && Math.random() < 0.15) {
                 span.textContent = targetText[i] === " " ? "\u00A0" : targetText[i];
                 span.style.color = "#fff";
-                span.style.textShadow = "0 0 8px #0ff";
+                span.style.textShadow = toastMode ? "0 0 8px #d4a044" : "0 0 8px #0ff";
               } else {
                 span.textContent = glitchChars[Math.floor(Math.random() * glitchChars.length)];
-                span.style.color = colors[Math.floor(Math.random() * colors.length)];
+                const rc = getRotColors();
+                span.style.color = rc[Math.floor(Math.random() * rc.length)];
                 const jitterX = (Math.random() - 0.5) * 12;
                 const jitterY = (Math.random() - 0.5) * 8;
                 const skew = (Math.random() - 0.5) * 35;
                 const scale = 0.5 + Math.random() * 1.0;
                 span.style.transform = `translate(${jitterX}px, ${jitterY}px) skewX(${skew}deg) scale(${scale})`;
-                span.style.textShadow = `${(Math.random()-0.5)*6}px ${(Math.random()-0.5)*3}px ${colors[Math.floor(Math.random() * colors.length)]}`;
+                span.style.textShadow = `${(Math.random()-0.5)*6}px ${(Math.random()-0.5)*3}px ${rc[Math.floor(Math.random() * rc.length)]}`;
                 if (Math.random() < 0.25) span.style.opacity = "0";
               }
               nameEl.appendChild(span);
@@ -7463,7 +7911,7 @@
               nameEl.appendChild(span);
             }
             nameEl.setAttribute("data-text", targetText);
-            setTimeout(() => matrix.stop(), 300);
+            setTimeout(() => matrix.stop(), 2000 + Math.random() * 2000);
             transitioning = false;
           }
         }, 35);
@@ -7471,15 +7919,16 @@
 
       function scheduleNext() {
         setTimeout(() => {
-          currentIdx = (currentIdx + 1) % texts.length;
-          scrambleTo(texts[currentIdx]);
+          const t = getTexts();
+          currentIdx = (currentIdx + 1) % t.length;
+          scrambleTo(t[currentIdx]);
           scheduleNext();
         }, 25000 + Math.random() * 10000);
       }
 
       setTimeout(() => {
         currentIdx = 1;
-        scrambleTo(texts[1]);
+        scrambleTo(getTexts()[1]);
         scheduleNext();
       }, 30000);
     }
@@ -7491,10 +7940,10 @@
       const W = canvas.width = window.innerWidth;
       const H = canvas.height = window.innerHeight;
 
-      // Show only "Brad" behind the static — "Dwyer" types in after reveal
+      // Show "dwyer.au" behind the static — transforms to "Brad Dwyer" after reveal
       const nameEl = document.getElementById("name");
-      nameEl.textContent = "Brad";
-      nameEl.setAttribute("data-text", "Brad");
+      nameEl.textContent = "dwyer.au";
+      nameEl.setAttribute("data-text", "dwyer.au");
 
       let frame = 0;
       const FPS = 30;
@@ -7680,27 +8129,60 @@
       glitchOutWarning(() => {
         runHBOIntro(() => {
           const nameEl = document.getElementById("name");
-          // Type out " Dwyer" one character at a time
-          const suffix = " Dwyer";
-          let i = 0;
-          function typeNextChar() {
-            if (i < suffix.length) {
-              nameEl.textContent += suffix[i];
+          // Delete ".au", cursor back to start, type "brad ", cursor to end
+          const deleteChars = ".au";
+          let delIdx = 0;
+          function deleteAu() {
+            if (delIdx < deleteChars.length) {
+              const cur = nameEl.textContent;
+              nameEl.textContent = cur.slice(0, -1);
               nameEl.setAttribute("data-text", nameEl.textContent);
-              i++;
-              setTimeout(typeNextChar, 80);
+              delIdx++;
+              setTimeout(deleteAu, 200 + Math.random() * 150);
             } else {
+              // Now we have "dwyer" — move cursor to front, then type "Brad "
+              nameEl.classList.add("no-cursor");
+              nameEl.textContent = "";
+              const cur0 = document.createElement("span");
+              cur0.className = "inline-cursor";
+              cur0.textContent = "_";
+              nameEl.appendChild(cur0);
+              nameEl.appendChild(document.createTextNode("dwyer"));
+              nameEl.setAttribute("data-text", "dwyer");
+              setTimeout(prependBrad, 1200);
+            }
+          }
+          let prependIdx = 0;
+          const prefix = "Brad ";
+          function prependBrad() {
+            if (prependIdx < prefix.length) {
+              const typed = prefix.slice(0, prependIdx + 1);
+              nameEl.textContent = "";
+              nameEl.appendChild(document.createTextNode(typed));
+              const cur = document.createElement("span");
+              cur.className = "inline-cursor";
+              cur.textContent = "_";
+              nameEl.appendChild(cur);
+              nameEl.appendChild(document.createTextNode("dwyer"));
+              nameEl.setAttribute("data-text", typed + "dwyer");
+              prependIdx++;
+              setTimeout(prependBrad, 300 + Math.random() * 400);
+            } else {
+              // Done — restore normal cursor at end
+              nameEl.classList.remove("no-cursor");
+              nameEl.textContent = "Brad Dwyer";
+              nameEl.setAttribute("data-text", "Brad Dwyer");
               wrapChars(nameEl);
               startGlitch();
               initInteractionGlitch();
               initCursorProximity();
               glitchStarted = true;
-              setTimeout(() => { artifactsEnabled = true; }, 15000);
+              setTimeout(() => { artifactsEnabled = true; }, 7500);
               setTimeout(typeMessage, 800);
               initNameRotation();
             }
           }
-          typeNextChar();
+          deleteAu();
         });
       });
     }
@@ -7747,6 +8229,318 @@
         }
       }
     }, 50);
+
+    // --- Toast time prompt ---
+    function showToastPrompt() {
+      const prompt = document.getElementById("toast-prompt");
+      const timerBar = prompt.querySelector(".toast-timer");
+      const yesBtn = document.getElementById("toast-yes");
+      const duration = 5000;
+      const start = Date.now();
+      prompt.classList.add("visible");
+      timerBar.style.width = "100%";
+
+      const tick = setInterval(() => {
+        const elapsed = Date.now() - start;
+        const pct = Math.max(0, 1 - elapsed / duration);
+        timerBar.style.width = (pct * 100) + "%";
+        if (elapsed >= duration) {
+          clearInterval(tick);
+          prompt.classList.add("hiding");
+          setTimeout(() => {
+            prompt.classList.remove("visible", "hiding");
+          }, 500);
+        }
+      }, 50);
+
+      function activate() {
+        clearInterval(tick);
+        prompt.classList.add("hiding");
+        setTimeout(() => { prompt.classList.remove("visible", "hiding"); }, 500);
+        enterToastMode();
+      }
+      yesBtn.addEventListener("click", activate, { once: true });
+    }
+
+    // --- Toast mode counter (persisted) ---
+    let toastCount = 0;
+    try { toastCount = parseInt(localStorage.getItem("toastCount") || "0", 10); } catch(e) {}
+
+    function enterToastMode() {
+      if (toastMode) return;
+      toastMode = true;
+      toastCount++;
+      try { localStorage.setItem("toastCount", String(toastCount)); } catch(e) {}
+
+      const nameEl = document.getElementById("name");
+      const center = document.querySelector(".center");
+
+      // --- Ding! sound ---
+      try {
+        const actx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = actx.createOscillator();
+        const gain = actx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(1200, actx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, actx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.3, actx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.6);
+        osc.connect(gain);
+        gain.connect(actx.destination);
+        osc.start();
+        osc.stop(actx.currentTime + 0.6);
+      } catch (e) {}
+
+      // --- Toast pop! — page bounces up like bread from a toaster ---
+      if (center) {
+        center.style.transition = "transform 0.15s ease-out";
+        center.style.transform = "translateY(-60px)";
+        setTimeout(() => {
+          center.style.transition = "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)";
+          center.style.transform = "translateY(0)";
+        }, 150);
+        setTimeout(() => { center.style.transition = ""; center.style.transform = ""; }, 600);
+      }
+
+      // --- Kill all existing artifacts/game scenes ---
+      document.querySelectorAll(".artifact").forEach(el => glitchKillArtifact(el));
+      activeSceneTypes.clear();
+
+      // --- Glitch-transition to "bread dryer" ---
+      forceGlitch(1.0);
+      nameEl.textContent = "bread dryer";
+      nameEl.setAttribute("data-text", "bread dryer");
+      wrapChars(nameEl);
+
+      // --- Dough rise animation ---
+      setTimeout(() => {
+        nameEl.style.transition = "transform 2s ease-in-out";
+        nameEl.style.transform = "scaleY(1.15) scaleX(1.05)";
+        setTimeout(() => {
+          nameEl.style.transform = "scaleY(1.0) scaleX(1.0)";
+        }, 2000);
+        setTimeout(() => { nameEl.style.transition = ""; nameEl.style.transform = ""; }, 4000);
+      }, 700);
+
+      // --- Warm color overlay, scanlines, burnt vignette ---
+      const style = document.createElement("style");
+      style.id = "toast-style";
+      style.textContent = `
+        body::before {
+          background: repeating-linear-gradient(0deg,
+            transparent,
+            transparent 2px,
+            rgba(180, 120, 40, 0.06) 2px,
+            rgba(180, 120, 40, 0.06) 4px) !important;
+        }
+        body { background: #12100a !important; }
+        body::after {
+          content: "";
+          position: fixed;
+          top: 0; left: 0; width: 100%; height: 100%;
+          pointer-events: none;
+          z-index: 996;
+          background: radial-gradient(ellipse at center, transparent 40%, rgba(40, 20, 5, 0.6) 100%);
+        }
+      `;
+      document.head.appendChild(style);
+
+      // --- Steam wisps rising from name ---
+      let steamInterval;
+      function spawnSteam() {
+        if (!toastMode) return;
+        const nameRect = nameEl.getBoundingClientRect();
+        const wisp = document.createElement("div");
+        const x = nameRect.left + Math.random() * nameRect.width;
+        wisp.textContent = ["~", "≈", "∿", "∼"][Math.floor(Math.random() * 4)];
+        wisp.style.cssText = `position:fixed;left:${x}px;top:${nameRect.top}px;color:rgba(212,160,68,0.5);font-size:${10+Math.random()*10}px;pointer-events:none;z-index:997;transition:transform 3s ease-out,opacity 3s ease-out;opacity:0.6;`;
+        document.body.appendChild(wisp);
+        requestAnimationFrame(() => {
+          wisp.style.transform = `translateY(-${40+Math.random()*60}px) translateX(${(Math.random()-0.5)*30}px)`;
+          wisp.style.opacity = "0";
+        });
+        setTimeout(() => wisp.remove(), 3200);
+      }
+      steamInterval = setInterval(spawnSteam, 400);
+
+      // --- Fermentation bubbles ---
+      let bubbleInterval;
+      function spawnBubble() {
+        if (!toastMode) return;
+        const bubble = document.createElement("div");
+        const x = Math.random() * window.innerWidth;
+        const size = 4 + Math.random() * 8;
+        bubble.style.cssText = `position:fixed;left:${x}px;bottom:-20px;width:${size}px;height:${size}px;border-radius:50%;border:1px solid rgba(212,160,68,0.3);background:rgba(212,160,68,0.08);pointer-events:none;z-index:996;transition:transform 6s ease-out,opacity 5s ease-out;opacity:0.5;`;
+        document.body.appendChild(bubble);
+        requestAnimationFrame(() => {
+          bubble.style.transform = `translateY(-${window.innerHeight + 40}px) translateX(${(Math.random()-0.5)*60}px)`;
+          bubble.style.opacity = "0";
+        });
+        setTimeout(() => bubble.remove(), 6200);
+      }
+      bubbleInterval = setInterval(spawnBubble, 600);
+
+      // --- Butter drips ---
+      let butterInterval;
+      function spawnButterDrip() {
+        if (!toastMode) return;
+        const drip = document.createElement("div");
+        const side = Math.random() < 0.5 ? "left" : "right";
+        const x = side === "left" ? Math.random() * 60 : window.innerWidth - Math.random() * 60;
+        const y = Math.random() * window.innerHeight * 0.3;
+        const height = 30 + Math.random() * 80;
+        drip.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${2+Math.random()*3}px;height:0px;background:linear-gradient(180deg,rgba(234,183,98,0.5),rgba(234,183,98,0));border-radius:0 0 2px 2px;pointer-events:none;z-index:996;transition:height 3s ease-in,opacity 4s ease-in;opacity:0.6;`;
+        document.body.appendChild(drip);
+        requestAnimationFrame(() => {
+          drip.style.height = height + "px";
+        });
+        setTimeout(() => {
+          drip.style.opacity = "0";
+        }, 3000);
+        setTimeout(() => drip.remove(), 4200);
+      }
+      butterInterval = setInterval(spawnButterDrip, 2000);
+
+      // --- Breadcrumb cursor trail ---
+      const crumbs = [];
+      function spawnCrumb(e) {
+        if (!toastMode) return;
+        if (Math.random() > 0.3) return;
+        const c = document.createElement("div");
+        c.textContent = ["·", "•", "∘", "°"][Math.floor(Math.random() * 4)];
+        c.style.cssText = `position:fixed;left:${e.clientX + (Math.random()-0.5)*12}px;top:${e.clientY + (Math.random()-0.5)*12}px;color:#d4a044;font-size:${6+Math.random()*8}px;pointer-events:none;z-index:997;opacity:0.7;transition:opacity 1.5s,transform 1.5s;`;
+        document.body.appendChild(c);
+        crumbs.push(c);
+        requestAnimationFrame(() => {
+          c.style.opacity = "0";
+          c.style.transform = `translateY(${10+Math.random()*20}px)`;
+        });
+        setTimeout(() => { c.remove(); }, 1600);
+      }
+      document.addEventListener("mousemove", spawnCrumb);
+
+      // --- Toast notification toasts (meta!) ---
+      const toastNotifs = [
+        "Your toast is ready!",
+        "Bread status: TOASTED",
+        "Crumb alert: sector 7",
+        "Yeast levels nominal",
+        "Gluten matrix stable",
+        "Sourdough starter: active",
+        "Oven preheated to 350°F",
+        "Crust integrity: 100%",
+        "Toasted " + toastCount + " time" + (toastCount === 1 ? "" : "s"),
+      ];
+      let toastNotifTimer;
+      function showToastNotif() {
+        if (!toastMode) return;
+        const notif = document.createElement("div");
+        const msg = toastNotifs[Math.floor(Math.random() * toastNotifs.length)];
+        notif.textContent = "🍞 " + msg;
+        const right = 16 + Math.random() * 40;
+        const top = 16 + Math.random() * (window.innerHeight * 0.6);
+        notif.style.cssText = `position:fixed;right:${right}px;top:${top}px;background:rgba(30,24,12,0.92);border:1px solid #d4a04466;color:#e8d5b0;font-family:"JetBrains Mono",monospace;font-size:0.72rem;padding:0.5rem 0.8rem;z-index:9997;opacity:0;transition:opacity 0.4s,transform 0.4s;pointer-events:none;`;
+        document.body.appendChild(notif);
+        requestAnimationFrame(() => { notif.style.opacity = "1"; });
+        setTimeout(() => {
+          notif.style.opacity = "0";
+          notif.style.transform = "translateY(-10px)";
+        }, 2500);
+        setTimeout(() => { notif.remove(); }, 3000);
+        toastNotifTimer = setTimeout(showToastNotif, 4000 + Math.random() * 6000);
+      }
+      toastNotifTimer = setTimeout(showToastNotif, 1000);
+
+      // --- Tab title cycling ---
+      const titlePuns = ["bread dryer", "on a roll", "the yeast i could do", "loafing around", "baked in", "well bread", "toast of the town", "knead to know basis", "rising to the occasion"];
+      let titleIdx = 0;
+      const titleInterval = setInterval(() => {
+        if (!toastMode) return;
+        titleIdx = (titleIdx + 1) % titlePuns.length;
+        document.title = titlePuns[titleIdx];
+      }, 3000);
+
+      // --- Toast count display ---
+      const counter = document.createElement("div");
+      counter.style.cssText = "position:fixed;bottom:8px;right:12px;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(212,160,68,0.35);pointer-events:none;z-index:9997;letter-spacing:0.1em;";
+      counter.textContent = "toasted " + toastCount + "×";
+      document.body.appendChild(counter);
+
+      // --- Flour dust particles ---
+      let flourInterval;
+      function spawnFlour() {
+        if (!toastMode) return;
+        const f = document.createElement("div");
+        const x = Math.random() * window.innerWidth;
+        const y = Math.random() * window.innerHeight;
+        const size = 1 + Math.random() * 3;
+        const drift = (Math.random() - 0.5) * 80;
+        const fall = 20 + Math.random() * 40;
+        f.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${size}px;height:${size}px;border-radius:50%;background:rgba(255,255,245,${0.15 + Math.random()*0.25});pointer-events:none;z-index:997;transition:transform 4s linear,opacity 4s linear;opacity:${0.2+Math.random()*0.3};`;
+        document.body.appendChild(f);
+        requestAnimationFrame(() => {
+          f.style.transform = `translate(${drift}px, ${fall}px)`;
+          f.style.opacity = "0";
+        });
+        setTimeout(() => f.remove(), 4200);
+      }
+      flourInterval = setInterval(spawnFlour, 200);
+
+      // --- Warm glow pulse behind name ---
+      const glow = document.createElement("div");
+      glow.id = "toast-glow";
+      glow.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:400px;height:200px;border-radius:50%;background:radial-gradient(ellipse,rgba(212,160,68,0.12),transparent 70%);pointer-events:none;z-index:0;animation:toastGlow 3s ease-in-out infinite;";
+      document.body.appendChild(glow);
+      // inject the keyframe animation
+      const glowKeyframes = document.createElement("style");
+      glowKeyframes.id = "toast-glow-keyframes";
+      glowKeyframes.textContent = `@keyframes toastGlow { 0%,100% { opacity:0.4; transform:translate(-50%,-50%) scale(1); } 50% { opacity:1; transform:translate(-50%,-50%) scale(1.3); } }`;
+      document.head.appendChild(glowKeyframes);
+
+      // --- Revert after 2 minutes ---
+      setTimeout(() => {
+        toastMode = false;
+        document.title = "Brad Dwyer";
+        forceGlitch(1.0);
+        nameEl.textContent = "Brad Dwyer";
+        nameEl.setAttribute("data-text", "Brad Dwyer");
+        wrapChars(nameEl);
+        // cleanup
+        document.removeEventListener("mousemove", spawnCrumb);
+        crumbs.forEach(c => c.remove());
+        const ts = document.getElementById("toast-style");
+        if (ts) ts.remove();
+        clearTimeout(toastNotifTimer);
+        clearInterval(steamInterval);
+        clearInterval(bubbleInterval);
+        clearInterval(butterInterval);
+        clearInterval(titleInterval);
+        clearInterval(flourInterval);
+        counter.remove();
+        glow.remove();
+        const gk = document.getElementById("toast-glow-keyframes");
+        if (gk) gk.remove();
+      }, 120000);
+    }
+
+    // Show toast prompt randomly between 30-90s after page loads
+    setTimeout(showToastPrompt, 30000 + Math.random() * 60000);
+
+    // Press T to enter toast mode directly
+    // Also: type "bread" as a secret code
+    let breadBuffer = "";
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "t" || e.key === "T") {
+        if (!toastMode) enterToastMode();
+      }
+      // secret "bread" code
+      breadBuffer += e.key.toLowerCase();
+      if (breadBuffer.length > 10) breadBuffer = breadBuffer.slice(-10);
+      if (breadBuffer.endsWith("bread")) {
+        breadBuffer = "";
+        if (!toastMode) enterToastMode();
+      }
+    });
   </script>
 </body>
 </html>
